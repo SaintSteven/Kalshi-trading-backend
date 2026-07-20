@@ -1,6 +1,8 @@
 from datetime import datetime
 from typing import Literal
+
 from pydantic import BaseModel, Field
+
 
 class Market(BaseModel):
     sport: str = "MLB"
@@ -18,11 +20,13 @@ class Market(BaseModel):
     liquidity_dollars: float | None = None
     close_time: datetime | None = None
 
+
 class CardRequest(BaseModel):
     bankroll: float = Field(default=100.0, ge=0)
     already_committed_today: float = Field(default=0.0, ge=0)
     max_bet: float = Field(default=3.0, ge=0)
     date: str | None = None
+
 
 class CardRecommendation(BaseModel):
     ticker: str
@@ -36,6 +40,7 @@ class CardRecommendation(BaseModel):
     edge_points: float | None = None
     confidence: int | None = None
     suggested_stake: float = 0.0
+
 
 class CardResponse(BaseModel):
     status: str
