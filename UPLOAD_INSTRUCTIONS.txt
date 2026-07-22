@@ -1,0 +1,15 @@
+Replace these backend files in GitHub:
+- main.py
+- market_collector.py
+- models.py
+- test_market_collector.py
+
+After commit, Render redeploys automatically.
+
+Changes:
+- /markets defaults to tradable_only=true
+- hides 1¢/100¢ and 100¢/1¢ markets
+- hides markets with YES ask + NO ask above 110¢
+- /markets?tradable_only=false still shows all
+- /market-summary adds total/tradable/hidden/pitcher counts
+- backend version 0.3.0
