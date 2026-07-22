@@ -20,35 +20,57 @@ class Market(BaseModel):
     tradable: bool = False
     tradability_reasons: list[str] = []
 
+class PitcherProjectionInput(BaseModel):
+    player: str
+    baseline_k_per_batter: float = Field(ge=0, le=1)
+    expected_batters_faced: float = Field(gt=0, le=45)
+    opponent_k_multiplier: float = Field(default=1.0, ge=0.5, le=1.5)
+    workload_multiplier: float = Field(default=1.0, ge=0.5, le=1.25)
+    recent_form_multiplier: float = Field(default=1.0, ge=0.7, le=1.3)
+    starter_confirmed: bool = True
+    data_quality: Literal["HIGH", "MEDIUM", "LOW"] = "MEDIUM"
+    notes: str = ""
+
+class ProjectionResult(BaseModel):
+    player: str
+    projected_strikeouts: float
+    confidence: int
+    status: Literal["READY", "INSUFFICIENT_DATA"]
+    reasons: list[str]
+
+class PaperCardRequest(BaseModel):
+    bankroll: float = Field(default=100.0, ge=0)
+    already_committed_today: float = Field(default=0.0, ge=0)
+    max_bet: float = Field(default=1.0, ge=0)
+    date: str | None = None
+    minimum_edge_points: float = Field(default=5.0, ge=0, le=50)
+    projections: list[PitcherProjectionInput] = []
+
+class PaperRecommendation(BaseModel):
+    ticker: str
+    player: str
+    threshold: str
+    side: Literal["YES", "NO", "NONE"]
+    market_price_cents: int | None
+    fair_probability: float | None
+    edge_points: float | None
+    projected_strikeouts: float | None
+    confidence: int
+    decision: Literal["MODEL EDGE", "WATCH", "PASS", "INSUFFICIENT DATA"]
+    suggested_stake: float
+    reasons: list[str]
+
+class PaperCardResponse(BaseModel):
+    status: str
+    target_date: str
+    markets_reviewed: int
+    projections_matched: int
+    recommendations: list[PaperRecommendation]
+    message: str
+
 class MarketSummary(BaseModel):
     target_date: str
     total_markets: int
     tradable_markets: int
     hidden_markets: int
     pitchers: int
-
-class CardRequest(BaseModel):
-    bankroll: float = Field(default=100.0, ge=0)
-    already_committed_today: float = Field(default=0.0, ge=0)
-    max_bet: float = Field(default=3.0, ge=0)
-    date: str | None = None
-
-class CardRecommendation(BaseModel):
-    ticker: str
-    player: str
-    threshold: str
-    price_cents: int | None
-    decision: Literal["BUY", "WATCH", "PASS"]
-    reason: list[str]
-    projection: float | None = None
-    fair_probability: float | None = None
-    edge_points: float | None = None
-    confidence: int | None = None
-    suggested_stake: float = 0.0
-
-class CardResponse(BaseModel):
-    status: str
-    target_date: str
-    markets_reviewed: int
-    recommendations: list[CardRecommendation]
-    message: str
