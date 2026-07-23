@@ -1,16 +1,4 @@
-Kalshi Trading Backend v0.4 — Paper Projection Engine
-
-Replace existing files:
-- main.py
-- models.py
-- card_builder.py
-
-Add new files:
-- projection_engine.py
-- probability_engine.py
-- pricing_engine.py
-- test_projection_engine.py
-
-Leave market_collector.py, config.py, render.yaml, requirements.txt, and .python-version unchanged.
-
-Important: this version does not automatically obtain pitcher data. POST /build-card accepts a projections array. Without those inputs, markets return INSUFFICIENT DATA. This is intentional and paper-only.
+Replace main.py, market_collector.py, and models.py.
+Add test_slate_resolver.py.
+Leave all other backend files unchanged.
+After Render redeploys, /health should show 0.4.1. Then retry POST /build-card.
