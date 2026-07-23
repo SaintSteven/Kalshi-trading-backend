@@ -1,28 +1,13 @@
-from models import Market, PaperRecommendation, ProjectionResult
-from probability_engine import poisson_probability_at_least
+from models import PaperRecommendation
 
-def threshold_number(value: str) -> int | None:
-    stripped=value.rstrip("+").strip()
-    return int(stripped) if stripped.isdigit() else None
-
-def evaluate_market(market: Market, projection: ProjectionResult | None, minimum_edge_points: float, max_bet: float) -> PaperRecommendation:
-    if projection is None or projection.status!="READY":
-        return PaperRecommendation(ticker=market.ticker,player=market.player,threshold=market.threshold,side="NONE",market_price_cents=None,fair_probability=None,edge_points=None,projected_strikeouts=None,confidence=projection.confidence if projection else 0,decision="INSUFFICIENT DATA",suggested_stake=0.0,reasons=["No validated pitcher projection was supplied."])
-    threshold=threshold_number(market.threshold)
-    if threshold is None:
-        return PaperRecommendation(ticker=market.ticker,player=market.player,threshold=market.threshold,side="NONE",market_price_cents=None,fair_probability=None,edge_points=None,projected_strikeouts=projection.projected_strikeouts,confidence=projection.confidence,decision="PASS",suggested_stake=0.0,reasons=["Could not parse the strikeout threshold."])
-    yes_fair=poisson_probability_at_least(projection.projected_strikeouts,threshold); no_fair=1.0-yes_fair
-    yes_edge=yes_fair*100-market.yes_ask_cents if market.yes_ask_cents is not None else -999
-    no_edge=no_fair*100-market.no_ask_cents if market.no_ask_cents is not None else -999
-    if yes_edge>=no_edge:
-        side,price,fair,edge="YES",market.yes_ask_cents,yes_fair,yes_edge
+def evaluate_market(m,p,min_edge):
+    if not p or p['status']!='READY':
+        return PaperRecommendation(ticker=m.ticker,player=m.player,threshold=m.threshold,side='NONE',market_price_cents=None,fair_probability=None,raw_edge_points=None,adjusted_edge_points=None,projected_strikeouts=None if not p else p['projected_strikeouts'],baseline_k_pct=None if not p else p['baseline_k_pct'],adjusted_k_pct=None if not p else p['adjusted_k_pct'],expected_batters_faced=None if not p else p['expected_batters_faced'],workload_floor=None if not p else p['workload_floor'],workload_ceiling=None if not p else p['workload_ceiling'],confidence={} if not p else p['confidence'],decision='INSUFFICIENT DATA',suggested_stake=0,reasons=['No validated projection available.'],warnings=[] if not p else p['warnings'])
+    yf=p['ladder_probabilities'].get(m.threshold)
+    if yf is None: side='NONE';price=fair=raw=adj=None;decision='PASS';reasons=['No simulated probability for this ladder.']
     else:
-        side,price,fair,edge="NO",market.no_ask_cents,no_fair,no_edge
-    reasons=list(projection.reasons)+[f"Best raw side is {side} with {edge:.1f} percentage points of model edge."]
-    if edge<0:
-        decision="PASS"; reasons.append("Best available side is still priced above model fair value.")
-    elif edge<minimum_edge_points:
-        decision="WATCH"; reasons.append("Positive edge is below the paper-card threshold.")
-    else:
-        decision="MODEL EDGE"; reasons.append("Paper-only model edge. Real-money BUY labels remain disabled pending validation.")
-    return PaperRecommendation(ticker=market.ticker,player=market.player,threshold=market.threshold,side=side,market_price_cents=price,fair_probability=round(fair*100,1),edge_points=round(edge,1),projected_strikeouts=projection.projected_strikeouts,confidence=projection.confidence,decision=decision,suggested_stake=0.0,reasons=reasons)
+        nf=1-yf;ye=yf*100-m.yes_ask_cents if m.yes_ask_cents is not None else -999;ne=nf*100-m.no_ask_cents if m.no_ask_cents is not None else -999
+        if ye>=ne:side='YES';price=m.yes_ask_cents;fair=yf*100;raw=ye
+        else:side='NO';price=m.no_ask_cents;fair=nf*100;raw=ne
+        adj=raw*p['confidence']['overall']/100;decision='PASS' if raw<0 else ('MODEL EDGE' if adj>=min_edge else 'WATCH');reasons=[f'Best side {side}.',f'Raw edge {raw:.1f}.',f'Adjusted edge {adj:.1f}.','Paper-only; stake remains $0.']
+    return PaperRecommendation(ticker=m.ticker,player=m.player,threshold=m.threshold,side=side,market_price_cents=price,fair_probability=None if fair is None else round(fair,1),raw_edge_points=None if raw is None else round(raw,1),adjusted_edge_points=None if adj is None else round(adj,1),projected_strikeouts=p['projected_strikeouts'],baseline_k_pct=p['baseline_k_pct'],adjusted_k_pct=p['adjusted_k_pct'],expected_batters_faced=p['expected_batters_faced'],workload_floor=p['workload_floor'],workload_ceiling=p['workload_ceiling'],confidence=p['confidence'],decision=decision,suggested_stake=0,reasons=reasons,warnings=p['warnings'])

@@ -1,19 +1,12 @@
-from models import PitcherProjectionInput, ProjectionResult
-QUALITY_SCORE={"HIGH":90,"MEDIUM":72,"LOW":55}
+from baseline_skill_model import build_regressed_k_rate
+from lineup_model import build_lineup_adjustment
+from workload_model import build_workload
+from recent_change_model import build_recent_change_multiplier
+from simulation_engine import run_strikeout_simulation
+from confidence_engine import build_confidence
 
-def build_projection(data: PitcherProjectionInput) -> ProjectionResult:
-    reasons=[]
-    if not data.starter_confirmed:
-        return ProjectionResult(player=data.player,projected_strikeouts=0.0,confidence=25,status="INSUFFICIENT_DATA",reasons=["Starter status is not confirmed."])
-    if data.baseline_k_per_batter <= 0:
-        return ProjectionResult(player=data.player,projected_strikeouts=0.0,confidence=20,status="INSUFFICIENT_DATA",reasons=["Baseline strikeout rate is missing or invalid."])
-    mean=(data.baseline_k_per_batter*data.expected_batters_faced*data.opponent_k_multiplier*data.workload_multiplier*data.recent_form_multiplier)
-    confidence=QUALITY_SCORE[data.data_quality]
-    if data.expected_batters_faced < 18:
-        confidence-=12; reasons.append("Short expected workload lowers confidence.")
-    if abs(data.opponent_k_multiplier-1.0)>0.20:
-        confidence-=5; reasons.append("Large opponent adjustment increases model uncertainty.")
-    if abs(data.recent_form_multiplier-1.0)>0.15:
-        confidence-=5; reasons.append("Large recent-form adjustment increases variance.")
-    if not reasons: reasons.append("Projection inputs passed the basic validation checks.")
-    return ProjectionResult(player=data.player,projected_strikeouts=round(mean,2),confidence=max(1,min(99,confidence)),status="READY",reasons=reasons)
+def build_full_projection(d):
+    base,weights,sr=build_regressed_k_rate(d);lm,lr=build_lineup_adjustment(d);rm,rr=build_recent_change_multiplier(d);bf,floor,ceil,sd,wr=build_workload(d)
+    adj=max(.05,min(.55,base*lm*rm));sim=run_strikeout_simulation(adj,bf,floor,ceil,sd);conf=build_confidence(d)
+    status='READY' if d.starter_confirmed else 'INSUFFICIENT_DATA';warnings=[] if d.starter_confirmed else ['Starter is not confirmed.']
+    return {'player':d.player,'status':status,'baseline_k_pct':round(base*100,2),'adjusted_k_pct':round(adj*100,2),'skill_weights':weights,'lineup_multiplier':lm,'recent_change_multiplier':rm,'expected_batters_faced':bf,'workload_floor':floor,'workload_ceiling':ceil,'workload_sd':sd,'projected_strikeouts':sim['projected_strikeouts'],'ladder_probabilities':sim['ladder_probabilities'],'confidence':conf,'warnings':warnings,'reasons':{'skill':sr,'lineup':lr,'recent_change':rr,'workload':wr}}

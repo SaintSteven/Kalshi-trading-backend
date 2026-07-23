@@ -1,10 +1,9 @@
-from models import Market, PaperCardRequest
+from projection_engine import build_full_projection
 from pricing_engine import evaluate_market
-from projection_engine import build_projection
 
-def build_paper_card(markets: list[Market], request: PaperCardRequest):
-    projection_map={item.player.strip().lower():build_projection(item) for item in request.projections}
-    recommendations=[evaluate_market(m,projection_map.get(m.player.strip().lower()),request.minimum_edge_points,request.max_bet) for m in markets]
-    recommendations.sort(key=lambda x:(x.decision!="MODEL EDGE",-(x.edge_points if x.edge_points is not None else -999),-x.confidence,x.player))
-    matched=sum(1 for m in markets if m.player.strip().lower() in projection_map)
-    return recommendations,matched
+def build_paper_card(markets,request):
+    pmap={p.player.strip().lower():build_full_projection(p) for p in request.pitchers}
+    recs=[evaluate_market(m,pmap.get(m.player.strip().lower()),request.minimum_edge_points) for m in markets]
+    rank={'MODEL EDGE':0,'WATCH':1,'PASS':2,'INSUFFICIENT DATA':3}
+    recs.sort(key=lambda x:(rank[x.decision],-(x.adjusted_edge_points if x.adjusted_edge_points is not None else -999),-x.confidence.get('overall',0),x.player,x.threshold))
+    return recs,sum(1 for m in markets if m.player.strip().lower() in pmap)
