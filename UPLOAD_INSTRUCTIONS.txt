@@ -1,3 +1,4 @@
-Replace: main.py, models.py, card_builder.py, projection_engine.py, pricing_engine.py
-Add: projection_inputs.py, baseline_skill_model.py, lineup_model.py, workload_model.py, recent_change_model.py, simulation_engine.py, confidence_engine.py, test_baseline_model.py
-Leave market_collector.py and deployment files unchanged. After deployment /health should show 0.5.0.
+Replace main.py and models.py.
+Add mlb_data_collector.py and automatic_input_builder.py.
+Leave all other backend files unchanged.
+After deployment, /health should show 0.6.0 and /research-inputs should return probable starters.
