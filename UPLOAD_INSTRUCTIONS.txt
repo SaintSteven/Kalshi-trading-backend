@@ -1,4 +1,21 @@
-Replace main.py and models.py.
-Add mlb_data_collector.py and automatic_input_builder.py.
-Leave all other backend files unchanged.
-After deployment, /health should show 0.6.0 and /research-inputs should return probable starters.
+Kalshi Trading Backend v0.7 — Validated Research Engine
+
+Replace:
+- main.py
+- mlb_data_collector.py
+- automatic_input_builder.py
+
+Add or replace:
+- test_mlb_data_collector.py
+
+Leave all other files unchanged.
+
+After Render redeploys:
+1. /health should show version 0.7.0
+2. /research-inputs should show individual-start pitch counts such as 88, 96, 103
+3. expected_batters_faced should usually be roughly 18-30
+4. workload_floor must be <= workload_ceiling
+5. failed sanity checks appear in data_warnings
+6. /build-card excludes automatic pitcher records with data_warnings
+
+This remains paper-only.
