@@ -1,0 +1,13 @@
+In main.py:
+
+1. Change version to 0.9.0.
+2. Add imports:
+   from backtest_engine import run_backtest
+   from backtest_models import BacktestRequest, BacktestResponse
+3. Add endpoint:
+
+@app.post("/backtest", response_model=BacktestResponse)
+async def backtest(request: BacktestRequest):
+    return run_backtest(request)
+
+4. Add "backtesting" to the /health pipeline list.

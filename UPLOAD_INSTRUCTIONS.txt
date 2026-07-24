@@ -1,18 +1,29 @@
-Kalshi Trading Backend v0.8
-
-Replace:
-- main.py
+Kalshi Trading Backend v0.9 — Backtesting Framework
 
 Add:
-- research_pipeline.py
-- feature_engineering.py
-- pipeline_card_builder.py
+- backtest_models.py
+- backtest_metrics.py
+- backtest_engine.py
+- historical_result_builder.py
+- test_backtest_engine.py
+- example_backtest_request.json
 
-Leave all v0.7 files unchanged.
+Then apply the small main.py edit shown in main_patch.txt.
 
-After deploy:
-- /health should show 0.8.0
-- /research-pipeline should show engineered features
-- /build-card should run through the new pipeline
+After deployment:
+- /health should show 0.9.0
+- /docs should show POST /backtest
+- Test /backtest with example_backtest_request.json
 
-Still paper-only. Confirmed lineups, Statcast, sportsbook consensus, weather, and umpire inputs remain inactive.
+Metrics:
+- MAE
+- RMSE
+- mean error
+- over/under projection rate
+- Brier score by ladder
+- log loss by ladder
+- calibration error
+- 10% calibration buckets
+- feature segments
+
+This does not yet download a full historical season automatically.

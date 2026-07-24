@@ -1,0 +1,21 @@
+{
+  "model_version":"0.9.0",
+  "starts":[
+    {
+      "player":"Example Pitcher A",
+      "game_date":"2026-07-01",
+      "actual_strikeouts":6,
+      "projected_strikeouts":5.7,
+      "ladder_probabilities":{"4+":0.82,"5+":0.68,"6+":0.51,"7+":0.34},
+      "features":{"pitcher_hand":"R","lineup_confirmed":false,"advanced_statcast_active":false}
+    },
+    {
+      "player":"Example Pitcher B",
+      "game_date":"2026-07-01",
+      "actual_strikeouts":3,
+      "projected_strikeouts":4.4,
+      "ladder_probabilities":{"4+":0.62,"5+":0.43,"6+":0.27,"7+":0.15},
+      "features":{"pitcher_hand":"L","lineup_confirmed":false,"advanced_statcast_active":false}
+    }
+  ]
+}
