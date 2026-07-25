@@ -1,29 +1,15 @@
-Kalshi Trading Backend v0.9 — Backtesting Framework
+This package fixes the confusing v0.9 instructions.
 
-Add:
+Upload ALL FOUR files to the ROOT of your GitHub repository:
+- main.py (replace the existing main.py)
 - backtest_models.py
 - backtest_metrics.py
 - backtest_engine.py
-- historical_result_builder.py
-- test_backtest_engine.py
-- example_backtest_request.json
 
-Then apply the small main.py edit shown in main_patch.txt.
+Do not upload main_patch.txt.
+Do not put the files inside a folder.
 
-After deployment:
-- /health should show 0.9.0
-- /docs should show POST /backtest
-- Test /backtest with example_backtest_request.json
-
-Metrics:
-- MAE
-- RMSE
-- mean error
-- over/under projection rate
-- Brier score by ladder
-- log loss by ladder
-- calibration error
-- 10% calibration buckets
-- feature segments
-
-This does not yet download a full historical season automatically.
+After GitHub finishes:
+1. Render should redeploy automatically.
+2. /health should show version 0.9.1.
+3. /docs should show POST /backtest.
