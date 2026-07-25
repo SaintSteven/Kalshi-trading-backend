@@ -1,21 +1,13 @@
-Kalshi Trading Backend v1.1 — Lineup Experiment
+Kalshi Trading Backend v1.1.1 — Import Fix
 
-Upload ALL FOUR files to the ROOT of GitHub:
-- main.py (replace the existing main.py)
+Replace only:
 - lineup_experiment.py
-- lineup_experiment_models.py
-- example_lineup_experiment_request.json
 
-Do not use main_patch.txt. No manual code editing is needed.
+The failed deployment occurred because lineup_experiment.py imported long function names that do not exist in the current historical_backtest_collector.py. The repository uses short names such as schedule, boxscore, actual_starters, fetch, person, and game_log.
 
-After deployment:
-1. /health should show version 1.1.0
-2. /docs should show POST /lineup-experiment
-3. Test one day first using example_lineup_experiment_request.json
+No other files need to change.
 
-Interpretation:
-- mae_change below 0 = lineup model improved MAE
-- rmse_change below 0 = lineup model improved RMSE
-- improved true = lineup model beat the team-K% baseline
-
-This remains paper-only.
+After upload:
+1. Render should redeploy automatically.
+2. /health should show version 1.1.0 because main.py does not need to change.
+3. /docs should show POST /lineup-experiment.
