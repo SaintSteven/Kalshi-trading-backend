@@ -1,15 +1,20 @@
-This package fixes the confusing v0.9 instructions.
+Kalshi Trading Backend v1.0 — Historical Backtesting
 
-Upload ALL FOUR files to the ROOT of your GitHub repository:
-- main.py (replace the existing main.py)
-- backtest_models.py
-- backtest_metrics.py
-- backtest_engine.py
+Upload to the ROOT of GitHub:
 
-Do not upload main_patch.txt.
-Do not put the files inside a folder.
+Replace:
+- main.py
 
-After GitHub finishes:
-1. Render should redeploy automatically.
-2. /health should show version 0.9.1.
-3. /docs should show POST /backtest.
+Add:
+- historical_backtest_collector.py
+- historical_backtest_models.py
+- example_historical_backtest_request.json
+
+Leave all existing v0.9.1 files unchanged.
+
+After deployment:
+1. /health should show 1.0.0
+2. /docs should show POST /historical-backtest
+3. Test with example_historical_backtest_request.json
+
+The backtest uses only information available before each game. A run is limited to 14 days by default to reduce timeout risk. This remains paper-only.
