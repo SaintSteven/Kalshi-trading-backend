@@ -1,13 +1,19 @@
-In main.py:
+Update main.py:
+1. Change version to 1.3.0.
+2. Import:
+from workload_experiment import run_workload_experiment
+from workload_experiment_models import WorkloadExperimentRequest, WorkloadExperimentResponse
+3. Add "workload_experiment" to /health pipeline.
+4. Add endpoint:
 
-1. Change version to 0.9.0.
-2. Add imports:
-   from backtest_engine import run_backtest
-   from backtest_models import BacktestRequest, BacktestResponse
-3. Add endpoint:
-
-@app.post("/backtest", response_model=BacktestResponse)
-async def backtest(request: BacktestRequest):
-    return run_backtest(request)
-
-4. Add "backtesting" to the /health pipeline list.
+@app.post("/workload-experiment", response_model=WorkloadExperimentResponse)
+async def workload_experiment(request: WorkloadExperimentRequest):
+    result = await run_workload_experiment(request.start_date, request.end_date, request.max_days)
+    return WorkloadExperimentResponse(
+        start_date=request.start_date,
+        end_date=request.end_date,
+        records_collected=result["records_collected"],
+        records_skipped=result["records_skipped"],
+        comparison=result["comparison"],
+        warnings=result["warnings"],
+    )

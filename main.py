@@ -16,11 +16,13 @@ from model_lab_models import ModelLabRequest, ModelLabResponse
 from models import Market, MarketSummary, PaperCardRequest, PaperCardResponse
 from pipeline_card_builder import build_card_from_pipeline
 from research_pipeline import run_research_pipeline
+from workload_experiment import run_workload_experiment
+from workload_experiment_models import WorkloadExperimentRequest, WorkloadExperimentResponse
 
 
 app = FastAPI(
     title="Kalshi Trading Engine",
-    version="1.2.0",
+    version="1.3.0",
     description=(
         "Paper-only MLB research engine with leakage-safe "
         "historical backtesting and model experimentation."
@@ -40,7 +42,7 @@ app.add_middleware(
 async def root():
     return {
         "service": "Kalshi Trading Engine",
-        "version": "1.2.0",
+        "version": "1.3.0",
         "mode": "paper-only",
         "docs": "/docs",
     }
@@ -50,7 +52,7 @@ async def root():
 async def health():
     return {
         "status": "ok",
-        "version": "1.2.0",
+        "version": "1.3.0",
         "mode": "paper-only",
         "pipeline": [
             "collect",
@@ -62,6 +64,7 @@ async def health():
             "backtesting",
             "historical_collection",
             "lineup_experiment",
+            "workload_experiment",
             "model_lab",
         ],
         "time_utc": datetime.now(timezone.utc).isoformat(),
@@ -145,7 +148,7 @@ async def build_card(request: PaperCardRequest):
         automatic_pitchers_collected=len(pipeline.raw_inputs),
         projections_matched=matched,
         recommendations=recommendations,
-        message="v1.2 paper-only research engine active.",
+        message="v1.3 paper-only research engine active.",
     )
 
 
@@ -189,6 +192,28 @@ async def lineup_experiment(request: LineupExperimentRequest):
             request.max_days,
         )
         return LineupExperimentResponse(
+            start_date=request.start_date,
+            end_date=request.end_date,
+            records_collected=result["records_collected"],
+            records_skipped=result["records_skipped"],
+            comparison=result["comparison"],
+            warnings=result["warnings"],
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+
+
+@app.post("/workload-experiment", response_model=WorkloadExperimentResponse)
+async def workload_experiment(request: WorkloadExperimentRequest):
+    try:
+        result = await run_workload_experiment(
+            request.start_date,
+            request.end_date,
+            request.max_days,
+        )
+        return WorkloadExperimentResponse(
             start_date=request.start_date,
             end_date=request.end_date,
             records_collected=result["records_collected"],

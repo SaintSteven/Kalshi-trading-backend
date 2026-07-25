@@ -1,36 +1,16 @@
-Kalshi Trading Backend v1.2 — Model Lab
+Kalshi Trading Backend v1.3 — Workload Experiment
 
-Upload all files to the ROOT of GitHub.
+Add to the ROOT:
+- workload_experiment.py
+- workload_experiment_models.py
+- example_workload_experiment_request.json
 
-Replace:
-- main.py
+Then follow main_patch.txt.
 
-Add:
-- model_lab.py
-- model_lab_models.py
-- example_model_lab_request.json
+The experiment compares the existing workload model against a new blend using:
+- last 3 starts
+- last 5 starts
+- season BF/start
+- pitch-count-implied BF
 
-Leave all existing v1.1 files unchanged.
-
-After Render redeploys:
-1. /health should show version 1.2.0
-2. /docs should show POST /model-lab
-3. Test with example_model_lab_request.json
-
-The Model Lab currently compares:
-- baseline_team_k_pct
-- confirmed_lineup_k_pct
-
-It also reserves experiment slots for:
-- statcast_quality
-- velocity_trend
-- weather
-- umpire
-
-Interpretation:
-- mae_change_vs_baseline below 0 = improvement
-- rmse_change_vs_baseline below 0 = improvement
-- KEEP_CANDIDATE = feature beat baseline on MAE
-- REJECT_CANDIDATE = feature did not beat baseline on MAE
-
-This remains paper-only.
+Start with one day.
