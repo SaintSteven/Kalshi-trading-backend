@@ -1,20 +1,21 @@
-Kalshi Trading Backend v1.0 — Historical Backtesting
+Kalshi Trading Backend v1.1 — Lineup Experiment
 
-Upload to the ROOT of GitHub:
+Upload ALL FOUR files to the ROOT of GitHub:
+- main.py (replace the existing main.py)
+- lineup_experiment.py
+- lineup_experiment_models.py
+- example_lineup_experiment_request.json
 
-Replace:
-- main.py
-
-Add:
-- historical_backtest_collector.py
-- historical_backtest_models.py
-- example_historical_backtest_request.json
-
-Leave all existing v0.9.1 files unchanged.
+Do not use main_patch.txt. No manual code editing is needed.
 
 After deployment:
-1. /health should show 1.0.0
-2. /docs should show POST /historical-backtest
-3. Test with example_historical_backtest_request.json
+1. /health should show version 1.1.0
+2. /docs should show POST /lineup-experiment
+3. Test one day first using example_lineup_experiment_request.json
 
-The backtest uses only information available before each game. A run is limited to 14 days by default to reduce timeout risk. This remains paper-only.
+Interpretation:
+- mae_change below 0 = lineup model improved MAE
+- rmse_change below 0 = lineup model improved RMSE
+- improved true = lineup model beat the team-K% baseline
+
+This remains paper-only.
