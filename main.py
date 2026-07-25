@@ -11,14 +11,20 @@ from historical_backtest_models import HistoricalBacktestRequest, HistoricalBack
 from lineup_experiment import run_lineup_experiment
 from lineup_experiment_models import LineupExperimentRequest, LineupExperimentResponse
 from market_collector import collect_mlb_strikeout_markets, kalshi_ticker_date
+from model_lab import run_model_lab
+from model_lab_models import ModelLabRequest, ModelLabResponse
 from models import Market, MarketSummary, PaperCardRequest, PaperCardResponse
 from pipeline_card_builder import build_card_from_pipeline
 from research_pipeline import run_research_pipeline
 
+
 app = FastAPI(
     title="Kalshi Trading Engine",
-    version="1.1.0",
-    description="Paper-only MLB research engine with leakage-safe historical backtesting and lineup experiments.",
+    version="1.2.0",
+    description=(
+        "Paper-only MLB research engine with leakage-safe "
+        "historical backtesting and model experimentation."
+    ),
 )
 
 app.add_middleware(
@@ -29,23 +35,38 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 @app.get("/")
 async def root():
-    return {"service": "Kalshi Trading Engine", "version": "1.1.0", "mode": "paper-only", "docs": "/docs"}
+    return {
+        "service": "Kalshi Trading Engine",
+        "version": "1.2.0",
+        "mode": "paper-only",
+        "docs": "/docs",
+    }
+
 
 @app.get("/health")
 async def health():
     return {
         "status": "ok",
-        "version": "1.1.0",
+        "version": "1.2.0",
         "mode": "paper-only",
         "pipeline": [
-            "collect", "clean", "feature_engineering", "projection",
-            "pricing", "quality_control", "backtesting",
-            "historical_collection", "lineup_experiment",
+            "collect",
+            "clean",
+            "feature_engineering",
+            "projection",
+            "pricing",
+            "quality_control",
+            "backtesting",
+            "historical_collection",
+            "lineup_experiment",
+            "model_lab",
         ],
         "time_utc": datetime.now(timezone.utc).isoformat(),
     }
+
 
 @app.get("/research-pipeline")
 async def research_pipeline(date: str | None = None):
@@ -59,9 +80,11 @@ async def research_pipeline(date: str | None = None):
         "excluded": pipeline.excluded,
     }
 
+
 @app.get("/research-inputs")
 async def research_inputs(date: str | None = None):
     return (await run_research_pipeline(date)).raw_inputs
+
 
 @app.get("/markets", response_model=list[Market])
 async def markets(
@@ -80,10 +103,14 @@ async def markets(
     )
     return visible
 
+
 @app.get("/market-summary", response_model=MarketSummary)
 async def market_summary(date: str | None = None):
     requested = kalshi_ticker_date(date)
-    selected, _, all_markets = await collect_mlb_strikeout_markets(date, tradable_only=False)
+    selected, _, all_markets = await collect_mlb_strikeout_markets(
+        date,
+        tradable_only=False,
+    )
     tradable = sum(1 for market in all_markets if market.tradable)
     return MarketSummary(
         requested_slate=requested,
@@ -95,12 +122,20 @@ async def market_summary(date: str | None = None):
         pitchers=len({market.player for market in all_markets}),
     )
 
+
 @app.post("/build-card", response_model=PaperCardResponse)
 async def build_card(request: PaperCardRequest):
     requested = kalshi_ticker_date(request.date)
-    selected, markets, _ = await collect_mlb_strikeout_markets(request.date, tradable_only=True)
+    selected, markets, _ = await collect_mlb_strikeout_markets(
+        request.date,
+        tradable_only=True,
+    )
     pipeline = await run_research_pipeline(request.date)
-    recommendations, matched = build_card_from_pipeline(markets, request, pipeline)
+    recommendations, matched = build_card_from_pipeline(
+        markets,
+        request,
+        pipeline,
+    )
     return PaperCardResponse(
         status="research_pipeline_card_complete",
         requested_slate=requested,
@@ -110,21 +145,30 @@ async def build_card(request: PaperCardRequest):
         automatic_pitchers_collected=len(pipeline.raw_inputs),
         projections_matched=matched,
         recommendations=recommendations,
-        message="v1.1 paper-only research engine active.",
+        message="v1.2 paper-only research engine active.",
     )
+
 
 @app.post("/backtest", response_model=BacktestResponse)
 async def backtest(request: BacktestRequest):
     return run_backtest(request)
 
+
 @app.post("/historical-backtest", response_model=HistoricalBacktestResponse)
 async def historical_backtest(request: HistoricalBacktestRequest):
     try:
         raw_records, collection_warnings = await collect_historical_starts(
-            request.start_date, request.end_date, request.max_days
+            request.start_date,
+            request.end_date,
+            request.max_days,
         )
         starts = [HistoricalStart(**record) for record in raw_records]
-        metrics = run_backtest(BacktestRequest(starts=starts, model_version=request.model_version))
+        metrics = run_backtest(
+            BacktestRequest(
+                starts=starts,
+                model_version=request.model_version,
+            )
+        )
         return HistoricalBacktestResponse(
             start_date=request.start_date,
             end_date=request.end_date,
@@ -134,6 +178,7 @@ async def historical_backtest(request: HistoricalBacktestRequest):
         )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+
 
 @app.post("/lineup-experiment", response_model=LineupExperimentResponse)
 async def lineup_experiment(request: LineupExperimentRequest):
@@ -149,6 +194,29 @@ async def lineup_experiment(request: LineupExperimentRequest):
             records_collected=result["records_collected"],
             records_skipped=result["records_skipped"],
             comparison=result["comparison"],
+            warnings=result["warnings"],
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@app.post("/model-lab", response_model=ModelLabResponse)
+async def model_lab(request: ModelLabRequest):
+    try:
+        result = await run_model_lab(
+            request.start_date,
+            request.end_date,
+            request.max_days,
+        )
+        return ModelLabResponse(
+            start_date=request.start_date,
+            end_date=request.end_date,
+            baseline_name=result["baseline_name"],
+            records_collected=result["records_collected"],
+            records_skipped=result["records_skipped"],
+            experiments=result["experiments"],
+            best_experiment_by_mae=result["best_experiment_by_mae"],
+            best_experiment_by_rmse=result["best_experiment_by_rmse"],
             warnings=result["warnings"],
         )
     except ValueError as exc:
