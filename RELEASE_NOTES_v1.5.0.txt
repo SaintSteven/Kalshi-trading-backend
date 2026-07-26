@@ -1,0 +1,18 @@
+Kalshi Trading Backend v1.5.0
+
+Fixes and improvements:
+- Fair probabilities now use the API-standard decimal format (0.627), allowing
+  the dashboard to correctly display 62.7% instead of 6270.0%.
+- The card now returns only the strongest ladder per pitcher, preventing
+  multiple correlated recommendations for 4+, 5+, 6+, and other ladders.
+- MODEL EDGE recommendations now receive conservative paper stakes based on
+  adjusted edge, confidence, max bet, bankroll, and amount already committed.
+- Total new paper exposure is capped at 5% of bankroll per day.
+- WATCH and PASS entries remain at $0.00.
+- Version updated to 1.5.0.
+
+Expected dashboard behavior:
+- Luinder Avila 5+ should display Fair 62.7%, not 6270.0%.
+- Only one Luinder Avila ladder should appear.
+- Qualifying MODEL EDGE cards should show a nonzero paper stake, capped by the
+  Max Bet field.
