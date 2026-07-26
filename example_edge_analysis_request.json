@@ -1,0 +1,30 @@
+{
+  "minimum_edge_points": 5,
+  "fee_rate": 0,
+  "records": [
+    {
+      "player": "Example Pitcher A",
+      "game_date": "2026-07-01",
+      "threshold": "5+",
+      "side": "YES",
+      "model_probability": 0.64,
+      "entry_price_cents": 52,
+      "closing_price_cents": 58,
+      "actual_strikeouts": 7,
+      "model_version": "1.4.0",
+      "confidence": 0.78
+    },
+    {
+      "player": "Example Pitcher B",
+      "game_date": "2026-07-01",
+      "threshold": "6+",
+      "side": "NO",
+      "model_probability": 0.61,
+      "entry_price_cents": 49,
+      "closing_price_cents": 45,
+      "actual_strikeouts": 4,
+      "model_version": "1.4.0",
+      "confidence": 0.71
+    }
+  ]
+}

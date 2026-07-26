@@ -1,16 +1,27 @@
-Kalshi Trading Backend v1.3 — Workload Experiment
+Kalshi Trading Backend v1.4 — Edge Engine
 
-Add to the ROOT:
-- workload_experiment.py
-- workload_experiment_models.py
-- example_workload_experiment_request.json
+Add to the ROOT of GitHub:
+- edge_models.py
+- edge_engine.py
+- example_edge_analysis_request.json
 
-Then follow main_patch.txt.
+Then apply the small main.py change in main_patch.txt.
 
-The experiment compares the existing workload model against a new blend using:
-- last 3 starts
-- last 5 starts
-- season BF/start
-- pitch-count-implied BF
+After deployment:
+1. /health should show version 1.4.0
+2. /docs should show POST /edge-analysis
+3. Test with example_edge_analysis_request.json
 
-Start with one day.
+The Edge Engine measures:
+- qualifying bets by minimum model edge
+- one-contract profit and ROI
+- estimated fees
+- YES vs NO performance
+- price bucket performance
+- average model edge
+- closing-line value when closing prices are supplied
+
+Important:
+This endpoint analyzes historical market records supplied to it.
+It does not yet automatically retrieve historical Kalshi prices.
+This remains paper-only.
