@@ -6,6 +6,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from backtest_engine import run_backtest
 from backtest_models import BacktestRequest, BacktestResponse, HistoricalStart
 from config import ALLOWED_ORIGINS
+from edge_engine import analyze_edges
+from edge_models import EdgeAnalysisRequest, EdgeAnalysisResponse
 from historical_backtest_collector import collect_historical_starts
 from historical_backtest_models import HistoricalBacktestRequest, HistoricalBacktestResponse
 from lineup_experiment import run_lineup_experiment
@@ -22,7 +24,7 @@ from workload_experiment_models import WorkloadExperimentRequest, WorkloadExperi
 
 app = FastAPI(
     title="Kalshi Trading Engine",
-    version="1.3.0",
+    version="1.4.0",
     description=(
         "Paper-only MLB research engine with leakage-safe "
         "historical backtesting and model experimentation."
@@ -42,7 +44,7 @@ app.add_middleware(
 async def root():
     return {
         "service": "Kalshi Trading Engine",
-        "version": "1.3.0",
+        "version": "1.4.0",
         "mode": "paper-only",
         "docs": "/docs",
     }
@@ -52,7 +54,7 @@ async def root():
 async def health():
     return {
         "status": "ok",
-        "version": "1.3.0",
+        "version": "1.4.0",
         "mode": "paper-only",
         "pipeline": [
             "collect",
@@ -66,6 +68,7 @@ async def health():
             "lineup_experiment",
             "workload_experiment",
             "model_lab",
+            "edge_analysis",
         ],
         "time_utc": datetime.now(timezone.utc).isoformat(),
     }
@@ -148,7 +151,7 @@ async def build_card(request: PaperCardRequest):
         automatic_pitchers_collected=len(pipeline.raw_inputs),
         projections_matched=matched,
         recommendations=recommendations,
-        message="v1.3 paper-only research engine active.",
+        message="v1.4 paper-only research engine active.",
     )
 
 
@@ -246,3 +249,8 @@ async def model_lab(request: ModelLabRequest):
         )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@app.post("/edge-analysis", response_model=EdgeAnalysisResponse)
+async def edge_analysis(request: EdgeAnalysisRequest):
+    return analyze_edges(request)
