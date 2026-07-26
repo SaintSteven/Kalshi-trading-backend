@@ -8,8 +8,37 @@ from models import Market
 ET = ZoneInfo("America/New_York")
 DATE_RE = re.compile(rf"^{re.escape(MLB_STRIKEOUT_PREFIX)}-(\d{{2}}[A-Z]{{3}}\d{{2}})")
 
+def normalize_target_date(target_date: str | None = None) -> str | None:
+    """Normalize optional API date input.
+
+    Swagger may display placeholder strings such as "string" or users may
+    accidentally submit "null" as text. Treat those placeholders as an omitted
+    date, while rejecting other malformed values with a clear error.
+    """
+    if target_date is None:
+        return None
+
+    value = str(target_date).strip()
+    if not value or value.lower() in {"null", "none", "string"}:
+        return None
+
+    try:
+        datetime.strptime(value, "%Y-%m-%d")
+    except ValueError as exc:
+        raise ValueError(
+            "date must use YYYY-MM-DD format or be omitted"
+        ) from exc
+
+    return value
+
+
 def kalshi_ticker_date(target_date: str | None = None) -> str:
-    dt = datetime.strptime(target_date, "%Y-%m-%d").replace(tzinfo=ET) if target_date else datetime.now(ET)
+    normalized = normalize_target_date(target_date)
+    dt = (
+        datetime.strptime(normalized, "%Y-%m-%d").replace(tzinfo=ET)
+        if normalized
+        else datetime.now(ET)
+    )
     return dt.strftime("%y%b%d").upper()
 
 def token_to_dt(token: str) -> datetime:
@@ -78,6 +107,7 @@ async def pull_open_markets(client):
         if not cursor: return markets
 
 async def collect_mlb_strikeout_markets(target_date=None, *, tradable_only=True, min_ask=2, max_ask=98, max_combined_ask=110):
+    target_date = normalize_target_date(target_date)
     async with httpx.AsyncClient(headers={"User-Agent":"KalshiTradingPlatform/0.4.1"}) as client:
         raw=await pull_open_markets(client)
     selected=resolve_slate_token(raw,target_date)

@@ -12,7 +12,7 @@ from historical_backtest_collector import collect_historical_starts
 from historical_backtest_models import HistoricalBacktestRequest, HistoricalBacktestResponse
 from lineup_experiment import run_lineup_experiment
 from lineup_experiment_models import LineupExperimentRequest, LineupExperimentResponse
-from market_collector import collect_mlb_strikeout_markets, kalshi_ticker_date
+from market_collector import collect_mlb_strikeout_markets, kalshi_ticker_date, normalize_target_date
 from model_lab import run_model_lab
 from model_lab_models import ModelLabRequest, ModelLabResponse
 from models import Market, MarketSummary, PaperCardRequest, PaperCardResponse
@@ -24,7 +24,7 @@ from workload_experiment_models import WorkloadExperimentRequest, WorkloadExperi
 
 app = FastAPI(
     title="Kalshi Trading Engine",
-    version="1.4.0",
+    version="1.4.1",
     description=(
         "Paper-only MLB research engine with leakage-safe "
         "historical backtesting and model experimentation."
@@ -44,7 +44,7 @@ app.add_middleware(
 async def root():
     return {
         "service": "Kalshi Trading Engine",
-        "version": "1.4.0",
+        "version": "1.4.1",
         "mode": "paper-only",
         "docs": "/docs",
     }
@@ -54,7 +54,7 @@ async def root():
 async def health():
     return {
         "status": "ok",
-        "version": "1.4.0",
+        "version": "1.4.1",
         "mode": "paper-only",
         "pipeline": [
             "collect",
@@ -131,28 +131,32 @@ async def market_summary(date: str | None = None):
 
 @app.post("/build-card", response_model=PaperCardResponse)
 async def build_card(request: PaperCardRequest):
-    requested = kalshi_ticker_date(request.date)
-    selected, markets, _ = await collect_mlb_strikeout_markets(
-        request.date,
-        tradable_only=True,
-    )
-    pipeline = await run_research_pipeline(request.date)
-    recommendations, matched = build_card_from_pipeline(
-        markets,
-        request,
-        pipeline,
-    )
-    return PaperCardResponse(
-        status="research_pipeline_card_complete",
-        requested_slate=requested,
-        selected_slate=selected,
-        slate_shifted=selected != requested,
-        markets_reviewed=len(markets),
-        automatic_pitchers_collected=len(pipeline.raw_inputs),
-        projections_matched=matched,
-        recommendations=recommendations,
-        message="v1.4 paper-only research engine active.",
-    )
+    try:
+        target_date = normalize_target_date(request.date)
+        requested = kalshi_ticker_date(target_date)
+        selected, markets, _ = await collect_mlb_strikeout_markets(
+            target_date,
+            tradable_only=True,
+        )
+        pipeline = await run_research_pipeline(target_date)
+        recommendations, matched = build_card_from_pipeline(
+            markets,
+            request,
+            pipeline,
+        )
+        return PaperCardResponse(
+            status="research_pipeline_card_complete",
+            requested_slate=requested,
+            selected_slate=selected,
+            slate_shifted=selected != requested,
+            markets_reviewed=len(markets),
+            automatic_pitchers_collected=len(pipeline.raw_inputs),
+            projections_matched=matched,
+            recommendations=recommendations,
+            message="v1.4.1 paper-only research engine active.",
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
 @app.post("/backtest", response_model=BacktestResponse)

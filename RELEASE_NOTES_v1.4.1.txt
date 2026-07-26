@@ -1,0 +1,17 @@
+Kalshi Trading Backend v1.4.1
+
+Fixes:
+- Prevents /build-card from crashing when Swagger submits "string" or "null"
+  as placeholder date values.
+- Treats blank, "string", "null", and "none" date values as no date supplied.
+- Returns HTTP 400 with a readable message for genuinely malformed dates.
+- Updates API, root, health, and build-card versions to 1.4.1.
+
+Upload:
+Extract this ZIP and upload all repository contents to GitHub, replacing the
+existing files. Render should redeploy automatically.
+
+Verify:
+1. /health shows version 1.4.1
+2. POST /build-card works with date omitted, null, "string", or "null"
+3. The dashboard Build Card button no longer shows undefined fields
