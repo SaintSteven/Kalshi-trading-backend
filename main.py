@@ -26,7 +26,7 @@ from workload_experiment_models import WorkloadExperimentRequest, WorkloadExperi
 
 app = FastAPI(
     title="Kalshi Trading Engine",
-    version="1.6.0",
+    version="1.6.1",
     description=(
         "Paper-only MLB research engine with leakage-safe "
         "historical backtesting and model experimentation."
@@ -46,7 +46,7 @@ app.add_middleware(
 async def root():
     return {
         "service": "Kalshi Trading Engine",
-        "version": "1.6.0",
+        "version": "1.6.1",
         "mode": "paper-only",
         "docs": "/docs",
     }
@@ -56,7 +56,7 @@ async def root():
 async def health():
     return {
         "status": "ok",
-        "version": "1.6.0",
+        "version": "1.6.1",
         "mode": "paper-only",
         "pipeline": [
             "collect",
@@ -155,7 +155,7 @@ async def build_card(request: PaperCardRequest):
             automatic_pitchers_collected=len(pipeline.raw_inputs),
             projections_matched=matched,
             recommendations=recommendations,
-            message="v1.6.0 paper-only research engine with Excel export active.",
+            message="v1.6.1 paper-only research engine with empty-card Excel export fix active.",
         )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc

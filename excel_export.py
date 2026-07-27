@@ -112,18 +112,29 @@ def build_card_workbook(payload: ExportCardRequest) -> BytesIO:
         ws.cell(row=row_idx, column=12).number_format = '$0.00'
         ws.cell(row=row_idx, column=17).number_format = '$0.00'
 
-    last_data_row = max(first_data_row, first_data_row + len(recommendations) - 1)
-    if not recommendations:
-        ws.cell(row=first_data_row, column=1, value="No recommendations returned.")
-        for col_idx in range(1, len(headers) + 1):
-            ws.cell(row=first_data_row, column=col_idx).border = BORDER
-
-    table = Table(displayName="DailyCard", ref=f"A{header_row}:R{last_data_row}")
-    table.tableStyleInfo = TableStyleInfo(
-        name="TableStyleMedium2", showFirstColumn=False, showLastColumn=False,
-        showRowStripes=False, showColumnStripes=False,
-    )
-    ws.add_table(table)
+    # Excel for iOS can flag a workbook as damaged when an OOXML table is
+    # created over a placeholder-only row.  Only create a real Excel table
+    # when the card actually contains recommendations.  Empty cards remain a
+    # valid, formatted journal sheet without a table object.
+    if recommendations:
+        last_data_row = first_data_row + len(recommendations) - 1
+        table = Table(displayName="DailyCard", ref=f"A{header_row}:R{last_data_row}")
+        table.tableStyleInfo = TableStyleInfo(
+            name="TableStyleMedium2", showFirstColumn=False, showLastColumn=False,
+            showRowStripes=False, showColumnStripes=False,
+        )
+        ws.add_table(table)
+        ws.auto_filter.ref = f"A{header_row}:R{last_data_row}"
+    else:
+        last_data_row = first_data_row
+        ws.merge_cells(start_row=first_data_row, start_column=1,
+                       end_row=first_data_row, end_column=len(headers))
+        empty_cell = ws.cell(row=first_data_row, column=1, value="No recommendations returned for this slate.")
+        empty_cell.fill = WATCH_FILL
+        empty_cell.font = Font(italic=True)
+        empty_cell.alignment = Alignment(horizontal="center", vertical="center")
+        empty_cell.border = BORDER
+        ws.row_dimensions[first_data_row].height = 24
 
     summary_row = last_data_row + 3
     ws.cell(summary_row, 1, "Daily Summary").font = Font(size=13, bold=True)
@@ -149,7 +160,6 @@ def build_card_workbook(payload: ExportCardRequest) -> BytesIO:
     for i, width in enumerate(widths, start=1):
         ws.column_dimensions[get_column_letter(i)].width = width
     ws.freeze_panes = f"A{first_data_row}"
-    ws.auto_filter.ref = f"A{header_row}:R{last_data_row}"
     ws.print_title_rows = f"1:{header_row}"
     ws.page_setup.orientation = "landscape"
     ws.page_setup.fitToWidth = 1

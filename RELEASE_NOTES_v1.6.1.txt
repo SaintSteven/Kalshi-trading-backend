@@ -1,0 +1,6 @@
+Kalshi Trading Backend v1.6.1
+
+Fixes
+- Empty-card Excel exports no longer create an invalid placeholder table.
+- Empty slates export as a valid formatted workbook with a clear no-recommendations message.
+- Normal populated-card exports continue to use an Excel table.
