@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 
 from fastapi import FastAPI, HTTPException, Query
+from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 
 from backtest_engine import run_backtest
@@ -15,8 +16,9 @@ from lineup_experiment_models import LineupExperimentRequest, LineupExperimentRe
 from market_collector import collect_mlb_strikeout_markets, kalshi_ticker_date, normalize_target_date
 from model_lab import run_model_lab
 from model_lab_models import ModelLabRequest, ModelLabResponse
-from models import Market, MarketSummary, PaperCardRequest, PaperCardResponse
+from models import ExportCardRequest, Market, MarketSummary, PaperCardRequest, PaperCardResponse
 from pipeline_card_builder import build_card_from_pipeline
+from excel_export import build_card_workbook
 from research_pipeline import run_research_pipeline
 from workload_experiment import run_workload_experiment
 from workload_experiment_models import WorkloadExperimentRequest, WorkloadExperimentResponse
@@ -24,7 +26,7 @@ from workload_experiment_models import WorkloadExperimentRequest, WorkloadExperi
 
 app = FastAPI(
     title="Kalshi Trading Engine",
-    version="1.5.0",
+    version="1.6.0",
     description=(
         "Paper-only MLB research engine with leakage-safe "
         "historical backtesting and model experimentation."
@@ -44,7 +46,7 @@ app.add_middleware(
 async def root():
     return {
         "service": "Kalshi Trading Engine",
-        "version": "1.5.0",
+        "version": "1.6.0",
         "mode": "paper-only",
         "docs": "/docs",
     }
@@ -54,7 +56,7 @@ async def root():
 async def health():
     return {
         "status": "ok",
-        "version": "1.5.0",
+        "version": "1.6.0",
         "mode": "paper-only",
         "pipeline": [
             "collect",
@@ -153,10 +155,22 @@ async def build_card(request: PaperCardRequest):
             automatic_pitchers_collected=len(pipeline.raw_inputs),
             projections_matched=matched,
             recommendations=recommendations,
-            message="v1.5.0 paper-only research engine active.",
+            message="v1.6.0 paper-only research engine with Excel export active.",
         )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@app.post("/export-card")
+async def export_card(request: ExportCardRequest):
+    workbook = build_card_workbook(request)
+    safe_date = (request.card_date or request.selected_slate or "current").replace("/", "-")
+    filename = f"{safe_date}_Kalshi_MLB_Daily_Card.xlsx"
+    return StreamingResponse(
+        workbook,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
 
 
 @app.post("/backtest", response_model=BacktestResponse)

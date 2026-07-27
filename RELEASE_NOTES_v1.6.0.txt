@@ -1,0 +1,6 @@
+Kalshi Trading Backend v1.6.0
+
+- Added POST /export-card.
+- Produces a formatted Excel daily card from the exact recommendations displayed in the frontend.
+- Includes metadata, projections, prices, probabilities, edges, confidence, stakes, buy guidance, preliminary QC, settlement columns, and daily-summary formulas.
+- Added openpyxl dependency.
