@@ -1,0 +1,8 @@
+Kalshi Trading Backend v1.7.0 — Stability Release
+
+- Retries Kalshi HTTP 429 responses after short backoffs.
+- Caches successful open-market pulls for 5 minutes.
+- Reuses cache for up to 30 minutes during temporary rate limits.
+- Returns valid JSON with status=rate_limited instead of HTTP 500.
+- Returns a friendly temporary-error response for unexpected upstream failures.
+- Keeps v1.6.2 matchup/start-time and Excel export features.

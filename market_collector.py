@@ -1,4 +1,6 @@
+import asyncio
 import re
+import time
 from datetime import datetime
 from zoneinfo import ZoneInfo
 import httpx
@@ -6,6 +8,31 @@ from config import KALSHI_BASE_URL, MLB_STRIKEOUT_PREFIX
 from models import Market
 
 ET = ZoneInfo("America/New_York")
+CACHE_TTL_SECONDS = 300
+STALE_CACHE_TTL_SECONDS = 1800
+_RAW_MARKET_CACHE: dict[str, object] = {"fetched_at": 0.0, "markets": []}
+
+
+class KalshiRateLimitError(RuntimeError):
+    """Raised when Kalshi continues to rate-limit requests after retries."""
+
+    def __init__(self, retry_after_seconds: int = 60):
+        super().__init__("Kalshi market data is temporarily rate-limited.")
+        self.retry_after_seconds = max(1, int(retry_after_seconds))
+
+
+def _cached_markets(*, allow_stale: bool = False) -> list[dict] | None:
+    fetched_at = float(_RAW_MARKET_CACHE.get("fetched_at") or 0)
+    markets = _RAW_MARKET_CACHE.get("markets") or []
+    max_age = STALE_CACHE_TTL_SECONDS if allow_stale else CACHE_TTL_SECONDS
+    if markets and time.monotonic() - fetched_at <= max_age:
+        return list(markets)
+    return None
+
+
+def _save_market_cache(markets: list[dict]) -> None:
+    _RAW_MARKET_CACHE["fetched_at"] = time.monotonic()
+    _RAW_MARKET_CACHE["markets"] = list(markets)
 DATE_RE = re.compile(rf"^{re.escape(MLB_STRIKEOUT_PREFIX)}-(\d{{2}}[A-Z]{{3}}\d{{2}})")
 
 def normalize_target_date(target_date: str | None = None) -> str | None:
@@ -94,17 +121,52 @@ def evaluate_tradability(yes_ask, no_ask, *, min_ask=2, max_ask=98, max_combined
     if yes_ask is not None and no_ask is not None and yes_ask + no_ask > max_combined_ask: reasons.append("Combined asks above sanity limit.")
     return not reasons, reasons
 
-async def pull_open_markets(client):
+async def pull_open_markets(client, *, force_refresh: bool = False):
+    if not force_refresh:
+        cached = _cached_markets()
+        if cached is not None:
+            return cached
+
     markets=[]; cursor=None
+    retry_delays=(2,5)
     while True:
         params={"status":"open","limit":1000,"mve_filter":"exclude"}
         if cursor: params["cursor"]=cursor
-        response=await client.get(f"{KALSHI_BASE_URL}/markets",params=params,timeout=30)
+
+        response = None
+        for attempt in range(len(retry_delays) + 1):
+            response=await client.get(f"{KALSHI_BASE_URL}/markets",params=params,timeout=30)
+            if response.status_code != 429:
+                break
+            if attempt < len(retry_delays):
+                header_delay = response.headers.get("Retry-After")
+                try:
+                    delay = max(retry_delays[attempt], float(header_delay)) if header_delay else retry_delays[attempt]
+                except (TypeError, ValueError):
+                    delay = retry_delays[attempt]
+                await asyncio.sleep(min(delay, 10))
+
+        if response is None:
+            raise RuntimeError("Kalshi market request did not return a response.")
+
+        if response.status_code == 429:
+            stale = _cached_markets(allow_stale=True)
+            if stale is not None:
+                return stale
+            retry_after = response.headers.get("Retry-After")
+            try:
+                retry_after_seconds = int(float(retry_after)) if retry_after else 60
+            except (TypeError, ValueError):
+                retry_after_seconds = 60
+            raise KalshiRateLimitError(retry_after_seconds)
+
         response.raise_for_status()
         payload=response.json()
         markets.extend(payload.get("markets",[]))
         cursor=payload.get("cursor")
-        if not cursor: return markets
+        if not cursor:
+            _save_market_cache(markets)
+            return markets
 
 async def collect_mlb_strikeout_markets(target_date=None, *, tradable_only=True, min_ask=2, max_ask=98, max_combined_ask=110):
     target_date = normalize_target_date(target_date)

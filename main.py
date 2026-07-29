@@ -13,7 +13,12 @@ from historical_backtest_collector import collect_historical_starts
 from historical_backtest_models import HistoricalBacktestRequest, HistoricalBacktestResponse
 from lineup_experiment import run_lineup_experiment
 from lineup_experiment_models import LineupExperimentRequest, LineupExperimentResponse
-from market_collector import collect_mlb_strikeout_markets, kalshi_ticker_date, normalize_target_date
+from market_collector import (
+    KalshiRateLimitError,
+    collect_mlb_strikeout_markets,
+    kalshi_ticker_date,
+    normalize_target_date,
+)
 from model_lab import run_model_lab
 from model_lab_models import ModelLabRequest, ModelLabResponse
 from models import ExportCardRequest, Market, MarketSummary, PaperCardRequest, PaperCardResponse
@@ -26,7 +31,7 @@ from workload_experiment_models import WorkloadExperimentRequest, WorkloadExperi
 
 app = FastAPI(
     title="Kalshi Trading Engine",
-    version="1.6.1",
+    version="1.7.0",
     description=(
         "Paper-only MLB research engine with leakage-safe "
         "historical backtesting and model experimentation."
@@ -46,7 +51,7 @@ app.add_middleware(
 async def root():
     return {
         "service": "Kalshi Trading Engine",
-        "version": "1.6.1",
+        "version": "1.7.0",
         "mode": "paper-only",
         "docs": "/docs",
     }
@@ -56,7 +61,7 @@ async def root():
 async def health():
     return {
         "status": "ok",
-        "version": "1.6.1",
+        "version": "1.7.0",
         "mode": "paper-only",
         "pipeline": [
             "collect",
@@ -155,10 +160,38 @@ async def build_card(request: PaperCardRequest):
             automatic_pitchers_collected=len(pipeline.raw_inputs),
             projections_matched=matched,
             recommendations=recommendations,
-            message="v1.6.1 paper-only research engine with empty-card Excel export fix active.",
+            message="v1.7.0 stability release with retry, caching, and graceful rate-limit handling active.",
+        )
+    except KalshiRateLimitError as exc:
+        requested = kalshi_ticker_date(normalize_target_date(request.date))
+        return PaperCardResponse(
+            status="rate_limited",
+            requested_slate=requested,
+            selected_slate=requested,
+            slate_shifted=False,
+            markets_reviewed=0,
+            automatic_pitchers_collected=0,
+            projections_matched=0,
+            recommendations=[],
+            message=(
+                "Kalshi temporarily rate-limited market requests. "
+                f"Please try again in about {exc.retry_after_seconds} seconds."
+            ),
         )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        return PaperCardResponse(
+            status="temporary_error",
+            requested_slate=kalshi_ticker_date(None),
+            selected_slate=kalshi_ticker_date(None),
+            slate_shifted=False,
+            markets_reviewed=0,
+            automatic_pitchers_collected=0,
+            projections_matched=0,
+            recommendations=[],
+            message="The card could not be built because a data source was temporarily unavailable. Please try again shortly.",
+        )
 
 
 @app.post("/export-card")

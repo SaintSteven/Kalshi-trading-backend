@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from io import BytesIO
 from datetime import datetime, timezone
+import re
 
 from openpyxl import Workbook
 from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
@@ -18,6 +19,24 @@ WATCH_FILL = PatternFill("solid", fgColor="FFF2CC")
 PASS_FILL = PatternFill("solid", fgColor="FCE4D6")
 THIN = Side(style="thin", color="B7C9DC")
 BORDER = Border(left=THIN, right=THIN, top=THIN, bottom=THIN)
+
+
+
+def _game_details(ticker: str) -> tuple[str, str]:
+    """Return a readable matchup and scheduled ET time from a Kalshi MLB ticker."""
+    parts = (ticker or "").split("-")
+    event = parts[1] if len(parts) > 1 else ""
+    match = re.fullmatch(r"\d{2}[A-Z]{3}\d{2}(\d{4})([A-Z]{6})", event, re.IGNORECASE)
+    if not match:
+        return "Game unavailable", "Time unavailable"
+    military_time, matchup = match.groups()
+    matchup = matchup.upper()
+    away, home = matchup[:3], matchup[3:]
+    hour = int(military_time[:2])
+    minute = military_time[2:]
+    suffix = "PM" if hour >= 12 else "AM"
+    hour_12 = ((hour + 11) % 12) + 1
+    return f"{away} @ {home}", f"{hour_12}:{minute} {suffix} ET"
 
 
 def _confidence(rec) -> float | None:
@@ -58,7 +77,7 @@ def build_card_workbook(payload: ExportCardRequest) -> BytesIO:
 
     ws["A1"] = "Kalshi MLB Paper Trading Card"
     ws["A1"].font = Font(size=16, bold=True)
-    ws.merge_cells("A1:Q1")
+    ws.merge_cells("A1:T1")
 
     metadata = [
         ("Card Date", payload.card_date or "Current slate"),
@@ -76,10 +95,10 @@ def build_card_workbook(payload: ExportCardRequest) -> BytesIO:
 
     header_row = 10
     headers = [
-        "Player", "Ticker", "Side", "Ladder", "Projection Ks", "Market Price (¢)",
-        "Implied %", "Fair %", "Raw Edge (pts)", "Adjusted Edge (pts)",
-        "Confidence", "Stake ($)", "Buy Range", "QC Status", "Actual Ks",
-        "Result", "Paper P/L ($)", "Notes"
+        "Player", "Game", "Start Time", "Ticker", "Side", "Ladder", "Projection Ks",
+        "Market Price (¢)", "Implied %", "Fair %", "Raw Edge (pts)",
+        "Adjusted Edge (pts)", "Confidence", "Stake ($)", "Buy Range",
+        "QC Status", "Actual Ks", "Result", "Paper P/L ($)", "Notes"
     ]
     for col, header in enumerate(headers, start=1):
         cell = ws.cell(row=header_row, column=col, value=header)
@@ -92,25 +111,27 @@ def build_card_workbook(payload: ExportCardRequest) -> BytesIO:
     first_data_row = header_row + 1
     for row_idx, rec in enumerate(recommendations, start=first_data_row):
         notes = " | ".join([*(rec.reasons or []), *(rec.warnings or [])])
+        game, start_time = _game_details(rec.ticker)
         values = [
-            rec.player, rec.ticker, rec.side, rec.threshold, rec.projected_strikeouts,
-            rec.market_price_cents, _implied_probability(rec), rec.fair_probability,
-            rec.raw_edge_points, rec.adjusted_edge_points, _confidence(rec),
-            rec.suggested_stake, _buy_range(rec), _qc_status(rec), None, None, None, notes,
+            rec.player, game, start_time, rec.ticker, rec.side, rec.threshold,
+            rec.projected_strikeouts, rec.market_price_cents, _implied_probability(rec),
+            rec.fair_probability, rec.raw_edge_points, rec.adjusted_edge_points,
+            _confidence(rec), rec.suggested_stake, _buy_range(rec), _qc_status(rec),
+            None, None, None, notes,
         ]
         for col_idx, value in enumerate(values, start=1):
             cell = ws.cell(row=row_idx, column=col_idx, value=value)
             cell.border = BORDER
-            cell.alignment = Alignment(vertical="top", wrap_text=(col_idx == 18))
+            cell.alignment = Alignment(vertical="top", wrap_text=(col_idx == 20))
 
         fill = EDGE_FILL if rec.decision == "MODEL EDGE" else WATCH_FILL if rec.decision == "WATCH" else PASS_FILL
         for col_idx in range(1, len(headers) + 1):
             ws.cell(row=row_idx, column=col_idx).fill = fill
 
-        for col_idx in (7, 8, 11):
+        for col_idx in (9, 10, 13):
             ws.cell(row=row_idx, column=col_idx).number_format = "0.0%"
-        ws.cell(row=row_idx, column=12).number_format = '$0.00'
-        ws.cell(row=row_idx, column=17).number_format = '$0.00'
+        ws.cell(row=row_idx, column=14).number_format = '$0.00'
+        ws.cell(row=row_idx, column=19).number_format = '$0.00'
 
     # Excel for iOS can flag a workbook as damaged when an OOXML table is
     # created over a placeholder-only row.  Only create a real Excel table
@@ -118,13 +139,13 @@ def build_card_workbook(payload: ExportCardRequest) -> BytesIO:
     # valid, formatted journal sheet without a table object.
     if recommendations:
         last_data_row = first_data_row + len(recommendations) - 1
-        table = Table(displayName="DailyCard", ref=f"A{header_row}:R{last_data_row}")
+        table = Table(displayName="DailyCard", ref=f"A{header_row}:T{last_data_row}")
         table.tableStyleInfo = TableStyleInfo(
             name="TableStyleMedium2", showFirstColumn=False, showLastColumn=False,
             showRowStripes=False, showColumnStripes=False,
         )
         ws.add_table(table)
-        ws.auto_filter.ref = f"A{header_row}:R{last_data_row}"
+        ws.auto_filter.ref = f"A{header_row}:T{last_data_row}"
     else:
         last_data_row = first_data_row
         ws.merge_cells(start_row=first_data_row, start_column=1,
@@ -142,9 +163,9 @@ def build_card_workbook(payload: ExportCardRequest) -> BytesIO:
         ("Recommendations", len(recommendations)),
         ("Model Edge Bets", sum(1 for r in recommendations if r.decision == "MODEL EDGE" and r.suggested_stake > 0)),
         ("Total Planned Stake", sum(r.suggested_stake for r in recommendations)),
-        ("Wins", f'=COUNTIF(P{first_data_row}:P{last_data_row},"W")'),
-        ("Losses", f'=COUNTIF(P{first_data_row}:P{last_data_row},"L")'),
-        ("Paper P/L", f'=SUM(Q{first_data_row}:Q{last_data_row})'),
+        ("Wins", f'=COUNTIF(R{first_data_row}:R{last_data_row},"W")'),
+        ("Losses", f'=COUNTIF(R{first_data_row}:R{last_data_row},"L")'),
+        ("Paper P/L", f'=SUM(S{first_data_row}:S{last_data_row})'),
         ("Ending Bankroll", f'=B6+B{summary_row + 6}'),
     ]
     for idx, (label, value) in enumerate(summary, start=summary_row + 1):
@@ -156,7 +177,7 @@ def build_card_workbook(payload: ExportCardRequest) -> BytesIO:
     ws.cell(summary_row + 6, 2).number_format = '$0.00'
     ws.cell(summary_row + 7, 2).number_format = '$0.00'
 
-    widths = [22, 26, 9, 10, 13, 16, 12, 12, 15, 19, 13, 12, 18, 18, 11, 10, 15, 60]
+    widths = [22, 16, 16, 26, 9, 10, 13, 16, 12, 12, 15, 19, 13, 12, 18, 18, 11, 10, 15, 60]
     for i, width in enumerate(widths, start=1):
         ws.column_dimensions[get_column_letter(i)].width = width
     ws.freeze_panes = f"A{first_data_row}"

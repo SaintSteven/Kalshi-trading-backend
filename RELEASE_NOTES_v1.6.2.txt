@@ -1,0 +1,6 @@
+Kalshi Trading Backend v1.6.2
+
+- Adds readable Game and Start Time columns to Excel card exports.
+- Parses Kalshi MLB ticker event codes into matchups such as TOR @ WSH.
+- Displays scheduled market time in Eastern Time.
+- Preserves the v1.6.1 empty-card Excel compatibility fix.
