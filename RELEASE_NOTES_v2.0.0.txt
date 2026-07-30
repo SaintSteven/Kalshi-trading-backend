@@ -1,0 +1,7 @@
+Kalshi Trading Backend v2.0.0
+
+- Adds /settle-edge-snapshots to resolve saved pregame recommendations against final MLB starter strikeout totals.
+- Expands /edge-analysis with confidence, adjusted-edge, ladder, price, and side segments.
+- Uses actual suggested paper stake, not one-contract assumptions.
+- Adds maximum drawdown and confidence threshold filtering.
+- Historical Kalshi prices are not fabricated; this creates a forward price-snapshot ledger from the Card.

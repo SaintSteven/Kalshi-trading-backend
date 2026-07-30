@@ -1,3 +1,2 @@
-FLAT ZIP: There is no enclosing project folder in this archive.
-After extracting, the first level contains main.py, requirements.txt, render.yaml, excel_export.py, and the other backend files.
-Upload these extracted files directly into the root of your GitHub backend repository.
+Kalshi Backend v2.0.0 — mobile upload
+Upload every file in this ZIP to the root of the backend GitHub repository, replacing existing files. Render should redeploy automatically.

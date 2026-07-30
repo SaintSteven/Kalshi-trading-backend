@@ -8,8 +8,9 @@ from backtest_engine import run_backtest
 from backtest_models import BacktestRequest, BacktestResponse, HistoricalStart
 from config import ALLOWED_ORIGINS
 from edge_engine import analyze_edges
-from edge_models import EdgeAnalysisRequest, EdgeAnalysisResponse
+from edge_models import EdgeAnalysisRequest, EdgeAnalysisResponse, SettleSnapshotsRequest, SettleSnapshotsResponse
 from historical_backtest_collector import collect_historical_starts
+from snapshot_settlement import settle_snapshots
 from historical_backtest_models import HistoricalBacktestRequest, HistoricalBacktestResponse
 from lineup_experiment import run_lineup_experiment
 from lineup_experiment_models import LineupExperimentRequest, LineupExperimentResponse
@@ -31,7 +32,7 @@ from workload_experiment_models import WorkloadExperimentRequest, WorkloadExperi
 
 app = FastAPI(
     title="Kalshi Trading Engine",
-    version="1.9.0",
+    version="2.0.0",
     description=(
         "Paper-only MLB research engine with leakage-safe "
         "historical backtesting and model experimentation."
@@ -51,7 +52,7 @@ app.add_middleware(
 async def root():
     return {
         "service": "Kalshi Trading Engine",
-        "version": "1.9.0",
+        "version": "2.0.0",
         "mode": "paper-only",
         "docs": "/docs",
     }
@@ -61,7 +62,7 @@ async def root():
 async def health():
     return {
         "status": "ok",
-        "version": "1.9.0",
+        "version": "2.0.0",
         "mode": "paper-only",
         "pipeline": [
             "collect",
@@ -78,6 +79,8 @@ async def health():
             "edge_analysis",
             "confidence_v2",
             "pregame_live_filter",
+            "forward_snapshot_ledger",
+            "settlement_and_trading_backtest",
             "matchup_metadata",
         ],
         "time_utc": datetime.now(timezone.utc).isoformat(),
@@ -326,6 +329,16 @@ async def model_lab(request: ModelLabRequest):
         )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@app.post("/settle-edge-snapshots", response_model=SettleSnapshotsResponse)
+async def settle_edge_snapshots(request: SettleSnapshotsRequest):
+    settled, pending, warnings = await settle_snapshots(request.records)
+    return SettleSnapshotsResponse(
+        settled_records=settled,
+        pending_records=pending,
+        warnings=warnings,
+    )
 
 
 @app.post("/edge-analysis", response_model=EdgeAnalysisResponse)

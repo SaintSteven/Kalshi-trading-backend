@@ -100,7 +100,7 @@ class MarketSummary(BaseModel):
 class ExportCardRequest(BaseModel):
     card_date: str | None = None
     generated_at: str | None = None
-    model_version: str = "1.9.0"
+    model_version: str = "2.0.0"
     bankroll: float = Field(default=100, ge=0)
     already_committed_today: float = Field(default=0, ge=0)
     selected_slate: str | None = None
