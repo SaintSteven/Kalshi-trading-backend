@@ -56,18 +56,23 @@ def evaluate_market(m, p, min_edge):
             raw = no_edge
 
         adjusted = raw * p["confidence"]["overall"] / 100.0
+        confidence_score = p["confidence"].get("overall", 0)
         decision = (
             "PASS"
             if raw < 0
             else "MODEL EDGE"
-            if adjusted >= min_edge
+            if adjusted >= min_edge and confidence_score >= 68
             else "WATCH"
         )
         reasons = [
             f"Best side {side}.",
             f"Raw edge {raw:.1f}.",
             f"Adjusted edge {adjusted:.1f}.",
+            f"Confidence {p['confidence'].get('overall', 0)}/100 "
+            f"({p['confidence'].get('tier', 'UNRATED')}).",
         ]
+        if adjusted >= min_edge and confidence_score < 68:
+            reasons.append("Edge cleared the numeric threshold, but confidence QC held it to WATCH.")
 
     return PaperRecommendation(
         ticker=m.ticker,

@@ -37,12 +37,14 @@ def _paper_stake(rec, request, remaining_daily_budget):
     edge = rec.adjusted_edge_points
     confidence = rec.confidence.get("overall", 0)
 
-    if edge >= 10 and confidence >= 70:
+    if confidence >= 80 and edge >= 10:
         multiplier = 1.0
-    elif edge >= 7:
+    elif confidence >= 72 and edge >= 7:
         multiplier = 0.75
-    else:
+    elif confidence >= 68:
         multiplier = 0.50
+    else:
+        multiplier = 0.0
 
     stake = min(request.max_bet * multiplier, remaining_daily_budget)
     return round(max(0.0, stake), 2)
@@ -89,6 +91,12 @@ def build_card_from_pipeline(markets, request, pipeline):
         remaining = round(max(0.0, remaining - stake), 2)
 
         reasons = list(rec.reasons)
+        confidence_reasons = rec.confidence.get("reasons", [])
+        risk_flags = rec.confidence.get("risk_flags", [])
+        if confidence_reasons:
+            reasons.append("Confidence positives: " + "; ".join(confidence_reasons[:3]))
+        if risk_flags:
+            reasons.append("Confidence risks: " + "; ".join(risk_flags[:3]))
         if rec.decision == "MODEL EDGE":
             reasons.append(
                 f"Best ladder selected for this pitcher; paper stake ${stake:.2f}."

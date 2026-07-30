@@ -1,0 +1,9 @@
+Kalshi Trading Backend v1.8.0
+
+CONFIDENCE V2
+- Replaces the basic four-number confidence score with a transparent QC score.
+- Adds confidence tier, recommended action, workload stability, workload range, risk flags, and positive reasons.
+- Uses starter confirmation, role, season/career samples, lineup confirmation, recent pitch-count stability, and recent-change data quality.
+- A numeric edge cannot become MODEL EDGE unless confidence is at least 68.
+- Full paper stake requires confidence >=80 and adjusted edge >=10.
+- This remains a research heuristic and must be validated through paper trading and backtesting.
