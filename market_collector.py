@@ -34,6 +34,75 @@ def _save_market_cache(markets: list[dict]) -> None:
     _RAW_MARKET_CACHE["fetched_at"] = time.monotonic()
     _RAW_MARKET_CACHE["markets"] = list(markets)
 DATE_RE = re.compile(rf"^{re.escape(MLB_STRIKEOUT_PREFIX)}-(\d{{2}}[A-Z]{{3}}\d{{2}})")
+GAME_RE = re.compile(
+    rf"^{re.escape(MLB_STRIKEOUT_PREFIX)}-(\d{{2}}[A-Z]{{3}}\d{{2}})(\d{{4}})([A-Z]{{5,6}})-"
+)
+
+TEAM_NAMES = {
+    "ARI": "Arizona Diamondbacks", "ATH": "Athletics", "ATL": "Atlanta Braves",
+    "BAL": "Baltimore Orioles", "BOS": "Boston Red Sox", "CHC": "Chicago Cubs",
+    "CIN": "Cincinnati Reds", "CLE": "Cleveland Guardians", "COL": "Colorado Rockies",
+    "CWS": "Chicago White Sox", "DET": "Detroit Tigers", "HOU": "Houston Astros",
+    "KC": "Kansas City Royals", "KCR": "Kansas City Royals", "LAA": "Los Angeles Angels",
+    "LAD": "Los Angeles Dodgers", "MIA": "Miami Marlins", "MIL": "Milwaukee Brewers",
+    "MIN": "Minnesota Twins", "NYM": "New York Mets", "NYY": "New York Yankees",
+    "OAK": "Athletics", "PHI": "Philadelphia Phillies", "PIT": "Pittsburgh Pirates",
+    "SD": "San Diego Padres", "SDP": "San Diego Padres", "SEA": "Seattle Mariners",
+    "SF": "San Francisco Giants", "SFG": "San Francisco Giants", "STL": "St. Louis Cardinals",
+    "TB": "Tampa Bay Rays", "TBR": "Tampa Bay Rays", "TEX": "Texas Rangers",
+    "TOR": "Toronto Blue Jays", "WSH": "Washington Nationals",
+}
+
+
+def _game_details_from_ticker(ticker: str) -> dict:
+    match = GAME_RE.search(ticker)
+    if not match:
+        return {
+            "away_team": None, "away_team_name": None, "home_team": None,
+            "home_team_name": None, "matchup": None, "game_start_time": None,
+            "game_start_display": None, "game_status": "UNKNOWN",
+        }
+
+    date_token, hhmm, team_token = match.groups()
+    away = home = None
+    team_codes = sorted(TEAM_NAMES, key=len, reverse=True)
+    for away_candidate in team_codes:
+        if not team_token.startswith(away_candidate):
+            continue
+        home_candidate = team_token[len(away_candidate):]
+        if home_candidate in TEAM_NAMES:
+            away, home = away_candidate, home_candidate
+            break
+    if not away or not home:
+        return {
+            "away_team": None, "away_team_name": None, "home_team": None,
+            "home_team_name": None, "matchup": None, "game_start_time": None,
+            "game_start_display": None, "game_status": "UNKNOWN",
+        }
+
+    try:
+        start = datetime.strptime(date_token + hhmm, "%y%b%d%H%M").replace(tzinfo=ET)
+        now = datetime.now(ET)
+        status = "UPCOMING" if start > now else "LIVE"
+        display = start.strftime("%a %b %-d · %-I:%M %p ET")
+    except (TypeError, ValueError):
+        start = None
+        status = "UNKNOWN"
+        display = None
+
+    away_name = TEAM_NAMES.get(away, away)
+    home_name = TEAM_NAMES.get(home, home)
+    return {
+        "away_team": away,
+        "away_team_name": away_name,
+        "home_team": home,
+        "home_team_name": home_name,
+        "matchup": f"{away_name} at {home_name}",
+        "game_start_time": start,
+        "game_start_display": display,
+        "game_status": status,
+    }
+
 
 def normalize_target_date(target_date: str | None = None) -> str | None:
     """Normalize optional API date input.
@@ -181,7 +250,24 @@ async def collect_mlb_strikeout_markets(target_date=None, *, tradable_only=True,
         ya=_first_price(item,"yes_ask_dollars","yes_ask")
         na=_first_price(item,"no_ask_dollars","no_ask")
         tradable,reasons=evaluate_tradability(ya,na,min_ask=min_ask,max_ask=max_ask,max_combined_ask=max_combined_ask)
-        output.append(Market(ticker=ticker,event_ticker=item.get("event_ticker"),title=title,player=_extract_player(title),threshold=_extract_threshold(title),yes_bid_cents=_first_price(item,"yes_bid_dollars","yes_bid"),yes_ask_cents=ya,no_bid_cents=_first_price(item,"no_bid_dollars","no_bid"),no_ask_cents=na,volume=item.get("volume_fp") or item.get("volume"),liquidity_dollars=item.get("liquidity_dollars"),close_time=item.get("close_time"),tradable=tradable,tradability_reasons=reasons))
+        game = _game_details_from_ticker(ticker)
+        output.append(Market(
+            ticker=ticker,
+            event_ticker=item.get("event_ticker"),
+            title=title,
+            player=_extract_player(title),
+            threshold=_extract_threshold(title),
+            **game,
+            yes_bid_cents=_first_price(item,"yes_bid_dollars","yes_bid"),
+            yes_ask_cents=ya,
+            no_bid_cents=_first_price(item,"no_bid_dollars","no_bid"),
+            no_ask_cents=na,
+            volume=item.get("volume_fp") or item.get("volume"),
+            liquidity_dollars=item.get("liquidity_dollars"),
+            close_time=item.get("close_time"),
+            tradable=tradable,
+            tradability_reasons=reasons,
+        ))
     output.sort(key=lambda m:(m.close_time or datetime.max.replace(tzinfo=ET),m.event_ticker or "",m.player,int(m.threshold.rstrip("+")) if m.threshold.rstrip("+").isdigit() else 999))
     visible=[m for m in output if m.tradable] if tradable_only else output
     return selected, visible, output

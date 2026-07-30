@@ -111,7 +111,9 @@ def build_card_workbook(payload: ExportCardRequest) -> BytesIO:
     first_data_row = header_row + 1
     for row_idx, rec in enumerate(recommendations, start=first_data_row):
         notes = " | ".join([*(rec.reasons or []), *(rec.warnings or [])])
-        game, start_time = _game_details(rec.ticker)
+        fallback_game, fallback_start_time = _game_details(rec.ticker)
+        game = rec.matchup or fallback_game
+        start_time = rec.game_start_display or fallback_start_time
         values = [
             rec.player, game, start_time, rec.ticker, rec.side, rec.threshold,
             rec.projected_strikeouts, rec.market_price_cents, _implied_probability(rec),

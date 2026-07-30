@@ -1,0 +1,7 @@
+Kalshi Trading Backend v1.9.0
+
+- Filters out markets whose scheduled first pitch has already passed.
+- Returns counts for live markets and live games suppressed from the card.
+- Parses Kalshi MLB tickers into away team, home team, full matchup, and ET start time.
+- Adds game metadata to market and paper recommendation responses.
+- Keeps the v1.8 confidence-gated stake logic unchanged.

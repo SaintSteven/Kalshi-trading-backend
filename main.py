@@ -31,7 +31,7 @@ from workload_experiment_models import WorkloadExperimentRequest, WorkloadExperi
 
 app = FastAPI(
     title="Kalshi Trading Engine",
-    version="1.8.0",
+    version="1.9.0",
     description=(
         "Paper-only MLB research engine with leakage-safe "
         "historical backtesting and model experimentation."
@@ -51,7 +51,7 @@ app.add_middleware(
 async def root():
     return {
         "service": "Kalshi Trading Engine",
-        "version": "1.8.0",
+        "version": "1.9.0",
         "mode": "paper-only",
         "docs": "/docs",
     }
@@ -61,7 +61,7 @@ async def root():
 async def health():
     return {
         "status": "ok",
-        "version": "1.8.0",
+        "version": "1.9.0",
         "mode": "paper-only",
         "pipeline": [
             "collect",
@@ -77,6 +77,8 @@ async def health():
             "model_lab",
             "edge_analysis",
             "confidence_v2",
+            "pregame_live_filter",
+            "matchup_metadata",
         ],
         "time_utc": datetime.now(timezone.utc).isoformat(),
     }
@@ -132,6 +134,8 @@ async def market_summary(date: str | None = None):
         slate_shifted=selected != requested,
         total_markets=len(all_markets),
         tradable_markets=tradable,
+        upcoming_markets=sum(1 for market in all_markets if market.game_status == "UPCOMING"),
+        started_markets=sum(1 for market in all_markets if market.game_status in {"LIVE", "STARTED"}),
         hidden_markets=len(all_markets) - tradable,
         pitchers=len({market.player for market in all_markets}),
     )
@@ -142,10 +146,22 @@ async def build_card(request: PaperCardRequest):
     try:
         target_date = normalize_target_date(request.date)
         requested = kalshi_ticker_date(target_date)
-        selected, markets, _ = await collect_mlb_strikeout_markets(
+        selected, tradable_markets, _ = await collect_mlb_strikeout_markets(
             target_date,
             tradable_only=True,
         )
+        started_markets = [
+            market for market in tradable_markets
+            if market.game_status in {"LIVE", "STARTED"}
+        ]
+        markets = [
+            market for market in tradable_markets
+            if market.game_status not in {"LIVE", "STARTED"}
+        ]
+        live_games_filtered = len({
+            (market.away_team, market.home_team, market.game_start_time)
+            for market in started_markets
+        })
         pipeline = await run_research_pipeline(target_date)
         recommendations, matched = build_card_from_pipeline(
             markets,
@@ -158,10 +174,15 @@ async def build_card(request: PaperCardRequest):
             selected_slate=selected,
             slate_shifted=selected != requested,
             markets_reviewed=len(markets),
+            live_markets_filtered=len(started_markets),
+            live_games_filtered=live_games_filtered,
             automatic_pitchers_collected=len(pipeline.raw_inputs),
             projections_matched=matched,
             recommendations=recommendations,
-            message="v1.8.0 confidence-v2 QC release active: transparent confidence tiers, risk flags, and confidence-gated paper stakes.",
+            message=(
+                "v1.9.0 pregame safety release active: started games are filtered, "
+                "and every recommendation includes away team, home team, matchup, and ET start time."
+            ),
         )
     except KalshiRateLimitError as exc:
         requested = kalshi_ticker_date(normalize_target_date(request.date))
@@ -171,6 +192,8 @@ async def build_card(request: PaperCardRequest):
             selected_slate=requested,
             slate_shifted=False,
             markets_reviewed=0,
+            live_markets_filtered=0,
+            live_games_filtered=0,
             automatic_pitchers_collected=0,
             projections_matched=0,
             recommendations=[],
@@ -188,6 +211,8 @@ async def build_card(request: PaperCardRequest):
             selected_slate=kalshi_ticker_date(None),
             slate_shifted=False,
             markets_reviewed=0,
+            live_markets_filtered=0,
+            live_games_filtered=0,
             automatic_pitchers_collected=0,
             projections_matched=0,
             recommendations=[],
