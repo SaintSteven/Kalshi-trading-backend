@@ -1,0 +1,8 @@
+Kalshi Trading Backend v2.1.0
+
+Adaptive Lineup Confidence
+- Confirmed opponent lineup: confidence bonus.
+- Projected opponent strikeout profile: neutral lineup score instead of a blanket penalty.
+- Missing or league-average fallback lineup data: explicit confidence penalty.
+- Confidence payload version updated to confidence-v2.1.
+- Core strikeout projection, edge thresholds, stake sizing, live-game filtering, and paper ledger behavior are unchanged.

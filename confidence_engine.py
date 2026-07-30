@@ -38,13 +38,24 @@ def build_confidence(d: PitcherModelInput) -> dict:
         skill -= 5
         risk_flags.append("Limited career sample.")
 
-    # Lineup certainty.
+    # Lineup certainty (v2.1 adaptive treatment).
+    # A projected opponent profile is now neutral rather than a blanket penalty.
+    # Confirmed lineups receive a bonus, while genuinely missing/fallback lineup
+    # data is penalized.  This keeps lineup confidence informative instead of
+    # giving every morning recommendation the same low score.
+    lineup_profile_available = (
+        d.opponent_lineup_k_pct > 0
+        and abs(d.opponent_lineup_k_pct - d.league_k_pct) > 1e-6
+    )
     if d.lineup_confirmed:
-        lineup += 6
+        lineup = max(lineup, 82) + 8
         reasons.append("Opponent lineup confirmed.")
+    elif lineup_profile_available:
+        lineup = 72
+        reasons.append("Projected opponent strikeout profile is available; lineup confidence is neutral until confirmed.")
     else:
-        lineup -= 14
-        risk_flags.append("Opponent lineup is projected, not confirmed.")
+        lineup = 42
+        risk_flags.append("Opponent lineup data is missing or using a league-average fallback.")
 
     # Workload/leash certainty.
     if not d.starter_confirmed:
@@ -137,7 +148,7 @@ def build_confidence(d: PitcherModelInput) -> dict:
         action = "WATCH / PASS"
 
     return {
-        "version": "confidence-v2",
+        "version": "confidence-v2.1",
         "overall": overall,
         "tier": tier,
         "recommended_action": action,

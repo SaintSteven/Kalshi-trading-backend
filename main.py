@@ -32,7 +32,7 @@ from workload_experiment_models import WorkloadExperimentRequest, WorkloadExperi
 
 app = FastAPI(
     title="Kalshi Trading Engine",
-    version="2.0.0",
+    version="2.1.0",
     description=(
         "Paper-only MLB research engine with leakage-safe "
         "historical backtesting and model experimentation."
@@ -52,7 +52,7 @@ app.add_middleware(
 async def root():
     return {
         "service": "Kalshi Trading Engine",
-        "version": "2.0.0",
+        "version": "2.1.0",
         "mode": "paper-only",
         "docs": "/docs",
     }
@@ -62,7 +62,7 @@ async def root():
 async def health():
     return {
         "status": "ok",
-        "version": "2.0.0",
+        "version": "2.1.0",
         "mode": "paper-only",
         "pipeline": [
             "collect",
@@ -183,7 +183,7 @@ async def build_card(request: PaperCardRequest):
             projections_matched=matched,
             recommendations=recommendations,
             message=(
-                "v1.9.0 pregame safety release active: started games are filtered, "
+                "v2.1.0 adaptive lineup confidence active: started games are filtered, "
                 "and every recommendation includes away team, home team, matchup, and ET start time."
             ),
         )
