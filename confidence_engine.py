@@ -107,14 +107,53 @@ def build_confidence(d: PitcherModelInput) -> dict:
         workload -= 12
         risk_flags.append("No recent pitch-count history is available.")
 
-    # Recent-change inputs should not add confidence unless supported by good data.
-    if abs(d.velocity_change_mph) >= 1.0 or abs(d.whiff_rate_change) >= 0.04:
-        if d.data_quality.recent_change == "HIGH":
-            recent_change += 4
-            reasons.append("Recent skill-change signal has high-quality support.")
+    # Recent-form confidence (v2.3 audited).
+    # v2.2 always showed 52 because automatic data marked recent-change quality LOW
+    # and velocity/whiff deltas were unavailable.  We now use the data we actually
+    # collect: recent K rate versus season K rate, supported by recent BF sample.
+    recent_sample = int(d.recent_batters_faced or 0)
+    recent_delta = float(d.recent_k_pct - d.season_k_pct)
+    recent_details = {
+        "recent_k_pct": round(d.recent_k_pct * 100, 1),
+        "season_k_pct": round(d.season_k_pct * 100, 1),
+        "delta_points": round(recent_delta * 100, 1),
+        "recent_batters_faced": recent_sample,
+        "velocity_change_mph": round(d.velocity_change_mph, 2),
+        "whiff_rate_change_points": round(d.whiff_rate_change * 100, 1),
+    }
+    if recent_sample >= 100:
+        recent_change = 72 + max(-18, min(18, recent_delta * 250))
+        if recent_delta >= 0.025:
+            reasons.append("Recent strikeout rate is meaningfully above the season baseline.")
+        elif recent_delta <= -0.025:
+            risk_flags.append("Recent strikeout rate is meaningfully below the season baseline.")
         else:
-            recent_change -= 10
-            risk_flags.append("Material recent-change signal has limited support.")
+            reasons.append("Recent strikeout rate is close to the season baseline.")
+        recent_details["sample_label"] = "strong"
+    elif recent_sample >= 50:
+        recent_change = 62 + max(-10, min(10, recent_delta * 160))
+        recent_details["sample_label"] = "moderate"
+        risk_flags.append("Recent strikeout-rate sample is only moderate.")
+    elif recent_sample > 0:
+        recent_change = 48 + max(-6, min(6, recent_delta * 100))
+        recent_details["sample_label"] = "limited"
+        risk_flags.append("Recent strikeout-rate sample is limited.")
+    else:
+        recent_change = 42
+        recent_details["sample_label"] = "missing"
+        risk_flags.append("No recent strikeout-rate sample is available.")
+
+    # Optional tracking inputs can refine the score when they are actually present.
+    if abs(d.velocity_change_mph) >= 1.0:
+        recent_change += max(-6, min(6, d.velocity_change_mph * 3))
+        recent_details["velocity_used"] = True
+    else:
+        recent_details["velocity_used"] = False
+    if abs(d.whiff_rate_change) >= 0.02:
+        recent_change += max(-6, min(6, d.whiff_rate_change * 120))
+        recent_details["whiff_used"] = True
+    else:
+        recent_details["whiff_used"] = False
 
     skill = _clamp(skill)
     lineup = _clamp(lineup)
@@ -148,7 +187,7 @@ def build_confidence(d: PitcherModelInput) -> dict:
         action = "WATCH / PASS"
 
     return {
-        "version": "confidence-v2.1",
+        "version": "confidence-v2.3",
         "overall": overall,
         "tier": tier,
         "recommended_action": action,
@@ -156,6 +195,13 @@ def build_confidence(d: PitcherModelInput) -> dict:
         "lineup": lineup,
         "workload": workload,
         "recent_change": recent_change,
+        "component_details": {
+            "pitcher_skill": {"season_bf": d.season_batters_faced, "career_bf": d.career_batters_faced},
+            "lineup": {"confirmed": d.lineup_confirmed, "projected_profile_available": lineup_profile_available, "opponent_k_pct": round(d.opponent_lineup_k_pct * 100, 1)},
+            "workload": {"starter_confirmed": d.starter_confirmed, "role": d.starter_role, "floor": d.workload_floor, "ceiling": d.workload_ceiling},
+            "stability": {"recent_pitch_counts": d.recent_pitch_counts, "pitch_count_cv": None if pitch_count_cv is None else round(pitch_count_cv, 3)},
+            "recent": recent_details,
+        },
         "workload_stability": stability,
         "workload_range_bf": workload_range,
         "pitch_count_cv": None if pitch_count_cv is None else round(pitch_count_cv, 3),

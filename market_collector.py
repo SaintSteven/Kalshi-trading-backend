@@ -35,11 +35,11 @@ def _save_market_cache(markets: list[dict]) -> None:
     _RAW_MARKET_CACHE["markets"] = list(markets)
 DATE_RE = re.compile(rf"^{re.escape(MLB_STRIKEOUT_PREFIX)}-(\d{{2}}[A-Z]{{3}}\d{{2}})")
 GAME_RE = re.compile(
-    rf"^{re.escape(MLB_STRIKEOUT_PREFIX)}-(\d{{2}}[A-Z]{{3}}\d{{2}})(\d{{4}})([A-Z]{{5,6}})-"
+    rf"^{re.escape(MLB_STRIKEOUT_PREFIX)}-(\d{{2}}[A-Z]{{3}}\d{{2}})(\d{{4}})([A-Z]{{4,6}})-"
 )
 
 TEAM_NAMES = {
-    "ARI": "Arizona Diamondbacks", "ATH": "Athletics", "ATL": "Atlanta Braves",
+    "ARI": "Arizona Diamondbacks", "AZ": "Arizona Diamondbacks", "ATH": "Athletics", "ATL": "Atlanta Braves",
     "BAL": "Baltimore Orioles", "BOS": "Boston Red Sox", "CHC": "Chicago Cubs",
     "CIN": "Cincinnati Reds", "CLE": "Cleveland Guardians", "COL": "Colorado Rockies",
     "CWS": "Chicago White Sox", "DET": "Detroit Tigers", "HOU": "Houston Astros",

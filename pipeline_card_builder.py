@@ -24,30 +24,36 @@ def _ranking_key(rec):
     )
 
 
-def _paper_stake(rec, request, remaining_daily_budget):
-    """Size a paper recommendation conservatively.
-
-    Stakes are capped by the user's max bet and remaining daily budget.
-    The sizing tiers intentionally remain simple while the model is being
-    validated.
-    """
+def _model_units(rec):
+    """Conviction units independent of bankroll and daily exposure."""
     if rec.decision != "MODEL EDGE" or rec.adjusted_edge_points is None:
         return 0.0
-
-    edge = rec.adjusted_edge_points
     confidence = rec.confidence.get("overall", 0)
+    edge = rec.adjusted_edge_points
+    if confidence >= 90 and edge >= 10:
+        return 2.0
+    if confidence >= 85 and edge >= 7.5:
+        return 1.5
+    if confidence >= 80 and edge >= 5:
+        return 1.0
+    if confidence >= 75 and edge >= 5:
+        return 0.5
+    return 0.0
 
-    if confidence >= 80 and edge >= 10:
-        multiplier = 1.0
-    elif confidence >= 72 and edge >= 7:
-        multiplier = 0.75
-    elif confidence >= 68:
-        multiplier = 0.50
+
+def _paper_stake(rec, request, remaining_daily_budget):
+    units = _model_units(rec)
+    unlimited = round(units * request.max_bet, 2)
+    stake = round(min(unlimited, remaining_daily_budget), 2)
+    if units <= 0:
+        status = "NO QUALIFYING STAKE"
+    elif stake >= unlimited:
+        status = "FULL MODEL STAKE"
+    elif stake > 0:
+        status = "PARTIALLY CAPPED BY DAILY BUDGET"
     else:
-        multiplier = 0.0
-
-    stake = min(request.max_bet * multiplier, remaining_daily_budget)
-    return round(max(0.0, stake), 2)
+        status = "QUALIFIED — DAILY BUDGET EXHAUSTED"
+    return units, unlimited, stake, status
 
 
 def build_card_from_pipeline(markets, request, pipeline):
@@ -87,7 +93,7 @@ def build_card_from_pipeline(markets, request, pipeline):
 
     sized = []
     for rec in recommendations:
-        stake = _paper_stake(rec, request, remaining)
+        units, unlimited_stake, stake, stake_status = _paper_stake(rec, request, remaining)
         remaining = round(max(0.0, remaining - stake), 2)
 
         reasons = list(rec.reasons)
@@ -99,7 +105,9 @@ def build_card_from_pipeline(markets, request, pipeline):
             reasons.append("Confidence risks: " + "; ".join(risk_flags[:3]))
         if rec.decision == "MODEL EDGE":
             reasons.append(
-                f"Best ladder selected for this pitcher; paper stake ${stake:.2f}."
+                f"Best ladder selected for this pitcher; model rating {units:.1f} units; "
+                f"uncapped stake ${unlimited_stake:.2f}; paper stake ${stake:.2f}. "
+                f"{stake_status}."
             )
         else:
             reasons.append("Best available ladder for this pitcher; no paper stake.")
@@ -107,7 +115,10 @@ def build_card_from_pipeline(markets, request, pipeline):
         sized.append(
             rec.model_copy(
                 update={
+                    "model_units": units,
+                    "unlimited_bankroll_stake": unlimited_stake,
                     "suggested_stake": stake,
+                    "stake_status": stake_status,
                     "reasons": reasons,
                 }
             )

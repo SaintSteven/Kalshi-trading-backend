@@ -1,0 +1,7 @@
+Kalshi Trading Backend v2.3.0
+
+- Adds bankroll-independent conviction units (0.5, 1.0, 1.5, 2.0).
+- Separates model units, uncapped stake, actual paper stake, and budget status.
+- Audits/fixes Recent confidence using recent K% vs season K% and sample size.
+- Adds confidence component drill-down data.
+- Improves matchup fallback for 2-letter team codes (SF/SD/AZ).

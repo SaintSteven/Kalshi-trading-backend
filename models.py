@@ -66,7 +66,10 @@ class PaperRecommendation(BaseModel):
     workload_ceiling: int | None
     confidence: dict
     decision: Literal["MODEL EDGE", "WATCH", "PASS", "INSUFFICIENT DATA"]
+    model_units: float = 0.0
+    unlimited_bankroll_stake: float = 0.0
     suggested_stake: float
+    stake_status: str = "NO STAKE"
     reasons: list[str]
     warnings: list[str]
 
@@ -100,7 +103,7 @@ class MarketSummary(BaseModel):
 class ExportCardRequest(BaseModel):
     card_date: str | None = None
     generated_at: str | None = None
-    model_version: str = "2.1.0"
+    model_version: str = "2.3.0"
     bankroll: float = Field(default=100, ge=0)
     already_committed_today: float = Field(default=0, ge=0)
     selected_slate: str | None = None
