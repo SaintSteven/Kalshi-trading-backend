@@ -1,0 +1,5 @@
+Kalshi Trading Backend v2.2.0
+
+- Keeps v2.1 projection, confidence, and settlement logic unchanged.
+- Declares support for automatic client-side ledger refresh when the app opens.
+- Pending games remain pending and are retried later.
