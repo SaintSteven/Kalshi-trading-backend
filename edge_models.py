@@ -16,6 +16,9 @@ class HistoricalMarketRecord(BaseModel):
     confidence_tier: Literal["LOW", "MEDIUM", "HIGH"] | None = None
     adjusted_edge_points: float | None = None
     stake: float = Field(default=1.0, ge=0)
+    model_stake: float | None = Field(default=None, ge=0)
+    model_units: float | None = Field(default=None, ge=0)
+    paper_included: bool | None = None
     ticker: str | None = None
     matchup: str | None = None
 
@@ -32,6 +35,9 @@ class SavedTradeSnapshot(BaseModel):
     confidence_tier: Literal["LOW", "MEDIUM", "HIGH"] | None = None
     adjusted_edge_points: float | None = None
     stake: float = Field(default=1.0, ge=0)
+    model_stake: float | None = Field(default=None, ge=0)
+    model_units: float | None = Field(default=None, ge=0)
+    paper_included: bool | None = None
     ticker: str | None = None
     matchup: str | None = None
     captured_at: str | None = None

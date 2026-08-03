@@ -1,0 +1,5 @@
+Kalshi Trading Backend v2.4.0
+
+- Preserves both budget-constrained paper stake and unlimited-model stake on every qualifying recommendation.
+- Settlement now carries model_stake, model_units, and paper_included into settled records.
+- Supports dual-strategy frontend analysis without changing projection or confidence logic.
