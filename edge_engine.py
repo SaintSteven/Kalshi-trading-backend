@@ -44,15 +44,20 @@ def _segment(name, rows, fee):
     s=_summ(rows,fee)
     return SegmentResult(segment=name,bets=s['bets'],wins=s['wins'],losses=s['losses'],win_rate=round(s['win_rate'],5) if s['win_rate'] is not None else None,amount_risked=round(s['amount_risked'],2),net_profit=round(s['net_profit'],2),roi=round(s['roi'],5) if s['roi'] is not None else None,average_edge_points=round(s['average_edge_points'],3) if s['average_edge_points'] is not None else None,average_clv_cents=round(s['average_clv_cents'],3) if s['average_clv_cents'] is not None else None)
 
+def _market_key(r):
+    return r.ticker or f"{r.game_date}|{r.player}|{r.threshold}|{r.side}"
+
+
 def analyze_edges(request: EdgeAnalysisRequest)->EdgeAnalysisResponse:
     warnings=[]; qualified=[]
+    unique_reviewed=len({_market_key(r) for r in request.records})
     for r in request.records:
         edge=_edge(r); confidence=r.confidence
         if edge<request.minimum_edge_points: continue
         if confidence is not None and confidence<request.minimum_confidence: continue
         won=_won(r); risk,gross=_profit(r,won)
         if risk<=0: continue
-        qualified.append(dict(side=r.side,threshold=r.threshold,price=r.entry_price_cents,close=r.closing_price_cents,model=r.model_probability,edge=edge,confidence=confidence,tier=_tier(r),won=won,risk=risk,gross=gross,game_date=r.game_date,player=r.player))
+        qualified.append(dict(side=r.side,threshold=r.threshold,price=r.entry_price_cents,close=r.closing_price_cents,model=r.model_probability,edge=edge,confidence=confidence,tier=_tier(r),won=won,risk=risk,gross=gross,game_date=r.game_date,player=r.player,market_key=_market_key(r)))
     qualified.sort(key=lambda x:(x['game_date'],x['player'],x['threshold']))
     overall=_summ(qualified,request.fee_rate)
     equity=0.0; peak=0.0; max_dd=0.0
@@ -73,4 +78,4 @@ def analyze_edges(request: EdgeAnalysisRequest)->EdgeAnalysisResponse:
     if not any(x['close'] is not None for x in qualified):warnings.append('No closing prices were supplied, so closing-line value could not be evaluated.')
     avg_model=sum(x['model'] for x in qualified)/len(qualified) if qualified else None
     avg_market=sum(x['price']/100 for x in qualified)/len(qualified) if qualified else None
-    return EdgeAnalysisResponse(records_reviewed=len(request.records),qualifying_bets=overall['bets'],wins=overall['wins'],losses=overall['losses'],win_rate=round(overall['win_rate'],5) if overall['win_rate'] is not None else None,amount_risked=round(overall['amount_risked'],2),gross_profit=round(overall['gross_profit'],2),estimated_fees=round(overall['fees'],2),net_profit=round(overall['net_profit'],2),roi=round(overall['roi'],5) if overall['roi'] is not None else None,max_drawdown=round(max_dd,2),average_model_probability=round(avg_model,5) if avg_model is not None else None,average_market_probability=round(avg_market,5) if avg_market is not None else None,average_edge_points=round(overall['average_edge_points'],3) if overall['average_edge_points'] is not None else None,average_clv_cents=round(overall['average_clv_cents'],3) if overall['average_clv_cents'] is not None else None,by_side=by_side,by_price_bucket=by_price,by_edge_bucket=by_edge,by_confidence_tier=by_conf,by_ladder=by_ladder,warnings=warnings)
+    return EdgeAnalysisResponse(records_reviewed=len(request.records),unique_markets_reviewed=unique_reviewed,qualifying_bets=overall['bets'],unique_qualifying_markets=len({x['market_key'] for x in qualified}),wins=overall['wins'],losses=overall['losses'],win_rate=round(overall['win_rate'],5) if overall['win_rate'] is not None else None,amount_risked=round(overall['amount_risked'],2),gross_profit=round(overall['gross_profit'],2),estimated_fees=round(overall['fees'],2),net_profit=round(overall['net_profit'],2),roi=round(overall['roi'],5) if overall['roi'] is not None else None,max_drawdown=round(max_dd,2),average_model_probability=round(avg_model,5) if avg_model is not None else None,average_market_probability=round(avg_market,5) if avg_market is not None else None,average_edge_points=round(overall['average_edge_points'],3) if overall['average_edge_points'] is not None else None,average_clv_cents=round(overall['average_clv_cents'],3) if overall['average_clv_cents'] is not None else None,by_side=by_side,by_price_bucket=by_price,by_edge_bucket=by_edge,by_confidence_tier=by_conf,by_ladder=by_ladder,warnings=warnings)

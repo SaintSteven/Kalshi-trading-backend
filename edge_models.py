@@ -19,6 +19,9 @@ class HistoricalMarketRecord(BaseModel):
     model_stake: float | None = Field(default=None, ge=0)
     model_units: float | None = Field(default=None, ge=0)
     paper_included: bool | None = None
+    research_only: bool = False
+    research_units: float | None = Field(default=None, ge=0)
+    research_stake: float | None = Field(default=None, ge=0)
     ticker: str | None = None
     matchup: str | None = None
 
@@ -38,6 +41,9 @@ class SavedTradeSnapshot(BaseModel):
     model_stake: float | None = Field(default=None, ge=0)
     model_units: float | None = Field(default=None, ge=0)
     paper_included: bool | None = None
+    research_only: bool = False
+    research_units: float | None = Field(default=None, ge=0)
+    research_stake: float | None = Field(default=None, ge=0)
     ticker: str | None = None
     matchup: str | None = None
     captured_at: str | None = None
@@ -75,7 +81,9 @@ class SegmentResult(BaseModel):
 
 class EdgeAnalysisResponse(BaseModel):
     records_reviewed: int
+    unique_markets_reviewed: int
     qualifying_bets: int
+    unique_qualifying_markets: int
     wins: int
     losses: int
     win_rate: float | None

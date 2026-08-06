@@ -1,0 +1,7 @@
+Kalshi Trading Backend v2.4.1
+
+- Adds a calibration guardrail for 4+ YES strikeout recommendations.
+- 4+ YES remains generated and trackable but receives zero deployable model/paper units.
+- Adds research_only, research_units, and research_stake fields so guardrailed recommendations can still be settled and studied.
+- Edge analysis now reports recommendation-observation counts and unique-market counts separately.
+- Projection engine, confidence thresholds, minimum edge, and all other ladder rules remain unchanged.

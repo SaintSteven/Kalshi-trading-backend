@@ -24,8 +24,8 @@ def _ranking_key(rec):
     )
 
 
-def _model_units(rec):
-    """Conviction units independent of bankroll and daily exposure."""
+def _conviction_units(rec):
+    """Raw conviction units before calibration guardrails or bankroll limits."""
     if rec.decision != "MODEL EDGE" or rec.adjusted_edge_points is None:
         return 0.0
     confidence = rec.confidence.get("overall", 0)
@@ -41,11 +41,25 @@ def _model_units(rec):
     return 0.0
 
 
+def _is_research_only(rec):
+    # v2.4.1 calibration guardrail: 4+ YES has materially underperformed
+    # in the first unique-market sample. Keep generating and settling it,
+    # but do not assign deployable model or paper units while it is audited.
+    return rec.decision == "MODEL EDGE" and rec.side == "YES" and rec.threshold == "4+"
+
+
 def _paper_stake(rec, request, remaining_daily_budget):
-    units = _model_units(rec)
+    conviction_units = _conviction_units(rec)
+    research_only = _is_research_only(rec)
+    research_units = conviction_units if research_only else 0.0
+    research_stake = round(research_units * request.max_bet, 2)
+
+    units = 0.0 if research_only else conviction_units
     unlimited = round(units * request.max_bet, 2)
     stake = round(min(unlimited, remaining_daily_budget), 2)
-    if units <= 0:
+    if research_only:
+        status = "RESEARCH ONLY — 4+ YES CALIBRATION GUARDRAIL"
+    elif units <= 0:
         status = "NO QUALIFYING STAKE"
     elif stake >= unlimited:
         status = "FULL MODEL STAKE"
@@ -53,7 +67,7 @@ def _paper_stake(rec, request, remaining_daily_budget):
         status = "PARTIALLY CAPPED BY DAILY BUDGET"
     else:
         status = "QUALIFIED — DAILY BUDGET EXHAUSTED"
-    return units, unlimited, stake, status
+    return units, unlimited, stake, status, research_only, research_units, research_stake
 
 
 def build_card_from_pipeline(markets, request, pipeline):
@@ -93,7 +107,7 @@ def build_card_from_pipeline(markets, request, pipeline):
 
     sized = []
     for rec in recommendations:
-        units, unlimited_stake, stake, stake_status = _paper_stake(rec, request, remaining)
+        units, unlimited_stake, stake, stake_status, research_only, research_units, research_stake = _paper_stake(rec, request, remaining)
         remaining = round(max(0.0, remaining - stake), 2)
 
         reasons = list(rec.reasons)
@@ -104,11 +118,18 @@ def build_card_from_pipeline(markets, request, pipeline):
         if risk_flags:
             reasons.append("Confidence risks: " + "; ".join(risk_flags[:3]))
         if rec.decision == "MODEL EDGE":
-            reasons.append(
-                f"Best ladder selected for this pitcher; model rating {units:.1f} units; "
-                f"uncapped stake ${unlimited_stake:.2f}; paper stake ${stake:.2f}. "
-                f"{stake_status}."
-            )
+            if research_only:
+                reasons.append(
+                    f"4+ YES calibration guardrail: RESEARCH ONLY. Raw conviction {research_units:.1f} units "
+                    f"(${research_stake:.2f} hypothetical research stake) is still tracked, but deployable model "
+                    f"units and paper stake are $0.00 until this ladder is recalibrated."
+                )
+            else:
+                reasons.append(
+                    f"Best ladder selected for this pitcher; model rating {units:.1f} units; "
+                    f"uncapped stake ${unlimited_stake:.2f}; paper stake ${stake:.2f}. "
+                    f"{stake_status}."
+                )
         else:
             reasons.append("Best available ladder for this pitcher; no paper stake.")
 
@@ -117,6 +138,9 @@ def build_card_from_pipeline(markets, request, pipeline):
                 update={
                     "model_units": units,
                     "unlimited_bankroll_stake": unlimited_stake,
+                    "research_only": research_only,
+                    "research_units": research_units,
+                    "research_stake": research_stake,
                     "suggested_stake": stake,
                     "stake_status": stake_status,
                     "reasons": reasons,
