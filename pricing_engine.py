@@ -1,5 +1,9 @@
 from models import PaperRecommendation
-from calibration_engine import CALIBRATION_FACTOR, CALIBRATION_METHOD, calibrate_probability
+from calibration_engine import (
+    CALIBRATION_FACTOR,
+    CALIBRATION_METHOD,
+    calibrate_selected_side_probability,
+)
 
 
 def evaluate_market(m, p, min_edge):
@@ -31,37 +35,50 @@ def evaluate_market(m, p, min_edge):
         side = "NONE"; price = fair = calibrated_fair = raw = calibrated_edge = adjusted = raw_adjusted = None
         decision = "PASS"; reasons = ["No simulated probability for this ladder."]
     else:
-        calibrated_yes_fair = calibrate_probability(raw_yes_fair)
         raw_no_fair = 1.0 - raw_yes_fair
-        calibrated_no_fair = 1.0 - calibrated_yes_fair
 
-        # Choose the side using calibrated edge; this prevents raw overconfidence
-        # from determining which side is considered the better trade.
-        yes_cal_edge = calibrated_yes_fair * 100.0 - m.yes_ask_cents if m.yes_ask_cents is not None else -999.0
-        no_cal_edge = calibrated_no_fair * 100.0 - m.no_ask_cents if m.no_ask_cents is not None else -999.0
+        # v2.5.1: choose the trade side from the independent RAW model first.
+        # Calibration is not allowed to flip the side or create an edge that the
+        # independent model did not already see.
+        yes_raw_edge = raw_yes_fair * 100.0 - m.yes_ask_cents if m.yes_ask_cents is not None else -999.0
+        no_raw_edge = raw_no_fair * 100.0 - m.no_ask_cents if m.no_ask_cents is not None else -999.0
 
-        if yes_cal_edge >= no_cal_edge:
-            side = "YES"; price = m.yes_ask_cents; fair = raw_yes_fair; calibrated_fair = calibrated_yes_fair; calibrated_edge = yes_cal_edge
+        if yes_raw_edge >= no_raw_edge:
+            side = "YES"; price = m.yes_ask_cents; fair = raw_yes_fair; raw = yes_raw_edge
         else:
-            side = "NO"; price = m.no_ask_cents; fair = raw_no_fair; calibrated_fair = calibrated_no_fair; calibrated_edge = no_cal_edge
+            side = "NO"; price = m.no_ask_cents; fair = raw_no_fair; raw = no_raw_edge
 
-        raw = fair * 100.0 - price if price is not None else None
+        # Conservative calibration is applied only after the raw side is fixed.
+        # It can only leave the selected-side probability unchanged or reduce it.
+        calibrated_fair = calibrate_selected_side_probability(fair)
+        calibrated_edge = calibrated_fair * 100.0 - price if price is not None else None
+
         confidence_score = p["confidence"].get("overall", 0)
-        raw_adjusted = raw * confidence_score / 100.0
-        adjusted = calibrated_edge * confidence_score / 100.0
-        decision = (
-            "PASS" if calibrated_edge < 0 else
-            "MODEL EDGE" if adjusted >= min_edge and confidence_score >= 68 else
-            "WATCH"
-        )
+        raw_adjusted = raw * confidence_score / 100.0 if raw is not None else None
+        adjusted = calibrated_edge * confidence_score / 100.0 if calibrated_edge is not None else None
+
+        # RAW-EDGE GATE: calibration may refine/reduce an edge, never manufacture
+        # one. A non-positive raw confidence-adjusted edge can never become a
+        # MODEL EDGE recommendation regardless of the calibrated value.
+        if raw_adjusted is None or raw_adjusted <= 0:
+            decision = "PASS" if raw is not None and raw <= 0 else "WATCH"
+        elif calibrated_edge is None or calibrated_edge < 0:
+            decision = "PASS"
+        elif adjusted >= min_edge and confidence_score >= 68:
+            decision = "MODEL EDGE"
+        else:
+            decision = "WATCH"
+
         reasons = [
-            f"Best side {side} after calibration.",
+            f"Best side {side} from the raw independent model.",
             f"Raw fair {fair*100:.1f}% calibrated to {calibrated_fair*100:.1f}% ({CALIBRATION_METHOD}).",
             f"Raw market edge {raw:.1f} pts; calibrated market edge {calibrated_edge:.1f} pts.",
             f"Raw confidence-adjusted edge {raw_adjusted:.1f} pts; calibrated adjusted edge {adjusted:.1f} pts.",
             f"Confidence {confidence_score}/100 ({p['confidence'].get('tier', 'UNRATED')}).",
         ]
-        if adjusted >= min_edge and confidence_score < 68:
+        if raw_adjusted <= 0:
+            reasons.append("RAW-EDGE GATE: the independent model did not show a positive adjusted edge, so calibration cannot create a deployable recommendation.")
+        elif adjusted >= min_edge and confidence_score < 68:
             reasons.append("Calibrated edge cleared the numeric threshold, but confidence QC held it to WATCH.")
 
     return PaperRecommendation(

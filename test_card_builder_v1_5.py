@@ -58,5 +58,6 @@ def test_only_best_ladder_per_pitcher_and_stake_is_sized():
     )
     assert matched == 3
     assert len(recs) == 1
-    assert recs[0].threshold == "5"
-    assert recs[0].suggested_stake == 1.0
+    assert recs[0].threshold == "6"
+    assert recs[0].suggested_stake == 0.0
+    assert recs[0].research_only is True

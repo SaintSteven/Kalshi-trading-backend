@@ -1,0 +1,16 @@
+Kalshi Trading Backend v2.5.1 — Raw-Edge Gate + Tail-Safe Calibration
+
+Why this patch exists
+- v2.5.0 shrank all probabilities toward 50%, which unintentionally increased rare-event probabilities.
+- That could turn raw negative-edge long-shot ladders into large calibrated MODEL EDGE recommendations.
+
+Changes
+- Selects YES/NO using the raw independent model edge before calibration.
+- Adds a RAW-EDGE GATE: raw confidence-adjusted edge must be > 0 for a market to become MODEL EDGE.
+- Calibration can no longer flip the selected side or manufacture a deployable edge.
+- Replaces symmetric shrink-to-50 with conservative one-sided calibration:
+  * selected-side probability <= 50%: unchanged
+  * selected-side probability > 50%: shrink halfway toward 50%
+- Therefore calibration can only leave conviction unchanged or reduce it; it never increases a rare tail probability.
+- Keeps 4+ YES research-only and the 15+ raw adjusted-edge extreme-disagreement research cohort.
+- Underlying strikeout projection engine and confidence engine are unchanged.
