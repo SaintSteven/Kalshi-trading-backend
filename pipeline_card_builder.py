@@ -41,16 +41,27 @@ def _conviction_units(rec):
     return 0.0
 
 
+def _research_reason(rec):
+    if rec.decision != "MODEL EDGE":
+        return None
+    # Existing ladder-specific calibration failure.
+    if rec.side == "YES" and rec.threshold == "4+":
+        return "4+ YES CALIBRATION GUARDRAIL"
+    # v2.5: prospective data showed very large claimed edges were not more reliable.
+    # Keep them visible and settle them, but do not deploy capital while audited.
+    if rec.uncalibrated_adjusted_edge_points is not None and rec.uncalibrated_adjusted_edge_points >= 15.0:
+        return "EXTREME DISAGREEMENT — 15+ RAW ADJUSTED EDGE"
+    return None
+
+
 def _is_research_only(rec):
-    # v2.4.1 calibration guardrail: 4+ YES has materially underperformed
-    # in the first unique-market sample. Keep generating and settling it,
-    # but do not assign deployable model or paper units while it is audited.
-    return rec.decision == "MODEL EDGE" and rec.side == "YES" and rec.threshold == "4+"
+    return _research_reason(rec) is not None
 
 
 def _paper_stake(rec, request, remaining_daily_budget):
     conviction_units = _conviction_units(rec)
-    research_only = _is_research_only(rec)
+    research_reason = _research_reason(rec)
+    research_only = research_reason is not None
     research_units = conviction_units if research_only else 0.0
     research_stake = round(research_units * request.max_bet, 2)
 
@@ -58,7 +69,7 @@ def _paper_stake(rec, request, remaining_daily_budget):
     unlimited = round(units * request.max_bet, 2)
     stake = round(min(unlimited, remaining_daily_budget), 2)
     if research_only:
-        status = "RESEARCH ONLY — 4+ YES CALIBRATION GUARDRAIL"
+        status = f"RESEARCH ONLY — {research_reason}"
     elif units <= 0:
         status = "NO QUALIFYING STAKE"
     elif stake >= unlimited:
@@ -67,7 +78,7 @@ def _paper_stake(rec, request, remaining_daily_budget):
         status = "PARTIALLY CAPPED BY DAILY BUDGET"
     else:
         status = "QUALIFIED — DAILY BUDGET EXHAUSTED"
-    return units, unlimited, stake, status, research_only, research_units, research_stake
+    return units, unlimited, stake, status, research_only, research_units, research_stake, research_reason
 
 
 def build_card_from_pipeline(markets, request, pipeline):
@@ -107,7 +118,7 @@ def build_card_from_pipeline(markets, request, pipeline):
 
     sized = []
     for rec in recommendations:
-        units, unlimited_stake, stake, stake_status, research_only, research_units, research_stake = _paper_stake(rec, request, remaining)
+        units, unlimited_stake, stake, stake_status, research_only, research_units, research_stake, research_reason = _paper_stake(rec, request, remaining)
         remaining = round(max(0.0, remaining - stake), 2)
 
         reasons = list(rec.reasons)
@@ -120,9 +131,9 @@ def build_card_from_pipeline(markets, request, pipeline):
         if rec.decision == "MODEL EDGE":
             if research_only:
                 reasons.append(
-                    f"4+ YES calibration guardrail: RESEARCH ONLY. Raw conviction {research_units:.1f} units "
+                    f"{research_reason}: RESEARCH ONLY. Raw conviction {research_units:.1f} units "
                     f"(${research_stake:.2f} hypothetical research stake) is still tracked, but deployable model "
-                    f"units and paper stake are $0.00 until this ladder is recalibrated."
+                    f"units and paper stake are $0.00 while this cohort is audited."
                 )
             else:
                 reasons.append(
@@ -141,6 +152,7 @@ def build_card_from_pipeline(markets, request, pipeline):
                     "research_only": research_only,
                     "research_units": research_units,
                     "research_stake": research_stake,
+                    "research_reason": research_reason,
                     "suggested_stake": stake,
                     "stake_status": stake_status,
                     "reasons": reasons,

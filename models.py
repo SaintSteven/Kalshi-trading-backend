@@ -56,6 +56,11 @@ class PaperRecommendation(BaseModel):
     side: Literal["YES", "NO", "NONE"]
     market_price_cents: int | None
     fair_probability: float | None
+    calibrated_fair_probability: float | None = None
+    calibration_method: str | None = None
+    calibration_factor: float | None = None
+    calibrated_edge_points: float | None = None
+    uncalibrated_adjusted_edge_points: float | None = None
     raw_edge_points: float | None
     adjusted_edge_points: float | None
     projected_strikeouts: float | None
@@ -71,6 +76,7 @@ class PaperRecommendation(BaseModel):
     research_only: bool = False
     research_units: float = 0.0
     research_stake: float = 0.0
+    research_reason: str | None = None
     suggested_stake: float
     stake_status: str = "NO STAKE"
     reasons: list[str]
@@ -106,7 +112,7 @@ class MarketSummary(BaseModel):
 class ExportCardRequest(BaseModel):
     card_date: str | None = None
     generated_at: str | None = None
-    model_version: str = "2.4.1"
+    model_version: str = "2.5.0"
     bankroll: float = Field(default=100, ge=0)
     already_committed_today: float = Field(default=0, ge=0)
     selected_slate: str | None = None

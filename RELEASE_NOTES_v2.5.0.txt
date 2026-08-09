@@ -1,0 +1,9 @@
+Kalshi Trading Backend v2.5.0 — Probability Calibration
+
+- Adds a conservative reliability calibration layer: raw probabilities are shrunk 50% toward 50%.
+- Card decisions and edge calculations use calibrated fair probability.
+- Exposes raw fair probability, calibrated fair probability, and uncalibrated/calibrated edge fields.
+- Keeps 4+ YES as RESEARCH ONLY.
+- Adds a second RESEARCH ONLY guardrail for pre-calibration confidence-adjusted edge >= 15 points.
+- Both research cohorts retain hypothetical units/stake and continue to settle for auditing.
+- Core strikeout projection engine, confidence engine, and minimum-edge input remain otherwise unchanged.

@@ -8,6 +8,7 @@ class HistoricalMarketRecord(BaseModel):
     threshold: str
     side: Literal["YES", "NO"]
     model_probability: float = Field(ge=0, le=1)
+    raw_model_probability: float | None = Field(default=None, ge=0, le=1)
     entry_price_cents: int = Field(ge=1, le=99)
     actual_strikeouts: int = Field(ge=0)
     closing_price_cents: int | None = Field(default=None, ge=1, le=99)
@@ -22,6 +23,7 @@ class HistoricalMarketRecord(BaseModel):
     research_only: bool = False
     research_units: float | None = Field(default=None, ge=0)
     research_stake: float | None = Field(default=None, ge=0)
+    research_reason: str | None = None
     ticker: str | None = None
     matchup: str | None = None
 
@@ -32,6 +34,7 @@ class SavedTradeSnapshot(BaseModel):
     threshold: str
     side: Literal["YES", "NO"]
     model_probability: float = Field(ge=0, le=1)
+    raw_model_probability: float | None = Field(default=None, ge=0, le=1)
     entry_price_cents: int = Field(ge=1, le=99)
     model_version: str = "2.0.0"
     confidence: float | None = Field(default=None, ge=0, le=100)
@@ -44,6 +47,7 @@ class SavedTradeSnapshot(BaseModel):
     research_only: bool = False
     research_units: float | None = Field(default=None, ge=0)
     research_stake: float | None = Field(default=None, ge=0)
+    research_reason: str | None = None
     ticker: str | None = None
     matchup: str | None = None
     captured_at: str | None = None
