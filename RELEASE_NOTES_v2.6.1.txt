@@ -1,0 +1,7 @@
+Kalshi Trading Backend v2.6.1
+
+Analytics-only release.
+- Keeps v2.6.0 Portfolio Selector v2 logic unchanged.
+- Persists selector rank/score/method/portfolio_selected through settlement.
+- Supports frontend forward A/B comparison of Unlimited Model vs legacy edge-first $5 control vs Portfolio Selector v2.
+- No projection, calibration, qualification, guardrail, or unit-sizing changes.

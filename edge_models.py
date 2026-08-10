@@ -26,6 +26,10 @@ class HistoricalMarketRecord(BaseModel):
     research_reason: str | None = None
     ticker: str | None = None
     matchup: str | None = None
+    selector_score: float | None = None
+    selector_rank: int | None = None
+    selector_method: str | None = None
+    portfolio_selected: bool | None = None
 
 
 class SavedTradeSnapshot(BaseModel):
@@ -51,6 +55,10 @@ class SavedTradeSnapshot(BaseModel):
     ticker: str | None = None
     matchup: str | None = None
     captured_at: str | None = None
+    selector_score: float | None = None
+    selector_rank: int | None = None
+    selector_method: str | None = None
+    portfolio_selected: bool | None = None
 
 
 class SettleSnapshotsRequest(BaseModel):
