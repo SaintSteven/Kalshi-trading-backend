@@ -32,7 +32,7 @@ from workload_experiment_models import WorkloadExperimentRequest, WorkloadExperi
 
 app = FastAPI(
     title="Kalshi Trading Engine",
-    version="2.5.2",
+    version="2.6.0",
     description=(
         "Paper-only MLB research engine with leakage-safe "
         "historical backtesting and model experimentation."
@@ -52,7 +52,7 @@ app.add_middleware(
 async def root():
     return {
         "service": "Kalshi Trading Engine",
-        "version": "2.5.2",
+        "version": "2.6.0",
         "mode": "paper-only",
         "docs": "/docs",
     }
@@ -62,7 +62,7 @@ async def root():
 async def health():
     return {
         "status": "ok",
-        "version": "2.5.2",
+        "version": "2.6.0",
         "mode": "paper-only",
         "pipeline": [
             "collect",
@@ -186,7 +186,7 @@ async def build_card(request: PaperCardRequest):
             projections_matched=matched,
             recommendations=recommendations,
             message=(
-                "v2.5.2 analytics active: unique-market performance is deduplicated in the dashboard; v2.5.1 calibration remains unchanged: raw-side selection and raw-edge gate prevent calibration-created bets; rare-tail probabilities are never increased; 4+ YES and 15+ raw adjusted-edge cohorts are research-only; started games are filtered, "
+                "v2.6.0 Portfolio Selector v2 active: paper-budget allocation is ranked reliability-first using 65% QC confidence + 35% capped calibrated edge; unlimited-model sizing remains unchanged; unique-market analytics remain active; v2.5.1 calibration remains unchanged: raw-side selection and raw-edge gate prevent calibration-created bets; rare-tail probabilities are never increased; 4+ YES and 15+ raw adjusted-edge cohorts are research-only; started games are filtered, "
                 "and every recommendation includes away team, home team, matchup, and ET start time."
             ),
         )

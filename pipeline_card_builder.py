@@ -58,6 +58,26 @@ def _is_research_only(rec):
     return _research_reason(rec) is not None
 
 
+
+
+def _selector_score(rec):
+    """Portfolio Selector v2 score.
+
+    Reliability-first and deliberately simple to reduce overfitting:
+    65% transparent QC confidence + 35% calibrated edge strength,
+    with edge contribution capped at 15 points so extreme disagreements
+    cannot dominate capital allocation. Research-only cohorts are excluded.
+    """
+    if rec.decision != "MODEL EDGE" or _is_research_only(rec):
+        return None
+    units = _conviction_units(rec)
+    if units <= 0 or rec.adjusted_edge_points is None:
+        return None
+    confidence = max(0.0, min(100.0, float(rec.confidence.get("overall", 0))))
+    edge = max(0.0, min(15.0, float(rec.adjusted_edge_points)))
+    edge_score = edge / 15.0 * 100.0
+    return round(confidence * 0.65 + edge_score * 0.35, 1)
+
 def _paper_stake(rec, request, remaining_daily_budget):
     conviction_units = _conviction_units(rec)
     research_reason = _research_reason(rec)
@@ -102,8 +122,26 @@ def build_card_from_pipeline(markets, request, pipeline):
             best_by_pitcher[key] = rec
 
     recommendations = list(best_by_pitcher.values())
+
+    # Portfolio Selector v2 ranks deployable candidates independently from the
+    # unlimited-model sizing.  This fixes the old edge-first behavior where the
+    # daily budget could be exhausted before more reliable high-confidence bets.
+    selector_scores = {rec.ticker: _selector_score(rec) for rec in recommendations}
+    eligible = [rec for rec in recommendations if selector_scores.get(rec.ticker) is not None]
+    eligible.sort(
+        key=lambda rec: (
+            -selector_scores[rec.ticker],
+            -rec.confidence.get("overall", 0),
+            -(rec.adjusted_edge_points if rec.adjusted_edge_points is not None else -999),
+            rec.player,
+        )
+    )
+    selector_ranks = {rec.ticker: rank for rank, rec in enumerate(eligible, start=1)}
+
     recommendations.sort(
         key=lambda rec: (
+            0 if selector_scores.get(rec.ticker) is not None else 1,
+            selector_ranks.get(rec.ticker, 999),
             DECISION_RANK.get(rec.decision, 99),
             -(rec.adjusted_edge_points if rec.adjusted_edge_points is not None else -999),
             -rec.confidence.get("overall", 0),
@@ -120,6 +158,9 @@ def build_card_from_pipeline(markets, request, pipeline):
     for rec in recommendations:
         units, unlimited_stake, stake, stake_status, research_only, research_units, research_stake, research_reason = _paper_stake(rec, request, remaining)
         remaining = round(max(0.0, remaining - stake), 2)
+        selector_score = selector_scores.get(rec.ticker)
+        selector_rank = selector_ranks.get(rec.ticker)
+        portfolio_selected = stake > 0
 
         reasons = list(rec.reasons)
         confidence_reasons = rec.confidence.get("reasons", [])
@@ -136,9 +177,13 @@ def build_card_from_pipeline(markets, request, pipeline):
                     f"units and paper stake are $0.00 while this cohort is audited."
                 )
             else:
+                selector_text = (
+                    f"Portfolio Selector v2 rank #{selector_rank} with score {selector_score:.1f}/100; "
+                    if selector_rank is not None and selector_score is not None else ""
+                )
                 reasons.append(
                     f"Best ladder selected for this pitcher; model rating {units:.1f} units; "
-                    f"uncapped stake ${unlimited_stake:.2f}; paper stake ${stake:.2f}. "
+                    f"{selector_text}uncapped stake ${unlimited_stake:.2f}; paper stake ${stake:.2f}. "
                     f"{stake_status}."
                 )
         else:
@@ -155,6 +200,10 @@ def build_card_from_pipeline(markets, request, pipeline):
                     "research_reason": research_reason,
                     "suggested_stake": stake,
                     "stake_status": stake_status,
+                    "selector_score": selector_score,
+                    "selector_rank": selector_rank,
+                    "selector_method": "portfolio-selector-v2-confidence65-edge35-cap15",
+                    "portfolio_selected": portfolio_selected,
                     "reasons": reasons,
                 }
             )

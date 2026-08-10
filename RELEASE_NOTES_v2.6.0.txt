@@ -1,0 +1,9 @@
+Kalshi Trading Backend v2.6.0 — Portfolio Selector v2
+
+- Projection engine, calibration, qualification thresholds, and unlimited-model units are unchanged from v2.5.2.
+- Daily paper-budget allocation no longer uses edge-first card order.
+- New transparent selector score = 65% QC confidence + 35% calibrated-edge strength.
+- Edge contribution is capped at 15 points so extreme disagreement cannot dominate allocation.
+- 4+ YES and 15+ raw adjusted-edge research-only cohorts remain excluded from deployable capital.
+- Each deployable recommendation now includes selector_score, selector_rank, selector_method, and portfolio_selected.
+- Unique-market analytics remain the primary performance view.
