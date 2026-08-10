@@ -1,0 +1,9 @@
+Kalshi Trading Backend v2.5.2 — Unique-Market Analytics
+
+- Keeps the v2.5.1 projection, calibration, qualification, and staking logic unchanged.
+- Backend version bumped to 2.5.2 so deployments can be verified in the dashboard.
+- Frontend primary performance analytics now deduplicate settled records by Kalshi market ticker.
+- If a market exists under multiple historical model versions, the newest model-version record is used for primary analytics.
+- Observation-level counts remain visible only as development/version diagnostics.
+- Unlimited Model, Daily-Budget Portfolio, 4+ YES Watchlist, and Extreme Disagreement Watchlist all receive unique-market analysis.
+- No projection thresholds, confidence rules, raw-edge gate, calibration behavior, or research-only guardrails were changed.
