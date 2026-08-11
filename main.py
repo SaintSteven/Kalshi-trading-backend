@@ -10,6 +10,7 @@ from config import ALLOWED_ORIGINS
 from edge_engine import analyze_edges
 from edge_models import EdgeAnalysisRequest, EdgeAnalysisResponse, SettleSnapshotsRequest, SettleSnapshotsResponse
 from historical_backtest_collector import collect_historical_starts
+from historical_market_poc import historical_price_poc
 from snapshot_settlement import settle_snapshots
 from historical_backtest_models import HistoricalBacktestRequest, HistoricalBacktestResponse
 from lineup_experiment import run_lineup_experiment
@@ -32,7 +33,7 @@ from workload_experiment_models import WorkloadExperimentRequest, WorkloadExperi
 
 app = FastAPI(
     title="Kalshi Trading Engine",
-    version="2.6.1",
+    version="2.6.2",
     description=(
         "Paper-only MLB research engine with leakage-safe "
         "historical backtesting and model experimentation."
@@ -52,7 +53,7 @@ app.add_middleware(
 async def root():
     return {
         "service": "Kalshi Trading Engine",
-        "version": "2.6.1",
+        "version": "2.6.2",
         "mode": "paper-only",
         "docs": "/docs",
     }
@@ -62,7 +63,7 @@ async def root():
 async def health():
     return {
         "status": "ok",
-        "version": "2.6.1",
+        "version": "2.6.2",
         "mode": "paper-only",
         "pipeline": [
             "collect",
@@ -85,6 +86,7 @@ async def health():
             "automatic_ledger_refresh_on_app_open",
             "four_plus_yes_research_guardrail",
             "unique_market_sample_counts",
+            "historical_kalshi_price_poc",
         ],
         "time_utc": datetime.now(timezone.utc).isoformat(),
     }
@@ -241,6 +243,23 @@ async def export_card(request: ExportCardRequest):
 @app.post("/backtest", response_model=BacktestResponse)
 async def backtest(request: BacktestRequest):
     return run_backtest(request)
+
+
+@app.get("/historical-market-poc")
+async def historical_market_price_poc(
+    date: str = Query(..., description="Historical MLB slate date in YYYY-MM-DD format"),
+    hours_before_first_pitch: float = Query(2.0, ge=0.25, le=24.0),
+    max_markets: int = Query(12, ge=1, le=50),
+):
+    try:
+        datetime.strptime(date, "%Y-%m-%d")
+        return await historical_price_poc(
+            date,
+            hours_before_first_pitch=hours_before_first_pitch,
+            max_markets=max_markets,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
 @app.post("/historical-backtest", response_model=HistoricalBacktestResponse)

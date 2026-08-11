@@ -1,0 +1,9 @@
+Kalshi Trading Engine v2.6.2 — Historical Kalshi Price Proof of Concept
+
+- No projection, calibration, confidence, staking, or Portfolio Selector v2 rules changed.
+- Adds GET /historical-market-poc for testing whether historical MLB strikeout market prices can be reconstructed from Kalshi's official market/candlestick APIs.
+- Queries both historical and recent/live series listings for KXMLBKS, then filters to the requested slate date.
+- Uses 1-minute Kalshi candlesticks and a fixed pregame rule: latest quoted candle at or before N hours before first pitch (default 2h).
+- YES executable entry = YES ask close. NO executable entry = 100 - YES bid close.
+- Uses a six-hour lookback before the target entry so sparse markets can still surface the latest prior quote, and reports quote age rather than silently assuming freshness.
+- This is a data-availability test only. It does not yet run v2.6.1 projections against historical prices or calculate historical trading P/L.

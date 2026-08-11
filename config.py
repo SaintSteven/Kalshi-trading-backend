@@ -15,3 +15,8 @@ ALLOWED_ORIGINS = [
 ]
 
 MLB_STRIKEOUT_PREFIX = os.getenv("MLB_STRIKEOUT_PREFIX", "KXMLBKS")
+
+KALSHI_HISTORICAL_BASE_URL = os.getenv(
+    "KALSHI_HISTORICAL_BASE_URL",
+    "https://external-api.kalshi.com/trade-api/v2",
+)
