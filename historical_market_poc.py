@@ -9,7 +9,7 @@ import httpx
 
 from config import KALSHI_HISTORICAL_BASE_URL, MLB_STRIKEOUT_PREFIX
 
-HIST_BASE = KALSHI_HISTORICAL_BASE_URL
+HIST_BASE = KALSHI_HISTORICAL_BASE_URL.rstrip("/")
 ET = ZoneInfo("America/New_York")
 UTC = ZoneInfo("UTC")
 
@@ -60,22 +60,76 @@ def _player_and_threshold(market: dict) -> tuple[str | None, str | None]:
     return player, threshold
 
 
+def _parse_iso(value: Any) -> datetime | None:
+    if not value:
+        return None
+    text = str(value).strip().replace("Z", "+00:00")
+    try:
+        dt = datetime.fromisoformat(text)
+    except ValueError:
+        return None
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=UTC)
+    return dt.astimezone(UTC)
+
+
+def _target_route(target_date: str, market_settled_cutoff: datetime | None) -> str:
+    """Choose the Kalshi storage tier without peeking at market outcomes.
+
+    Kalshi routes based on market settlement time. MLB strikeout markets normally
+    settle shortly after the game, so use noon ET on the following day as a
+    conservative proxy. If the requested date sits within 36 hours of the cutoff,
+    return 'both' because a slate can straddle the archive boundary.
+    """
+    if market_settled_cutoff is None:
+        return "recent"
+    game_day = datetime.strptime(target_date, "%Y-%m-%d").replace(tzinfo=ET)
+    settlement_proxy = (game_day + timedelta(days=1, hours=12)).astimezone(UTC)
+    delta = (settlement_proxy - market_settled_cutoff).total_seconds()
+    if abs(delta) <= 36 * 3600:
+        return "both"
+    return "historical" if delta < 0 else "recent"
+
+
 async def _request_json(client: httpx.AsyncClient, url: str, *, params: dict | None = None) -> dict:
     response = await client.get(url, params=params, timeout=45)
-    response.raise_for_status()
+    if response.is_error:
+        detail = ""
+        try:
+            payload = response.json()
+            detail = str(payload.get("message") or payload.get("details") or payload)
+        except Exception:
+            detail = response.text[:500]
+        raise RuntimeError(f"HTTP {response.status_code} for {response.url}: {detail}".strip())
     return response.json()
 
 
+async def _get_cutoff(client: httpx.AsyncClient) -> dict:
+    return await _request_json(client, HIST_BASE + "/historical/cutoff")
+
+
 async def _collect_series_markets(client: httpx.AsyncClient, historical: bool) -> list[dict]:
+    """Collect KXMLBKS markets from the correct storage tier.
+
+    Historical filters are documented as mutually exclusive, so unlike the old
+    POC we do NOT combine series_ticker with mve_filter on /historical/markets.
+    """
     path = "/historical/markets" if historical else "/markets"
     markets: list[dict] = []
     cursor: str | None = None
     while True:
-        params = {
-            "series_ticker": MLB_STRIKEOUT_PREFIX,
-            "limit": 1000,
-            "mve_filter": "exclude",
-        }
+        if historical:
+            params: dict[str, Any] = {
+                "series_ticker": MLB_STRIKEOUT_PREFIX,
+                "limit": 1000,
+            }
+        else:
+            params = {
+                "series_ticker": MLB_STRIKEOUT_PREFIX,
+                "status": "settled",
+                "limit": 1000,
+                "mve_filter": "exclude",
+            }
         if cursor:
             params["cursor"] = cursor
         payload = await _request_json(client, HIST_BASE + path, params=params)
@@ -123,7 +177,12 @@ async def historical_price_poc(
     hours_before_first_pitch: float = 2.0,
     max_markets: int = 12,
 ) -> dict:
-    """Proof of concept for reconstructing executable pregame Kalshi K prices.
+    """Reconstruct executable pregame Kalshi K prices without look-ahead.
+
+    Routing convention:
+      1. Read Kalshi's /historical/cutoff.
+      2. Choose recent or historical storage for the requested slate.
+      3. If the slate is close to the cutoff boundary, query both tiers.
 
     Entry convention: use the final 1-minute quoted candle ending at or before
     `hours_before_first_pitch`. YES entry uses YES ask close. NO entry is derived
@@ -134,38 +193,63 @@ async def historical_price_poc(
         raise ValueError("hours_before_first_pitch must be between 0.25 and 24.")
     if not 1 <= max_markets <= 50:
         raise ValueError("max_markets must be between 1 and 50.")
+
     token = _date_token(target_date)
     warnings: list[str] = []
+    headers = {"User-Agent": "KalshiTradingPlatform/2.6.3-historical-poc"}
 
-    headers = {"User-Agent": "KalshiTradingPlatform/2.6.2-historical-poc"}
     async with httpx.AsyncClient(headers=headers) as client:
-        historical_markets: list[dict] = []
-        live_markets: list[dict] = []
+        cutoff_payload: dict = {}
+        market_cutoff: datetime | None = None
         try:
-            historical_markets = await _collect_series_markets(client, historical=True)
+            cutoff_payload = await _get_cutoff(client)
+            market_cutoff = _parse_iso(cutoff_payload.get("market_settled_ts"))
         except Exception as exc:
-            warnings.append(f"Historical market listing failed: {exc}")
-        try:
-            live_markets = await _collect_series_markets(client, historical=False)
-        except Exception as exc:
-            warnings.append(f"Live/recent market listing failed: {exc}")
+            warnings.append(f"Historical cutoff lookup failed; defaulting to recent tier first: {exc}")
 
-        tagged: list[tuple[dict, bool]] = []
-        seen: set[str] = set()
-        for market, historical in [
-            *((m, True) for m in historical_markets),
-            *((m, False) for m in live_markets),
-        ]:
-            ticker = str(market.get("ticker") or "")
-            if not ticker.startswith(f"{MLB_STRIKEOUT_PREFIX}-{token}") or ticker in seen:
-                continue
-            seen.add(ticker)
-            tagged.append((market, historical))
+        route = _target_route(target_date, market_cutoff)
+        tiers = [route] if route in {"recent", "historical"} else ["recent", "historical"]
+        if market_cutoff is None and "historical" not in tiers:
+            tiers.append("historical")  # fallback only when cutoff could not be read
 
-        # Stable ordering makes repeated tests easy to compare.
+        listings: list[tuple[dict, bool]] = []
+        listing_counts = {"historical": 0, "recent": 0}
+        for tier in tiers:
+            is_historical = tier == "historical"
+            try:
+                found = await _collect_series_markets(client, historical=is_historical)
+                listing_counts[tier] = len(found)
+                listings.extend((m, is_historical) for m in found)
+            except Exception as exc:
+                warnings.append(f"{tier.title()} market listing failed: {exc}")
+
+        # If routing found no markets for a valid-looking game date, try the other
+        # tier once. This protects us from a market settling just across the cutoff.
+        def date_matches(items: list[tuple[dict, bool]]) -> list[tuple[dict, bool]]:
+            out: list[tuple[dict, bool]] = []
+            seen: set[str] = set()
+            for market, historical in items:
+                ticker = str(market.get("ticker") or "")
+                if ticker.startswith(f"{MLB_STRIKEOUT_PREFIX}-{token}") and ticker not in seen:
+                    seen.add(ticker)
+                    out.append((market, historical))
+            return out
+
+        tagged = date_matches(listings)
+        if not tagged and market_cutoff is not None and route != "both":
+            fallback_tier = "historical" if route == "recent" else "recent"
+            try:
+                fallback = await _collect_series_markets(client, historical=fallback_tier == "historical")
+                listing_counts[fallback_tier] = len(fallback)
+                listings.extend((m, fallback_tier == "historical") for m in fallback)
+                tagged = date_matches(listings)
+                if tagged:
+                    warnings.append(f"No date matches in routed {route} tier; fallback {fallback_tier} tier returned matches.")
+            except Exception as exc:
+                warnings.append(f"Fallback {fallback_tier} market listing failed: {exc}")
+
         tagged.sort(key=lambda pair: str(pair[0].get("ticker") or ""))
         tagged = tagged[:max_markets]
-
         semaphore = asyncio.Semaphore(4)
 
         async def inspect(pair: tuple[dict, bool]) -> dict:
@@ -243,22 +327,25 @@ async def historical_price_poc(
         rows = await asyncio.gather(*(inspect(pair) for pair in tagged)) if tagged else []
 
     usable = [r for r in rows if r.get("usable_entry_quote")]
+    cutoff_text = market_cutoff.isoformat() if market_cutoff else None
     return {
         "status": "success" if usable else "no_usable_quotes",
         "target_date": target_date,
         "series_ticker": MLB_STRIKEOUT_PREFIX,
+        "storage_route": route,
+        "market_settled_cutoff": cutoff_text,
         "entry_rule": f"last quoted 1-minute candle at or before {hours_before_first_pitch:g} hours before first pitch; 6-hour quote lookback",
         "market_records_found": len(tagged),
         "markets_checked": len(rows),
         "usable_entry_quotes": len(usable),
-        "historical_listing_records": len(historical_markets),
-        "live_recent_listing_records": len(live_markets),
+        "historical_listing_records": listing_counts["historical"],
+        "live_recent_listing_records": listing_counts["recent"],
         "proof_passed": bool(usable),
         "markets": rows,
         "warnings": warnings,
         "next_step": (
             "Historical Kalshi price reconstruction is viable. Build the full leakage-safe trading backtester next."
             if usable
-            else "No usable quote was reconstructed for this date. Try an earlier date or inspect warnings before building the full backtester."
+            else "No usable quote was reconstructed. Try Jul 10, 2026 first; if markets are found but quotes are missing, inspect the per-market candle errors."
         ),
     }

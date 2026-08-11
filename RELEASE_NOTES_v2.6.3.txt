@@ -1,0 +1,11 @@
+Kalshi Trading Engine v2.6.3 — Historical Price POC Routing Fix
+
+- Calls GET /historical/cutoff before choosing a Kalshi data tier.
+- Routes recent settled markets to GET /markets and archived markets to GET /historical/markets.
+- Removes mve_filter from historical market listing to avoid combining historical filters.
+- Uses status=settled on recent market listing.
+- Adds near-cutoff and empty-result fallback routing.
+- Surfaces Kalshi API error details, selected storage route, and cutoff timestamp.
+- Keeps the fixed two-hours-before-first-pitch / six-hour-lookback quote rule unchanged.
+- No projection, calibration, confidence, staking, guardrail, or portfolio-selector logic changed.
+- Suggested POC date changed to 2026-07-10 (normal MLB slate).
