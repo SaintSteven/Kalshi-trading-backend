@@ -1,0 +1,8 @@
+v2.6.6 — Background Historical Backtests + Candle-Safe Batching
+
+- Historical trading backtests can now run as backend jobs independent of the browser tab.
+- New job start/status/cancel endpoints retain progress/results in backend memory.
+- Progress updates include phase, date, days processed, markets, quotes, and qualifiers.
+- Recent Kalshi candlestick batches are packed below the 10,000-candle API limit.
+- Frozen projection, calibration, guardrail, sizing, T-2h entry, and selector logic are unchanged.
+- Background jobs survive browser/tab closure, but an unfinished job is lost if Render restarts/redeploys.

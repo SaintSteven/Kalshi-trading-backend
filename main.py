@@ -1,4 +1,6 @@
 from datetime import datetime, timezone
+import asyncio
+import uuid
 
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import StreamingResponse
@@ -35,7 +37,7 @@ from workload_experiment_models import WorkloadExperimentRequest, WorkloadExperi
 
 app = FastAPI(
     title="Kalshi Trading Engine",
-    version="2.6.5",
+    version="2.6.6",
     description=(
         "Paper-only MLB research engine with leakage-safe "
         "historical backtesting and model experimentation."
@@ -55,7 +57,7 @@ app.add_middleware(
 async def root():
     return {
         "service": "Kalshi Trading Engine",
-        "version": "2.6.5",
+        "version": "2.6.6",
         "mode": "paper-only",
         "docs": "/docs",
     }
@@ -65,7 +67,7 @@ async def root():
 async def health():
     return {
         "status": "ok",
-        "version": "2.6.5",
+        "version": "2.6.6",
         "mode": "paper-only",
         "pipeline": [
             "collect",
@@ -89,6 +91,8 @@ async def health():
             "four_plus_yes_research_guardrail",
             "unique_market_sample_counts",
             "historical_kalshi_price_poc",
+            "background_historical_backtest_jobs",
+            "candlestick_cap_safe_batching",
         ],
         "time_utc": datetime.now(timezone.utc).isoformat(),
     }
@@ -292,6 +296,52 @@ async def historical_backtest(request: HistoricalBacktestRequest):
 
 
 
+# In-memory background job registry. Jobs survive browser disconnects and page closes,
+# but not a backend deploy/restart. That limitation is surfaced to the frontend.
+_HISTORICAL_JOBS: dict[str, dict] = {}
+_HISTORICAL_JOB_TASKS: dict[str, asyncio.Task] = {}
+
+
+def _job_now() -> str:
+    return datetime.now(timezone.utc).isoformat()
+
+
+def _prune_historical_jobs(max_jobs: int = 20):
+    if len(_HISTORICAL_JOBS) <= max_jobs:
+        return
+    done = [j for j in _HISTORICAL_JOBS.values() if j.get("status") in {"completed", "failed", "cancelled"}]
+    done.sort(key=lambda x: x.get("updated_at") or x.get("created_at") or "")
+    for job in done[: max(0, len(_HISTORICAL_JOBS) - max_jobs)]:
+        jid = job["job_id"]
+        _HISTORICAL_JOBS.pop(jid, None)
+        _HISTORICAL_JOB_TASKS.pop(jid, None)
+
+
+async def _run_historical_job(job_id: str, request: HistoricalTradingBacktestRequest):
+    job = _HISTORICAL_JOBS[job_id]
+    job.update(status="running", started_at=_job_now(), updated_at=_job_now())
+
+    async def progress(payload: dict):
+        current = _HISTORICAL_JOBS.get(job_id)
+        if not current:
+            return
+        current["progress"] = payload
+        current["updated_at"] = _job_now()
+
+    try:
+        result = await run_historical_trading_backtest(request, progress_callback=progress)
+        job.update(status="completed", result=result, progress={**job.get("progress", {}), "percent": 100, "phase": "completed"}, finished_at=_job_now(), updated_at=_job_now())
+    except asyncio.CancelledError:
+        job.update(status="cancelled", error="Job cancelled.", finished_at=_job_now(), updated_at=_job_now())
+        raise
+    except Exception as exc:
+        job.update(status="failed", error=str(exc), finished_at=_job_now(), updated_at=_job_now())
+    finally:
+        _HISTORICAL_JOB_TASKS.pop(job_id, None)
+        _prune_historical_jobs()
+
+
+
 @app.post("/historical-trading-backtest", response_model=HistoricalTradingBacktestResponse)
 async def historical_trading_backtest(request: HistoricalTradingBacktestRequest):
     try:
@@ -299,6 +349,63 @@ async def historical_trading_backtest(request: HistoricalTradingBacktestRequest)
         return HistoricalTradingBacktestResponse(**result)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@app.post("/historical-trading-backtest/jobs")
+async def start_historical_trading_backtest_job(request: HistoricalTradingBacktestRequest):
+    try:
+        start = datetime.strptime(request.start_date, "%Y-%m-%d").date()
+        end = datetime.strptime(request.end_date, "%Y-%m-%d").date()
+        if end < start:
+            raise ValueError("end_date must be on or after start_date.")
+        days = (end - start).days + 1
+        if days > request.max_days:
+            raise ValueError(f"Requested {days} days; maximum for this run is {request.max_days}.")
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    job_id = uuid.uuid4().hex[:12]
+    _HISTORICAL_JOBS[job_id] = {
+        "job_id": job_id,
+        "status": "queued",
+        "created_at": _job_now(),
+        "updated_at": _job_now(),
+        "request": request.model_dump(),
+        "progress": {
+            "phase": "queued",
+            "message": "Background backtest queued.",
+            "days_total": days,
+            "days_processed": 0,
+            "percent": 0,
+        },
+        "result": None,
+        "error": None,
+        "persistence_note": "Safe to close the browser. Job state is kept on the backend until the service restarts or redeploys.",
+    }
+    task = asyncio.create_task(_run_historical_job(job_id, request))
+    _HISTORICAL_JOB_TASKS[job_id] = task
+    return _HISTORICAL_JOBS[job_id]
+
+
+@app.get("/historical-trading-backtest/jobs/{job_id}")
+async def get_historical_trading_backtest_job(job_id: str):
+    job = _HISTORICAL_JOBS.get(job_id)
+    if not job:
+        raise HTTPException(status_code=404, detail="Historical backtest job not found. It may have been cleared by a backend restart/deploy.")
+    return job
+
+
+@app.delete("/historical-trading-backtest/jobs/{job_id}")
+async def cancel_historical_trading_backtest_job(job_id: str):
+    job = _HISTORICAL_JOBS.get(job_id)
+    if not job:
+        raise HTTPException(status_code=404, detail="Historical backtest job not found.")
+    task = _HISTORICAL_JOB_TASKS.get(job_id)
+    if task and not task.done():
+        task.cancel()
+        job.update(status="cancelled", error="Job cancelled by user.", finished_at=_job_now(), updated_at=_job_now())
+    return job
+
 
 @app.post("/lineup-experiment", response_model=LineupExperimentResponse)
 async def lineup_experiment(request: LineupExperimentRequest):

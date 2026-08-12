@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 from collections import defaultdict
 from datetime import datetime, timedelta
+import inspect
 from types import SimpleNamespace
 from zoneinfo import ZoneInfo
 
@@ -42,6 +43,40 @@ def _norm(value: str | None) -> str:
 def _chunked(values: list[str], size: int = 90):
     for i in range(0, len(values), size):
         yield values[i:i + size]
+
+
+def _candle_safe_chunks(values: list[str], specs: dict[str, tuple], max_candles: int = 9000, max_markets: int = 90):
+    """Pack recent market tickers into batches that stay below Kalshi's 10k candle cap.
+
+    The batch endpoint applies one common start/end window across every ticker. A large
+    MLB slate can therefore explode into tens of thousands of requested 1-minute candles
+    even when each individual market only needs a six-hour lookback. We sort by target
+    time and grow a batch only while the estimated common-window candle count stays
+    under a conservative 9,000-candle ceiling.
+    """
+    ordered = sorted(values, key=lambda t: specs[t][3])
+    chunk: list[str] = []
+    for ticker in ordered:
+        candidate = chunk + [ticker]
+        starts = [specs[t][2] for t in candidate]
+        ends = [specs[t][3] for t in candidate]
+        minutes = max(1, (max(ends) - min(starts) + 59) // 60)
+        estimate = minutes * len(candidate)
+        if chunk and (len(candidate) > max_markets or estimate > max_candles):
+            yield chunk
+            chunk = [ticker]
+        else:
+            chunk = candidate
+    if chunk:
+        yield chunk
+
+
+async def _emit_progress(callback, payload: dict):
+    if callback is None:
+        return
+    result = callback(payload)
+    if inspect.isawaitable(result):
+        await result
 
 
 def _won(actual_k: int, threshold: str, side: str) -> bool:
@@ -156,7 +191,7 @@ async def _quotes_for_date(client: httpx.AsyncClient, target_date: str, hours_be
 
     if recent:
         await asyncio.sleep(0.35)
-        for chunk in _chunked(recent, 90):
+        for chunk in _candle_safe_chunks(recent, specs):
             batch_start = min(specs[t][2] for t in chunk)
             batch_end = max(specs[t][3] for t in chunk)
             try:
@@ -232,7 +267,7 @@ def _market_from_quote(q: dict) -> Market | None:
     )
 
 
-async def run_historical_trading_backtest(request: HistoricalTradingBacktestRequest) -> dict:
+async def run_historical_trading_backtest(request: HistoricalTradingBacktestRequest, progress_callback=None) -> dict:
     start = datetime.strptime(request.start_date, "%Y-%m-%d").date()
     end = datetime.strptime(request.end_date, "%Y-%m-%d").date()
     if end < start:
@@ -242,6 +277,13 @@ async def run_historical_trading_backtest(request: HistoricalTradingBacktestRequ
         raise ValueError(f"Requested {days} days; maximum for this run is {request.max_days}.")
 
     warnings: list[str] = []
+    await _emit_progress(progress_callback, {
+        "phase": "collecting_features",
+        "message": "Collecting leakage-safe historical pitcher and opponent inputs…",
+        "days_total": days,
+        "days_processed": 0,
+        "percent": 2,
+    })
     raw_records, projection_warnings = await collect_historical_starts(request.start_date, request.end_date, request.max_days)
     warnings.extend(projection_warnings)
     by_date_projection: dict[str, dict[str, dict]] = defaultdict(dict)
@@ -260,7 +302,16 @@ async def run_historical_trading_backtest(request: HistoricalTradingBacktestRequ
     daily_results: list[dict] = []
     total_found = total_quotes = total_eval = total_qualifiers = matched_pitchers = 0
 
-    headers = {"User-Agent": "KalshiTradingPlatform/2.6.5-historical-trading-backtest"}
+    await _emit_progress(progress_callback, {
+        "phase": "processing_slates",
+        "message": f"Historical inputs ready. Processing {days} slate day(s)…",
+        "days_total": days,
+        "days_processed": 0,
+        "projected_starters": len(raw_records),
+        "percent": 8,
+    })
+
+    headers = {"User-Agent": "KalshiTradingPlatform/2.6.6-background-historical-backtest"}
     async with httpx.AsyncClient(headers=headers) as client:
         current = start
         while current <= end:
@@ -347,6 +398,19 @@ async def run_historical_trading_backtest(request: HistoricalTradingBacktestRequ
                 "edge_first": _strategy_summary(day_edge),
                 "selector_v2": _strategy_summary(day_selector),
             })
+            processed = len(daily_results)
+            await _emit_progress(progress_callback, {
+                "phase": "processing_slates",
+                "message": f"Processed {processed} of {days} slate day(s).",
+                "days_total": days,
+                "days_processed": processed,
+                "current_date": ds,
+                "markets_found": total_found,
+                "usable_quotes": total_quotes,
+                "matched_pitchers": matched_pitchers,
+                "qualifiers": total_qualifiers,
+                "percent": min(98, 8 + round(90 * processed / max(days, 1))),
+            })
             current += timedelta(days=1)
 
     strategy_results = {
@@ -358,7 +422,7 @@ async def run_historical_trading_backtest(request: HistoricalTradingBacktestRequ
         "4plus_yes": _strategy_summary(all_4yes),
         "extreme_disagreement": _strategy_summary(all_extreme),
     }
-    return {
+    result = {
         "status": "success",
         "start_date": request.start_date,
         "end_date": request.end_date,
@@ -384,3 +448,14 @@ async def run_historical_trading_backtest(request: HistoricalTradingBacktestRequ
         "research_watchlists": watchlists,
         "warnings": warnings,
     }
+    await _emit_progress(progress_callback, {
+        "phase": "completed",
+        "message": f"Backtest complete: {len(daily_results)} day(s), {len({r.ticker for r in all_unlimited if r.ticker})} unique qualifiers.",
+        "days_total": days,
+        "days_processed": len(daily_results),
+        "markets_found": total_found,
+        "usable_quotes": total_quotes,
+        "qualifiers": total_qualifiers,
+        "percent": 100,
+    })
+    return result
