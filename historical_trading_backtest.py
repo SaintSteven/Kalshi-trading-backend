@@ -267,7 +267,12 @@ def _market_from_quote(q: dict) -> Market | None:
     )
 
 
-async def run_historical_trading_backtest(request: HistoricalTradingBacktestRequest, progress_callback=None) -> dict:
+async def run_historical_trading_backtest(
+    request: HistoricalTradingBacktestRequest,
+    progress_callback=None,
+    checkpoint_callback=None,
+    resume_state: dict | None = None,
+) -> dict:
     start = datetime.strptime(request.start_date, "%Y-%m-%d").date()
     end = datetime.strptime(request.end_date, "%Y-%m-%d").date()
     if end < start:
@@ -276,13 +281,19 @@ async def run_historical_trading_backtest(request: HistoricalTradingBacktestRequ
     if days > request.max_days:
         raise ValueError(f"Requested {days} days; maximum for this run is {request.max_days}.")
 
-    warnings: list[str] = []
+    resume_state = resume_state or {}
+    warnings: list[str] = list(resume_state.get("warnings") or [])
+    resumed_days = len(resume_state.get("daily_results") or [])
     await _emit_progress(progress_callback, {
         "phase": "collecting_features",
-        "message": "Collecting leakage-safe historical pitcher and opponent inputs…",
+        "message": (
+            f"Rebuilding leakage-safe historical inputs before resuming after {resumed_days} completed day(s)…"
+            if resumed_days else
+            "Collecting leakage-safe historical pitcher and opponent inputs…"
+        ),
         "days_total": days,
-        "days_processed": 0,
-        "percent": 2,
+        "days_processed": resumed_days,
+        "percent": 2 if not resumed_days else min(8, 2 + resumed_days),
     })
     raw_records, projection_warnings = await collect_historical_starts(request.start_date, request.end_date, request.max_days)
     warnings.extend(projection_warnings)
@@ -294,26 +305,37 @@ async def run_historical_trading_backtest(request: HistoricalTradingBacktestRequ
             by_date_projection[r["game_date"]][r["player"].strip().lower()] = p
         actuals[(r["game_date"], _norm(r["player"]))] = int(r["actual_strikeouts"])
 
-    all_unlimited: list[HistoricalMarketRecord] = []
-    all_edge_first: list[HistoricalMarketRecord] = []
-    all_selector: list[HistoricalMarketRecord] = []
-    all_4yes: list[HistoricalMarketRecord] = []
-    all_extreme: list[HistoricalMarketRecord] = []
-    daily_results: list[dict] = []
-    total_found = total_quotes = total_eval = total_qualifiers = matched_pitchers = 0
+    def _restore_records(key: str) -> list[HistoricalMarketRecord]:
+        return [HistoricalMarketRecord(**r) for r in (resume_state.get(key) or [])]
+
+    all_unlimited: list[HistoricalMarketRecord] = _restore_records("all_unlimited")
+    all_edge_first: list[HistoricalMarketRecord] = _restore_records("all_edge_first")
+    all_selector: list[HistoricalMarketRecord] = _restore_records("all_selector")
+    all_4yes: list[HistoricalMarketRecord] = _restore_records("all_4yes")
+    all_extreme: list[HistoricalMarketRecord] = _restore_records("all_extreme")
+    daily_results: list[dict] = list(resume_state.get("daily_results") or [])
+    totals = resume_state.get("totals") or {}
+    total_found = int(totals.get("markets_found", 0))
+    total_quotes = int(totals.get("usable_quotes", 0))
+    total_eval = int(totals.get("recommendations_evaluated", 0))
+    total_qualifiers = int(totals.get("qualifiers", 0))
+    matched_pitchers = int(totals.get("matched_pitchers", 0))
 
     await _emit_progress(progress_callback, {
         "phase": "processing_slates",
         "message": f"Historical inputs ready. Processing {days} slate day(s)…",
         "days_total": days,
-        "days_processed": 0,
+        "days_processed": len(daily_results),
         "projected_starters": len(raw_records),
         "percent": 8,
     })
 
     headers = {"User-Agent": "KalshiTradingPlatform/2.6.6-background-historical-backtest"}
     async with httpx.AsyncClient(headers=headers) as client:
+        completed_dates = {r.get("date") for r in daily_results if r.get("date")}
         current = start
+        while current <= end and current.isoformat() in completed_dates:
+            current += timedelta(days=1)
         while current <= end:
             ds = current.isoformat()
             quotes, found = await _quotes_for_date(client, ds, request.hours_before_first_pitch, request.quote_lookback_hours, warnings)
@@ -411,6 +433,27 @@ async def run_historical_trading_backtest(request: HistoricalTradingBacktestRequ
                 "qualifiers": total_qualifiers,
                 "percent": min(98, 8 + round(90 * processed / max(days, 1))),
             })
+            if checkpoint_callback is not None:
+                checkpoint = {
+                    "daily_results": daily_results,
+                    "all_unlimited": [r.model_dump() for r in all_unlimited],
+                    "all_edge_first": [r.model_dump() for r in all_edge_first],
+                    "all_selector": [r.model_dump() for r in all_selector],
+                    "all_4yes": [r.model_dump() for r in all_4yes],
+                    "all_extreme": [r.model_dump() for r in all_extreme],
+                    "totals": {
+                        "markets_found": total_found,
+                        "usable_quotes": total_quotes,
+                        "recommendations_evaluated": total_eval,
+                        "qualifiers": total_qualifiers,
+                        "matched_pitchers": matched_pitchers,
+                    },
+                    "warnings": warnings,
+                    "last_completed_date": ds,
+                }
+                value = checkpoint_callback(checkpoint)
+                if inspect.isawaitable(value):
+                    await value
             current += timedelta(days=1)
 
     strategy_results = {

@@ -1,0 +1,15 @@
+Kalshi Trading Engine v2.6.7 — Checkpointed Historical Jobs
+
+- Adds SQLite-backed historical backtest job storage.
+- Saves a full replay checkpoint after every completed slate day.
+- Restores queued/running jobs from saved checkpoints on backend startup.
+- Resumes at the next unfinished slate instead of discarding completed days.
+- Adds a lightweight active-job keepalive on Render to reduce free-tier idle recycling.
+- Adds GET /historical-trading-backtest/jobs so the frontend can rediscover saved jobs.
+- Frontend Check Status can recover the latest backend-saved job even if localStorage loses the job ID.
+- Frozen MLB model, T-2h entry rule, quote lookback, calibration, guardrails, and portfolio rules are unchanged.
+
+Persistence note: point HISTORICAL_JOB_DB_PATH at a mounted persistent disk for durability across full
+Render instance replacement or redeploys. Without a mounted disk, v2.6.7 still checkpoints completed
+slates and uses keepalive to reduce the idle-recycle failure seen in v2.6.6a, but a full instance replacement
+can still remove the local SQLite file.

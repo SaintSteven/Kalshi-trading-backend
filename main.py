@@ -1,6 +1,9 @@
 from datetime import datetime, timezone
 import asyncio
+import os
 import uuid
+
+import httpx
 
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import StreamingResponse
@@ -17,6 +20,7 @@ from snapshot_settlement import settle_snapshots
 from historical_backtest_models import HistoricalBacktestRequest, HistoricalBacktestResponse
 from historical_trading_models import HistoricalTradingBacktestRequest, HistoricalTradingBacktestResponse
 from historical_trading_backtest import run_historical_trading_backtest
+from historical_job_store import HistoricalJobStore
 from lineup_experiment import run_lineup_experiment
 from lineup_experiment_models import LineupExperimentRequest, LineupExperimentResponse
 from market_collector import (
@@ -37,7 +41,7 @@ from workload_experiment_models import WorkloadExperimentRequest, WorkloadExperi
 
 app = FastAPI(
     title="Kalshi Trading Engine",
-    version="2.6.6a",
+    version="2.6.7",
     description=(
         "Paper-only MLB research engine with leakage-safe "
         "historical backtesting and model experimentation."
@@ -57,7 +61,7 @@ app.add_middleware(
 async def root():
     return {
         "service": "Kalshi Trading Engine",
-        "version": "2.6.6a",
+        "version": "2.6.7",
         "mode": "paper-only",
         "docs": "/docs",
     }
@@ -67,7 +71,7 @@ async def root():
 async def health():
     return {
         "status": "ok",
-        "version": "2.6.6a",
+        "version": "2.6.7",
         "mode": "paper-only",
         "pipeline": [
             "collect",
@@ -92,6 +96,9 @@ async def health():
             "unique_market_sample_counts",
             "historical_kalshi_price_poc",
             "background_historical_backtest_jobs",
+            "persistent_historical_job_checkpoints",
+            "restart_resume_for_historical_jobs",
+            "active_job_keepalive",
             "candlestick_cap_safe_batching",
         ],
         "time_utc": datetime.now(timezone.utc).isoformat(),
@@ -296,14 +303,23 @@ async def historical_backtest(request: HistoricalBacktestRequest):
 
 
 
-# In-memory background job registry. Jobs survive browser disconnects and page closes,
-# but not a backend deploy/restart. That limitation is surfaced to the frontend.
+# Background historical backtests use both an in-memory task registry and a
+# SQLite checkpoint store. The store is consulted by status endpoints and on
+# service startup so a partially completed month can resume from the last
+# completed slate instead of starting over.
 _HISTORICAL_JOBS: dict[str, dict] = {}
 _HISTORICAL_JOB_TASKS: dict[str, asyncio.Task] = {}
+_HISTORICAL_KEEPALIVE_TASKS: dict[str, asyncio.Task] = {}
+_HISTORICAL_JOB_STORE = HistoricalJobStore()
 
 
 def _job_now() -> str:
     return datetime.now(timezone.utc).isoformat()
+
+
+def _persist_job(job: dict):
+    job["updated_at"] = _job_now()
+    _HISTORICAL_JOB_STORE.upsert(job)
 
 
 def _prune_historical_jobs(max_jobs: int = 20):
@@ -315,31 +331,127 @@ def _prune_historical_jobs(max_jobs: int = 20):
         jid = job["job_id"]
         _HISTORICAL_JOBS.pop(jid, None)
         _HISTORICAL_JOB_TASKS.pop(jid, None)
+        keep = _HISTORICAL_KEEPALIVE_TASKS.pop(jid, None)
+        if keep and not keep.done():
+            keep.cancel()
 
 
-async def _run_historical_job(job_id: str, request: HistoricalTradingBacktestRequest):
-    job = _HISTORICAL_JOBS[job_id]
-    job.update(status="running", started_at=_job_now(), updated_at=_job_now())
+async def _historical_job_keepalive(job_id: str):
+    """Generate light inbound traffic while a long free-tier job is active.
+
+    Render can recycle an otherwise idle web service even while a detached task
+    is doing work. When RENDER_EXTERNAL_URL is available, ping /health every
+    eight minutes. This is not a persistence substitute; it simply reduces idle
+    recycling while SQLite checkpoints protect completed slate days.
+    """
+    base = (os.getenv("RENDER_EXTERNAL_URL") or "").rstrip("/")
+    if not base:
+        return
+    async with httpx.AsyncClient(timeout=20) as client:
+        while True:
+            await asyncio.sleep(8 * 60)
+            job = _HISTORICAL_JOBS.get(job_id) or _HISTORICAL_JOB_STORE.get(job_id)
+            if not job or job.get("status") not in {"queued", "running"}:
+                return
+            try:
+                await client.get(f"{base}/health", params={"job": job_id})
+            except Exception:
+                pass
+
+
+async def _run_historical_job(job_id: str, request: HistoricalTradingBacktestRequest, *, resumed: bool = False):
+    job = _HISTORICAL_JOBS.get(job_id) or _HISTORICAL_JOB_STORE.get(job_id)
+    if not job:
+        return
+    _HISTORICAL_JOBS[job_id] = job
+    if not job.get("started_at"):
+        job["started_at"] = _job_now()
+    job.update(status="running", error=None)
+    if resumed:
+        p = job.get("progress") or {}
+        p["message"] = f"Backend restarted; resuming from checkpoint after {p.get('days_processed', 0)} completed day(s)…"
+        p["phase"] = "resuming"
+        job["progress"] = p
+    _persist_job(job)
 
     async def progress(payload: dict):
-        current = _HISTORICAL_JOBS.get(job_id)
+        current = _HISTORICAL_JOBS.get(job_id) or _HISTORICAL_JOB_STORE.get(job_id)
         if not current:
             return
         current["progress"] = payload
-        current["updated_at"] = _job_now()
+        _HISTORICAL_JOBS[job_id] = current
+        _persist_job(current)
 
+    async def checkpoint(payload: dict):
+        current = _HISTORICAL_JOBS.get(job_id) or _HISTORICAL_JOB_STORE.get(job_id)
+        if not current:
+            return
+        current["checkpoint"] = payload
+        current["progress"] = {
+            **(current.get("progress") or {}),
+            "checkpoint_saved": True,
+            "last_completed_date": payload.get("last_completed_date"),
+        }
+        _HISTORICAL_JOBS[job_id] = current
+        _persist_job(current)
+
+    keepalive = asyncio.create_task(_historical_job_keepalive(job_id))
+    _HISTORICAL_KEEPALIVE_TASKS[job_id] = keepalive
     try:
-        result = await run_historical_trading_backtest(request, progress_callback=progress)
-        job.update(status="completed", result=result, progress={**job.get("progress", {}), "percent": 100, "phase": "completed"}, finished_at=_job_now(), updated_at=_job_now())
+        resume_state = job.get("checkpoint") or None
+        result = await run_historical_trading_backtest(
+            request,
+            progress_callback=progress,
+            checkpoint_callback=checkpoint,
+            resume_state=resume_state,
+        )
+        job.update(
+            status="completed",
+            result=result,
+            checkpoint=None,
+            progress={**job.get("progress", {}), "percent": 100, "phase": "completed"},
+            finished_at=_job_now(),
+        )
+        _persist_job(job)
     except asyncio.CancelledError:
-        job.update(status="cancelled", error="Job cancelled.", finished_at=_job_now(), updated_at=_job_now())
+        # Preserve checkpoint. On an ordinary process shutdown/restart, startup
+        # recovery can continue from the last completed slate.
+        job.update(status="running", error=None)
+        p = job.get("progress") or {}
+        p["message"] = "Job interrupted after a saved checkpoint; it can resume after backend startup."
+        job["progress"] = p
+        _persist_job(job)
         raise
     except Exception as exc:
-        job.update(status="failed", error=str(exc), finished_at=_job_now(), updated_at=_job_now())
+        job.update(status="failed", error=str(exc), finished_at=_job_now())
+        _persist_job(job)
     finally:
         _HISTORICAL_JOB_TASKS.pop(job_id, None)
+        keep = _HISTORICAL_KEEPALIVE_TASKS.pop(job_id, None)
+        if keep and not keep.done():
+            keep.cancel()
         _prune_historical_jobs()
 
+
+def _launch_historical_job(job: dict, *, resumed: bool = False):
+    jid = job["job_id"]
+    if jid in _HISTORICAL_JOB_TASKS and not _HISTORICAL_JOB_TASKS[jid].done():
+        return
+    try:
+        request = HistoricalTradingBacktestRequest(**job["request"])
+    except Exception as exc:
+        job.update(status="failed", error=f"Could not restore saved request: {exc}", finished_at=_job_now())
+        _persist_job(job)
+        return
+    _HISTORICAL_JOBS[jid] = job
+    task = asyncio.create_task(_run_historical_job(jid, request, resumed=resumed))
+    _HISTORICAL_JOB_TASKS[jid] = task
+
+
+@app.on_event("startup")
+async def resume_interrupted_historical_jobs():
+    for job in _HISTORICAL_JOB_STORE.resumable():
+        _launch_historical_job(job, resumed=True)
 
 
 @app.post("/historical-trading-backtest", response_model=HistoricalTradingBacktestResponse)
@@ -365,7 +477,7 @@ async def start_historical_trading_backtest_job(request: HistoricalTradingBackte
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
     job_id = uuid.uuid4().hex[:12]
-    _HISTORICAL_JOBS[job_id] = {
+    job = {
         "job_id": job_id,
         "status": "queued",
         "created_at": _job_now(),
@@ -373,37 +485,53 @@ async def start_historical_trading_backtest_job(request: HistoricalTradingBackte
         "request": request.model_dump(),
         "progress": {
             "phase": "queued",
-            "message": "Background backtest queued.",
+            "message": "Background backtest queued; persistent checkpointing is enabled.",
             "days_total": days,
             "days_processed": 0,
             "percent": 0,
         },
         "result": None,
+        "checkpoint": None,
         "error": None,
-        "persistence_note": "Safe to close the browser. Job state is kept on the backend until the service restarts or redeploys.",
+        "persistence_note": (
+            "Progress is checkpointed after each completed slate. The service will resume an interrupted job "
+            "from the latest saved slate when the job database is still present. Set HISTORICAL_JOB_DB_PATH "
+            "to a mounted Render persistent disk for durability across instance replacement/deploys."
+        ),
     }
-    task = asyncio.create_task(_run_historical_job(job_id, request))
-    _HISTORICAL_JOB_TASKS[job_id] = task
-    return _HISTORICAL_JOBS[job_id]
+    _HISTORICAL_JOBS[job_id] = job
+    _persist_job(job)
+    _launch_historical_job(job)
+    return job
 
 
 @app.get("/historical-trading-backtest/jobs/{job_id}")
 async def get_historical_trading_backtest_job(job_id: str):
-    job = _HISTORICAL_JOBS.get(job_id)
+    job = _HISTORICAL_JOBS.get(job_id) or _HISTORICAL_JOB_STORE.get(job_id)
     if not job:
-        raise HTTPException(status_code=404, detail="Historical backtest job not found. It may have been cleared by a backend restart/deploy.")
+        raise HTTPException(status_code=404, detail="Historical backtest job not found in the persistent job store.")
+    _HISTORICAL_JOBS[job_id] = job
+    if job.get("status") in {"queued", "running"} and job_id not in _HISTORICAL_JOB_TASKS:
+        _launch_historical_job(job, resumed=True)
     return job
+
+
+@app.get("/historical-trading-backtest/jobs")
+async def list_historical_trading_backtest_jobs(limit: int = Query(default=10, ge=1, le=50)):
+    return _HISTORICAL_JOB_STORE.list_recent(limit)
 
 
 @app.delete("/historical-trading-backtest/jobs/{job_id}")
 async def cancel_historical_trading_backtest_job(job_id: str):
-    job = _HISTORICAL_JOBS.get(job_id)
+    job = _HISTORICAL_JOBS.get(job_id) or _HISTORICAL_JOB_STORE.get(job_id)
     if not job:
         raise HTTPException(status_code=404, detail="Historical backtest job not found.")
     task = _HISTORICAL_JOB_TASKS.get(job_id)
     if task and not task.done():
         task.cancel()
-        job.update(status="cancelled", error="Job cancelled by user.", finished_at=_job_now(), updated_at=_job_now())
+    job.update(status="cancelled", error="Job cancelled by user.", finished_at=_job_now())
+    _HISTORICAL_JOBS[job_id] = job
+    _persist_job(job)
     return job
 
 
