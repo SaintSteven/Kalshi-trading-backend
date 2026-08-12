@@ -1,0 +1,11 @@
+v2.6.5 — Leakage-Safe Historical Trading Backtester
+
+- Adds POST /historical-trading-backtest.
+- Replays frozen v2.6.x pricing/QC/guardrail/sizing logic against real point-in-time Kalshi KXMLBKS bid/ask candles.
+- Primary entry rule remains pre-registered: latest quoted 1-minute executable ask at or before T-2 hours, six-hour lookback.
+- Reconstructs pitcher season/recent/career data using only starts before each game date.
+- Opponent K profile uses only data through the day before the historical game.
+- Historical lineups are NOT backfilled from final-game information; lineup_confirmed stays false.
+- Compares Unlimited Model, Edge-First $5 Control, and Portfolio Selector v2 on the same historical opportunities.
+- Separately tracks 4+ YES and Extreme Disagreement research-only cohorts.
+- No production projection, calibration, qualification, guardrail, or selector rules were optimized for historical results.

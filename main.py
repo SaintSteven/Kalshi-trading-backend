@@ -13,6 +13,8 @@ from historical_backtest_collector import collect_historical_starts
 from historical_market_poc import historical_price_poc
 from snapshot_settlement import settle_snapshots
 from historical_backtest_models import HistoricalBacktestRequest, HistoricalBacktestResponse
+from historical_trading_models import HistoricalTradingBacktestRequest, HistoricalTradingBacktestResponse
+from historical_trading_backtest import run_historical_trading_backtest
 from lineup_experiment import run_lineup_experiment
 from lineup_experiment_models import LineupExperimentRequest, LineupExperimentResponse
 from market_collector import (
@@ -33,7 +35,7 @@ from workload_experiment_models import WorkloadExperimentRequest, WorkloadExperi
 
 app = FastAPI(
     title="Kalshi Trading Engine",
-    version="2.6.4",
+    version="2.6.5",
     description=(
         "Paper-only MLB research engine with leakage-safe "
         "historical backtesting and model experimentation."
@@ -53,7 +55,7 @@ app.add_middleware(
 async def root():
     return {
         "service": "Kalshi Trading Engine",
-        "version": "2.6.4",
+        "version": "2.6.5",
         "mode": "paper-only",
         "docs": "/docs",
     }
@@ -63,7 +65,7 @@ async def root():
 async def health():
     return {
         "status": "ok",
-        "version": "2.6.4",
+        "version": "2.6.5",
         "mode": "paper-only",
         "pipeline": [
             "collect",
@@ -287,6 +289,16 @@ async def historical_backtest(request: HistoricalBacktestRequest):
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
+
+
+
+@app.post("/historical-trading-backtest", response_model=HistoricalTradingBacktestResponse)
+async def historical_trading_backtest(request: HistoricalTradingBacktestRequest):
+    try:
+        result = await run_historical_trading_backtest(request)
+        return HistoricalTradingBacktestResponse(**result)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 @app.post("/lineup-experiment", response_model=LineupExperimentResponse)
 async def lineup_experiment(request: LineupExperimentRequest):

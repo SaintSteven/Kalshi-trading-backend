@@ -183,6 +183,7 @@ async def build_record(client, starter):
         "actual_strikeouts": starter["actual_strikeouts"],
         "projected_strikeouts": projection["projected_strikeouts"],
         "ladder_probabilities": projection["ladder_probabilities"],
+        "projection_details": projection,
         "features": build_feature_record(raw),
     }
 
