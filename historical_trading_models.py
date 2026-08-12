@@ -6,14 +6,14 @@ from pydantic import BaseModel, Field
 class HistoricalTradingBacktestRequest(BaseModel):
     start_date: str
     end_date: str
-    max_days: int = Field(default=3, ge=1, le=14)
+    max_days: int = Field(default=31, ge=1, le=62)
     bankroll: float = Field(default=100.0, ge=0)
     unit_size: float = Field(default=1.0, gt=0)
     minimum_edge_points: float = Field(default=5.0, ge=0, le=50)
     hours_before_first_pitch: float = Field(default=2.0, ge=0.25, le=24.0)
     quote_lookback_hours: float = Field(default=6.0, ge=1.0, le=24.0)
     daily_cap_dollars: float = Field(default=5.0, ge=0)
-    model_version: str = "2.6.4-frozen"
+    model_version: str = "2.6.6-frozen"
 
 
 class HistoricalTradingBacktestResponse(BaseModel):

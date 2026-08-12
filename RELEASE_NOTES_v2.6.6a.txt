@@ -1,0 +1,6 @@
+v2.6.6a — Historical Backtest Duration Limit Patch
+
+- Raises Historical Trading Backtest max_days API validation from 14 to 62.
+- Defaults max_days to 31 so the prefilled July 1–31 background run is accepted.
+- Keeps the frozen v2.6.6 trading model, T-2h entry rule, 6h quote lookback, $5 daily cap, and selector logic unchanged.
+- Backend version label updated to 2.6.6a for deployment verification.
