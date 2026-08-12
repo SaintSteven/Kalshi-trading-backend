@@ -1,0 +1,15 @@
+Kalshi Trading Engine v2.6.4 — Historical Candle Retrieval Fix
+
+No projection, calibration, confidence, guardrail, staking, or portfolio-selector logic changed.
+
+Historical Kalshi Price POC changes:
+- Uses GET /markets/candlesticks to batch recent-tier candle retrieval.
+- Supports up to 50 POC markets in one recent batch request.
+- Adds documented exponential backoff for HTTP 429 responses.
+- Adds quiet refill pauses plus throttled individual fallback when a batch is rejected.
+- Keeps archive-tier candle retrieval serialized because Kalshi documents only an individual historical candlestick endpoint.
+- Parses current fixed-point candlestick fields such as close_dollars in addition to legacy close fields.
+- Adds diagnostics for markets with candles, retrieval method, candles retrieved, batch requests, individual fallback requests, and rate-limit fallbacks.
+- Keeps the fixed historical entry rule unchanged: latest 1-minute quote at or before 2 hours before first pitch, using a 6-hour lookback.
+
+Purpose: determine whether real point-in-time pregame Kalshi MLB strikeout quotes can be reconstructed without changing the model or cherry-picking entry prices.

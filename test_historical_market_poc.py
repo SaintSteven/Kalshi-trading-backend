@@ -36,3 +36,39 @@ def test_parse_iso_normalizes_zulu():
     assert dt is not None
     assert dt.tzinfo is not None
     assert dt.utcoffset().total_seconds() == 0
+
+from historical_market_poc import _close, _finalize_row
+
+
+def test_current_fixed_point_close_dollars_is_supported():
+    assert _close({"close_dollars": "0.5600"}) == "0.5600"
+    assert _to_cents(_close({"close_dollars": "0.5600"})) == 56
+
+
+def test_finalize_row_reconstructs_yes_and_no_asks_from_fixed_point_candle():
+    market = {
+        "ticker": "KXMLBKS-26AUG102138TEXLAA-LAARDETMERS48-6",
+        "title": "Reid Detmers: 6+ strikeouts",
+    }
+    game_start = _game_start_from_ticker(market["ticker"])
+    target_ts = int((game_start.timestamp()) - 2 * 3600)
+    candles = [{
+        "end_period_ts": target_ts,
+        "yes_ask": {"close_dollars": "0.3300"},
+        "yes_bid": {"close_dollars": "0.3100"},
+        "price": {"close_dollars": "0.3200"},
+        "volume_fp": "12.00",
+        "open_interest_fp": "20.00",
+    }]
+    row = _finalize_row(
+        market=market,
+        historical=False,
+        candles=candles,
+        hours_before_first_pitch=2,
+        retrieval_method="batch_recent",
+    )
+    assert row["yes_ask_cents"] == 33
+    assert row["no_ask_cents"] == 69
+    assert row["last_trade_cents"] == 32
+    assert row["usable_entry_quote"] is True
+    assert row["retrieval_method"] == "batch_recent"
