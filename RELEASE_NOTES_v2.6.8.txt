@@ -1,0 +1,26 @@
+Kalshi Trading Engine v2.6.8 — GitHub-Durable Historical Backtests
+
+What changed
+- Historical backtest jobs are mirrored to GitHub after the job is created, after every completed slate checkpoint, and when a job finishes/fails/cancels.
+- Checkpoints are stored on a dedicated non-deploy branch (default: backtest-checkpoints), not main.
+- A fresh Render instance can rediscover jobs from GitHub and resume from the latest saved slate.
+- Local SQLite remains the fast cache, but is no longer the only recovery source.
+- Progress UI now shows completed dates and the last externally saved date.
+- The backend refuses to start a long background job until external GitHub checkpointing is configured, preventing another false-durable run.
+
+Frozen strategy rules are unchanged.
+- Model label remains 2.6.6-frozen.
+- Primary historical entry remains latest executable 1-minute quote at/before T-2h with a 6-hour lookback.
+- $5 daily cap, $1 unit, calibration, QC, research quarantines, and Portfolio Selector v2 are unchanged.
+
+Render setup required
+1. Create a GitHub fine-grained personal access token limited to the backend repository.
+2. Give it repository Contents: Read and write permission.
+3. Add the token to the Render backend Environment as GITHUB_CHECKPOINT_TOKEN.
+4. Optional overrides:
+   GITHUB_CHECKPOINT_REPO=SaintSteven/Kalshi-trading-backend
+   GITHUB_CHECKPOINT_BRANCH=backtest-checkpoints
+   GITHUB_CHECKPOINT_ROOT=historical_backtest_checkpoints
+5. Redeploy Render once after adding the environment variable.
+
+Never commit the token into GitHub or paste it into the frontend.

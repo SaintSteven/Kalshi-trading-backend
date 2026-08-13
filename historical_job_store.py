@@ -8,29 +8,40 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from github_checkpoint_store import GitHubCheckpointError, GitHubCheckpointStore
+
 
 def _utc_now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
 class HistoricalJobStore:
-    """Small SQLite-backed store for long historical backtest jobs.
+    """Local SQLite job store with a GitHub-backed durable mirror.
 
-    The path can be pointed at a Render persistent disk with HISTORICAL_JOB_DB_PATH.
-    Without a mounted persistent disk, the store still survives ordinary process
-    crashes/reloads that retain the filesystem, while the job keepalive reduces
-    idle instance recycling during active work.
+    SQLite remains the fast process-local cache. GitHub is the authoritative
+    recovery layer for month-long jobs because Render's free filesystem is
+    ephemeral across instance replacement/redeploys.
     """
 
     def __init__(self, path: str | None = None):
         configured = path or os.getenv("HISTORICAL_JOB_DB_PATH")
-        if configured:
-            self.path = Path(configured)
-        else:
-            self.path = Path("data") / "historical_backtest_jobs.sqlite3"
+        self.path = Path(configured) if configured else Path("data") / "historical_backtest_jobs.sqlite3"
         self.path.parent.mkdir(parents=True, exist_ok=True)
         self._lock = threading.RLock()
         self._init_db()
+        self.github = GitHubCheckpointStore()
+
+    @property
+    def external_enabled(self) -> bool:
+        return self.github.enabled
+
+    def persistence_status(self) -> dict:
+        status = self.github.status()
+        status["local_sqlite_path"] = str(self.path)
+        return status
+
+    def require_external(self):
+        self.github.require_enabled()
 
     def _connect(self):
         con = sqlite3.connect(self.path, timeout=30)
@@ -74,7 +85,7 @@ class HistoricalJobStore:
         except Exception:
             return default
 
-    def upsert(self, job: dict):
+    def upsert(self, job: dict, *, sync_external: bool = False):
         with self._lock, self._connect() as con:
             con.execute(
                 """
@@ -110,25 +121,54 @@ class HistoricalJobStore:
                 ),
             )
             con.commit()
+        if sync_external:
+            self.github.upsert(job)
 
-    def get(self, job_id: str) -> dict | None:
+    def _get_local(self, job_id: str) -> dict | None:
         with self._lock, self._connect() as con:
             row = con.execute("SELECT * FROM jobs WHERE job_id=?", (job_id,)).fetchone()
         return self._row(row) if row else None
 
+    def get(self, job_id: str) -> dict | None:
+        local = self._get_local(job_id)
+        if local:
+            return local
+        try:
+            remote = self.github.get(job_id)
+        except Exception:
+            remote = None
+        if remote:
+            self.upsert(remote, sync_external=False)
+            return remote
+        return None
+
     def list_recent(self, limit: int = 20) -> list[dict]:
+        local: list[dict]
         with self._lock, self._connect() as con:
             rows = con.execute(
                 "SELECT * FROM jobs ORDER BY COALESCE(updated_at, created_at) DESC LIMIT ?", (int(limit),)
             ).fetchall()
-        return [self._row(r) for r in rows]
+        local = [self._row(r) for r in rows]
+        remote: list[dict] = []
+        try:
+            remote = self.github.list_recent(limit)
+        except Exception:
+            pass
+        merged: dict[str, dict] = {j["job_id"]: j for j in local if j.get("job_id")}
+        for j in remote:
+            jid = j.get("job_id")
+            if not jid:
+                continue
+            prior = merged.get(jid)
+            if not prior or (j.get("updated_at") or "") > (prior.get("updated_at") or ""):
+                merged[jid] = j
+                if "request" in j:
+                    self.upsert(j, sync_external=False)
+        out = sorted(merged.values(), key=lambda j: j.get("updated_at") or j.get("created_at") or "", reverse=True)
+        return out[: int(limit)]
 
     def resumable(self) -> list[dict]:
-        with self._lock, self._connect() as con:
-            rows = con.execute(
-                "SELECT * FROM jobs WHERE status IN ('queued','running') ORDER BY created_at ASC"
-            ).fetchall()
-        return [self._row(r) for r in rows]
+        return [j for j in self.list_recent(50) if j.get("status") in ("queued", "running") and "request" in j]
 
     def delete(self, job_id: str):
         with self._lock, self._connect() as con:
