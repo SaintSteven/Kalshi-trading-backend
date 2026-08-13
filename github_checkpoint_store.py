@@ -222,6 +222,36 @@ class GitHubCheckpointStore:
             value, _ = self._get_file(f"jobs/{job_id}.json.gz")
             return value if isinstance(value, dict) else None
 
+    def latest_checkpoint_before_completion(self, job_id: str) -> dict | None:
+        """Recover the most recent durable per-slate checkpoint from Git history.
+
+        Completed v2.6.8 jobs clear checkpoint from the current job document, but
+        every slate checkpoint was committed to the dedicated branch. This walks
+        commits touching that job file and returns the newest historical version
+        that still contains a checkpoint.
+        """
+        with self._lock:
+            self.require_enabled(); self._ensure_branch()
+            rel=f"{self.root}/jobs/{job_id}.json.gz"
+            with httpx.Client(timeout=self.timeout, headers=self._headers()) as client:
+                resp=client.get(f"{API_ROOT}/repos/{self.repo}/commits", params={"sha":self.branch,"path":rel,"per_page":40})
+            if resp.status_code>=400:
+                raise GitHubCheckpointError(f"GitHub {resp.status_code}: {resp.text[:1200]}")
+            for commit in resp.json():
+                sha=commit.get("sha")
+                if not sha: continue
+                encoded=self._content_path(f"jobs/{job_id}.json.gz")
+                with httpx.Client(timeout=self.timeout, headers=self._headers()) as client:
+                    r=client.get(f"{API_ROOT}/repos/{self.repo}/contents/{encoded}",params={"ref":sha})
+                if r.status_code!=200: continue
+                payload=r.json(); content=(payload.get("content") or "").replace("\n","")
+                if not content: continue
+                try: value=self._decode(content)
+                except Exception: continue
+                if isinstance(value,dict) and isinstance(value.get("checkpoint"),dict):
+                    return value["checkpoint"]
+            return None
+
     def list_recent(self, limit: int = 20) -> list[dict]:
         with self._lock:
             if not self.enabled:

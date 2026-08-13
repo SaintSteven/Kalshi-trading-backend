@@ -167,6 +167,12 @@ class HistoricalJobStore:
         out = sorted(merged.values(), key=lambda j: j.get("updated_at") or j.get("created_at") or "", reverse=True)
         return out[: int(limit)]
 
+    def recover_latest_checkpoint(self, job_id: str) -> dict | None:
+        local=self._get_local(job_id)
+        if local and isinstance(local.get("checkpoint"),dict):
+            return local["checkpoint"]
+        return self.github.latest_checkpoint_before_completion(job_id)
+
     def resumable(self) -> list[dict]:
         return [j for j in self.list_recent(50) if j.get("status") in ("queued", "running") and "request" in j]
 

@@ -1,0 +1,6 @@
+v2.6.9 — Historical Backtest Diagnostics
+- Adds diagnostic analysis for completed durable historical jobs without changing frozen model rules.
+- Recovers the final per-slate checkpoint from GitHub commit history even though v2.6.8 cleared checkpoint from the completed job document.
+- Breakdowns: side, ladder, entry-price band, adjusted-edge band, confidence band, selector rank.
+- Adds predicted probability vs actual win-rate calibration buckets and calibration error.
+- Explicitly marks projection-to-line gap and confidence subcomponents unavailable because v2.6.8 did not persist them; no values are guessed.

@@ -20,6 +20,7 @@ from snapshot_settlement import settle_snapshots
 from historical_backtest_models import HistoricalBacktestRequest, HistoricalBacktestResponse
 from historical_trading_models import HistoricalTradingBacktestRequest, HistoricalTradingBacktestResponse
 from historical_trading_backtest import run_historical_trading_backtest
+from historical_diagnostics import build_diagnostics
 from historical_job_store import HistoricalJobStore
 from lineup_experiment import run_lineup_experiment
 from lineup_experiment_models import LineupExperimentRequest, LineupExperimentResponse
@@ -41,7 +42,7 @@ from workload_experiment_models import WorkloadExperimentRequest, WorkloadExperi
 
 app = FastAPI(
     title="Kalshi Trading Engine",
-    version="2.6.8",
+    version="2.6.9",
     description=(
         "Paper-only MLB research engine with leakage-safe "
         "historical backtesting and model experimentation."
@@ -61,7 +62,7 @@ app.add_middleware(
 async def root():
     return {
         "service": "Kalshi Trading Engine",
-        "version": "2.6.8",
+        "version": "2.6.9",
         "mode": "paper-only",
         "docs": "/docs",
     }
@@ -71,7 +72,7 @@ async def root():
 async def health():
     return {
         "status": "ok",
-        "version": "2.6.8",
+        "version": "2.6.9",
         "mode": "paper-only",
         "pipeline": [
             "collect",
@@ -528,6 +529,24 @@ async def get_historical_trading_backtest_job(job_id: str):
 async def list_historical_trading_backtest_jobs(limit: int = Query(default=10, ge=1, le=50)):
     return _HISTORICAL_JOB_STORE.list_recent(limit)
 
+
+@app.get("/historical-trading-backtest/jobs/{job_id}/diagnostics")
+async def historical_trading_backtest_diagnostics(job_id: str, strategy: str = Query(default="unlimited_model")):
+    job = _HISTORICAL_JOBS.get(job_id) or _HISTORICAL_JOB_STORE.get(job_id)
+    if not job:
+        raise HTTPException(status_code=404, detail="Historical backtest job not found.")
+    checkpoint = job.get("checkpoint")
+    if not isinstance(checkpoint, dict):
+        try:
+            checkpoint = _HISTORICAL_JOB_STORE.recover_latest_checkpoint(job_id)
+        except Exception as exc:
+            raise HTTPException(status_code=502, detail=f"Could not recover durable July checkpoint: {exc}") from exc
+    if not isinstance(checkpoint, dict):
+        raise HTTPException(status_code=404, detail="No per-bet checkpoint was found for this job.")
+    key={"unlimited_model":"all_unlimited","edge_first_5_control":"all_edge_first","portfolio_selector_v2":"all_selector"}.get(strategy)
+    if not key:
+        raise HTTPException(status_code=400, detail="Unknown strategy.")
+    return build_diagnostics(checkpoint.get(key) or [], strategy=strategy)
 
 @app.delete("/historical-trading-backtest/jobs/{job_id}")
 async def cancel_historical_trading_backtest_job(job_id: str):
