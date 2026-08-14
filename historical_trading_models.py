@@ -14,6 +14,7 @@ class HistoricalTradingBacktestRequest(BaseModel):
     quote_lookback_hours: float = Field(default=6.0, ge=1.0, le=24.0)
     daily_cap_dollars: float = Field(default=5.0, ge=0)
     model_version: str = "2.6.6-frozen"
+    compare_v27_candidate: bool = False
 
 
 class HistoricalTradingBacktestResponse(BaseModel):
@@ -30,6 +31,8 @@ class HistoricalTradingBacktestResponse(BaseModel):
     matched_pitchers: int
     recommendations_evaluated: int
     unique_qualifiers: int
+    v27_candidate_unique_qualifiers: int | None = None
+    model_correction_validation: dict | None = None
     strategy_results: dict
     daily_results: list[dict]
     research_watchlists: dict

@@ -313,6 +313,8 @@ async def run_historical_trading_backtest(
     all_selector: list[HistoricalMarketRecord] = _restore_records("all_selector")
     all_4yes: list[HistoricalMarketRecord] = _restore_records("all_4yes")
     all_extreme: list[HistoricalMarketRecord] = _restore_records("all_extreme")
+    all_v27_candidate: list[HistoricalMarketRecord] = _restore_records("all_v27_candidate")
+    all_v27_selector: list[HistoricalMarketRecord] = _restore_records("all_v27_selector")
     daily_results: list[dict] = list(resume_state.get("daily_results") or [])
     totals = resume_state.get("totals") or {}
     total_found = int(totals.get("markets_found", 0))
@@ -320,6 +322,7 @@ async def run_historical_trading_backtest(
     total_eval = int(totals.get("recommendations_evaluated", 0))
     total_qualifiers = int(totals.get("qualifiers", 0))
     matched_pitchers = int(totals.get("matched_pitchers", 0))
+    total_v27_qualifiers = int(totals.get("v27_qualifiers", 0))
 
     await _emit_progress(progress_callback, {
         "phase": "processing_slates",
@@ -359,6 +362,20 @@ async def run_historical_trading_backtest(
             deployable = [r for r in recs if r.decision == "MODEL EDGE" and not r.research_only and r.model_units > 0]
             total_qualifiers += len(deployable)
 
+            # v2.7 validation candidate: same raw projection, side choice, confidence,
+            # staking and guardrails. Only the post-v2.6 reliability calibration changes.
+            # July is the discovery set; this mode is intended for a separate June holdout.
+            recs_v27 = []
+            deployable_v27 = []
+            if request.compare_v27_candidate:
+                pipeline_v27 = SimpleNamespace(projections=projections, pricing_policy="v27_reliability_candidate")
+                v27_request = card_request
+                if abs(request.daily_cap_dollars - request.bankroll * 0.05) > 1e-9:
+                    v27_request = card_request.model_copy(update={"bankroll": request.daily_cap_dollars / 0.05 if request.daily_cap_dollars else 0})
+                recs_v27, _ = build_card_from_pipeline(markets, v27_request, pipeline_v27)
+                deployable_v27 = [r for r in recs_v27 if r.decision == "MODEL EDGE" and not r.research_only and r.model_units > 0]
+                total_v27_qualifiers += len(deployable_v27)
+
             # Unlimited = every deployable candidate at frozen model sizing.
             day_unlimited = []
             for rec in deployable:
@@ -397,6 +414,21 @@ async def run_historical_trading_backtest(
                 row = _record_from_rec(rec, ds, actual, rec.suggested_stake, request.model_version)
                 if row: day_selector.append(row)
 
+            day_v27, day_v27_selector = [], []
+            if request.compare_v27_candidate:
+                for rec in deployable_v27:
+                    actual = actuals.get((ds, _norm(rec.player)))
+                    if actual is None: continue
+                    row = _record_from_rec(rec, ds, actual, rec.unlimited_bankroll_stake, "2.7.0-candidate")
+                    if row: day_v27.append(row)
+                # The candidate card already contains the same frozen Selector v2 allocation logic.
+                for rec in recs_v27:
+                    if rec.research_only or rec.suggested_stake <= 0 or rec.decision != "MODEL EDGE": continue
+                    actual = actuals.get((ds, _norm(rec.player)))
+                    if actual is None: continue
+                    row = _record_from_rec(rec, ds, actual, rec.suggested_stake, "2.7.0-candidate")
+                    if row: day_v27_selector.append(row)
+
             # Research cohorts use hypothetical research stakes only.
             day_4, day_extreme = [], []
             for rec in recs:
@@ -410,15 +442,19 @@ async def run_historical_trading_backtest(
 
             all_unlimited.extend(day_unlimited); all_edge_first.extend(day_edge); all_selector.extend(day_selector)
             all_4yes.extend(day_4); all_extreme.extend(day_extreme)
+            all_v27_candidate.extend(day_v27); all_v27_selector.extend(day_v27_selector)
             daily_results.append({
                 "date": ds,
                 "markets_found": found,
                 "usable_quotes": len(quotes),
                 "matched_pitchers": len(matched_names),
                 "qualifiers": len(day_unlimited),
+                "v27_qualifiers": len(day_v27) if request.compare_v27_candidate else None,
                 "unlimited": _strategy_summary(day_unlimited),
                 "edge_first": _strategy_summary(day_edge),
                 "selector_v2": _strategy_summary(day_selector),
+                "v27_candidate": _strategy_summary(day_v27) if request.compare_v27_candidate else None,
+                "v27_selector_v2": _strategy_summary(day_v27_selector) if request.compare_v27_candidate else None,
             })
             processed = len(daily_results)
             await _emit_progress(progress_callback, {
@@ -441,12 +477,15 @@ async def run_historical_trading_backtest(
                     "all_selector": [r.model_dump() for r in all_selector],
                     "all_4yes": [r.model_dump() for r in all_4yes],
                     "all_extreme": [r.model_dump() for r in all_extreme],
+                    "all_v27_candidate": [r.model_dump() for r in all_v27_candidate],
+                    "all_v27_selector": [r.model_dump() for r in all_v27_selector],
                     "totals": {
                         "markets_found": total_found,
                         "usable_quotes": total_quotes,
                         "recommendations_evaluated": total_eval,
                         "qualifiers": total_qualifiers,
                         "matched_pitchers": matched_pitchers,
+                        "v27_qualifiers": total_v27_qualifiers,
                     },
                     "warnings": warnings,
                     "last_completed_date": ds,
@@ -461,6 +500,9 @@ async def run_historical_trading_backtest(
         "edge_first_5_control": _strategy_summary(all_edge_first),
         "portfolio_selector_v2": _strategy_summary(all_selector),
     }
+    if request.compare_v27_candidate:
+        strategy_results["v27_candidate_unlimited"] = _strategy_summary(all_v27_candidate)
+        strategy_results["v27_candidate_selector_v2"] = _strategy_summary(all_v27_selector)
     watchlists = {
         "4plus_yes": _strategy_summary(all_4yes),
         "extreme_disagreement": _strategy_summary(all_extreme),
@@ -479,6 +521,7 @@ async def run_historical_trading_backtest(
             "Market price is the last quoted 1-minute bid/ask at or before the pre-registered T-2h entry timestamp.",
             "Actual strikeouts are used only after recommendation generation for settlement.",
             "Frozen v2.6.x qualification, calibration, guardrails, sizing, and Portfolio Selector v2 rules are replayed without optimization.",
+            "When v2.7 validation is enabled, the only candidate change is a July-discovery global affine reliability correction applied after v2.6.x calibration; raw projection, side choice, confidence, guardrails and staking remain frozen.",
         ],
         "markets_found": total_found,
         "usable_quotes": total_quotes,
@@ -486,6 +529,14 @@ async def run_historical_trading_backtest(
         "matched_pitchers": matched_pitchers,
         "recommendations_evaluated": total_eval,
         "unique_qualifiers": len({r.ticker for r in all_unlimited if r.ticker}),
+        "v27_candidate_unique_qualifiers": len({r.ticker for r in all_v27_candidate if r.ticker}) if request.compare_v27_candidate else None,
+        "model_correction_validation": {
+            "enabled": bool(request.compare_v27_candidate),
+            "discovery_period": "2026-07-01 through 2026-07-31",
+            "recommended_holdout_period": "2026-06-01 through 2026-06-30",
+            "candidate": "global affine reliability correction: p27 = min(p26, 0.01087202 + 0.62876989*p26)",
+            "anti_overfit_rule": "Do not change coefficients after seeing June holdout results.",
+        },
         "strategy_results": strategy_results,
         "daily_results": daily_results,
         "research_watchlists": watchlists,

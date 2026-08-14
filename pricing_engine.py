@@ -4,9 +4,10 @@ from calibration_engine import (
     CALIBRATION_METHOD,
     calibrate_selected_side_probability,
 )
+from model_correction_v27 import apply_v27_reliability_correction, V27_METHOD
 
 
-def evaluate_market(m, p, min_edge):
+def evaluate_market(m, p, min_edge, pricing_policy="v26_baseline"):
     if not p or p["status"] != "READY":
         return PaperRecommendation(
             ticker=m.ticker, player=m.player, threshold=m.threshold,
@@ -51,6 +52,10 @@ def evaluate_market(m, p, min_edge):
         # Conservative calibration is applied only after the raw side is fixed.
         # It can only leave the selected-side probability unchanged or reduce it.
         calibrated_fair = calibrate_selected_side_probability(fair)
+        active_calibration_method = CALIBRATION_METHOD
+        if pricing_policy == "v27_reliability_candidate":
+            calibrated_fair = apply_v27_reliability_correction(calibrated_fair)
+            active_calibration_method = V27_METHOD
         calibrated_edge = calibrated_fair * 100.0 - price if price is not None else None
 
         confidence_score = p["confidence"].get("overall", 0)
@@ -71,7 +76,7 @@ def evaluate_market(m, p, min_edge):
 
         reasons = [
             f"Best side {side} from the raw independent model.",
-            f"Raw fair {fair*100:.1f}% calibrated to {calibrated_fair*100:.1f}% ({CALIBRATION_METHOD}).",
+            f"Raw fair {fair*100:.1f}% calibrated to {calibrated_fair*100:.1f}% ({active_calibration_method}).",
             f"Raw market edge {raw:.1f} pts; calibrated market edge {calibrated_edge:.1f} pts.",
             f"Raw confidence-adjusted edge {raw_adjusted:.1f} pts; calibrated adjusted edge {adjusted:.1f} pts.",
             f"Confidence {confidence_score}/100 ({p['confidence'].get('tier', 'UNRATED')}).",
@@ -90,7 +95,7 @@ def evaluate_market(m, p, min_edge):
         side=side, market_price_cents=price,
         fair_probability=None if fair is None else round(fair, 4),
         calibrated_fair_probability=None if calibrated_fair is None else round(calibrated_fair, 4),
-        calibration_method=CALIBRATION_METHOD, calibration_factor=CALIBRATION_FACTOR,
+        calibration_method=(V27_METHOD if pricing_policy == "v27_reliability_candidate" else CALIBRATION_METHOD), calibration_factor=CALIBRATION_FACTOR,
         calibrated_edge_points=None if calibrated_edge is None else round(calibrated_edge, 1),
         uncalibrated_adjusted_edge_points=None if raw_adjusted is None else round(raw_adjusted, 1),
         raw_edge_points=None if raw is None else round(raw, 1),

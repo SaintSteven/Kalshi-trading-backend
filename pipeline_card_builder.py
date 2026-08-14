@@ -107,6 +107,7 @@ def build_card_from_pipeline(markets, request, pipeline):
             market,
             pipeline.projections.get(market.player.strip().lower()),
             request.minimum_edge_points,
+            getattr(pipeline, "pricing_policy", "v26_baseline"),
         )
         for market in markets
     ]

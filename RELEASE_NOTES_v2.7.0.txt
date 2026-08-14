@@ -1,0 +1,35 @@
+Kalshi Research Dashboard v2.7.0 — Model Correction Validation
+
+Purpose
+- Keep the production/live card logic frozen.
+- Treat July 1–31, 2026 as the discovery dataset.
+- Validate one preregistered probability correction on a separate June 1–30, 2026 holdout.
+
+Candidate change
+- v2.6.x calibrated selected-side probability remains the starting point.
+- v2.7 candidate applies one global affine reliability correction:
+    p27 = min(p26, 0.01087202 + 0.62876989 * p26)
+- Coefficients were fit once from the frozen July calibration buckets.
+- The correction can only reduce probability; it cannot create new conviction.
+
+What does NOT change
+- Baseball projection engine
+- Raw YES/NO side selection
+- Confidence/QC engine
+- 4+ YES research quarantine
+- Extreme-disagreement quarantine
+- Unit sizing
+- Portfolio Selector v2
+- T-2h historical entry timestamp and 6h quote lookback
+
+Validation workflow
+1. Lab > Historical Trading Backtest.
+2. Tap "Prepare June Holdout".
+3. Confirm Jun 1–30, 30 days, T-2h, v2.7 candidate = On.
+4. Start one durable background backtest.
+5. The same market/projection snapshot evaluates baseline v2.6.6 and candidate v2.7 in parallel.
+6. Do not change the coefficients after seeing June results.
+
+Decision principle
+- July improvement is not evidence because July produced the correction.
+- June holdout performance and calibration determine whether the correction survives.
