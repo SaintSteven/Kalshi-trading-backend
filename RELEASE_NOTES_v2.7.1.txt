@@ -1,0 +1,3 @@
+v2.7.1 — Diagnostic Capture
+
+No betting-model changes. Historical records now persist projected strikeouts, actual strikeouts, projection error, side-directed projection-to-threshold gap, and Skill/Lineup/Workload/Stability/Recent confidence components. Diagnostics add projection MAE, bias, RMSE, projection error by side/ladder/gap, and component score performance.

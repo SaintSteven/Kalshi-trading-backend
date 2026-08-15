@@ -118,6 +118,18 @@ def _record_from_rec(rec, game_date: str, actual_k: int, stake: float, model_ver
         selector_rank=rec.selector_rank,
         selector_method=rec.selector_method,
         portfolio_selected=rec.portfolio_selected,
+        projected_strikeouts=rec.projected_strikeouts,
+        projection_error=(None if rec.projected_strikeouts is None else round(float(rec.projected_strikeouts) - float(actual_k), 4)),
+        projection_side_gap=(
+            None if rec.projected_strikeouts is None else
+            round((float(rec.projected_strikeouts) - int(str(rec.threshold).rstrip("+"))) if rec.side == "YES"
+                  else (int(str(rec.threshold).rstrip("+")) - float(rec.projected_strikeouts)), 4)
+        ),
+        confidence_skill=(float(rec.confidence.get("pitcher_skill")) if rec.confidence and rec.confidence.get("pitcher_skill") is not None else None),
+        confidence_lineup=(float(rec.confidence.get("lineup")) if rec.confidence and rec.confidence.get("lineup") is not None else None),
+        confidence_workload=(float(rec.confidence.get("workload")) if rec.confidence and rec.confidence.get("workload") is not None else None),
+        confidence_stability=(float(rec.confidence.get("workload_stability")) if rec.confidence and rec.confidence.get("workload_stability") is not None else None),
+        confidence_recent=(float(rec.confidence.get("recent_change")) if rec.confidence and rec.confidence.get("recent_change") is not None else None),
     )
 
 
@@ -333,7 +345,7 @@ async def run_historical_trading_backtest(
         "percent": 8,
     })
 
-    headers = {"User-Agent": "KalshiTradingPlatform/2.6.6-background-historical-backtest"}
+    headers = {"User-Agent": "KalshiTradingPlatform/2.7.1-diagnostic-capture"}
     async with httpx.AsyncClient(headers=headers) as client:
         completed_dates = {r.get("date") for r in daily_results if r.get("date")}
         current = start
@@ -521,6 +533,7 @@ async def run_historical_trading_backtest(
             "Market price is the last quoted 1-minute bid/ask at or before the pre-registered T-2h entry timestamp.",
             "Actual strikeouts are used only after recommendation generation for settlement.",
             "Frozen v2.6.x qualification, calibration, guardrails, sizing, and Portfolio Selector v2 rules are replayed without optimization.",
+            "v2.7.1 diagnostic capture persists projected Ks, actual Ks, projection error, side-directed projection-to-threshold gap, and confidence component scores; these fields do not affect recommendation generation.",
             "When v2.7 validation is enabled, the only candidate change is a July-discovery global affine reliability correction applied after v2.6.x calibration; raw projection, side choice, confidence, guardrails and staking remain frozen.",
         ],
         "markets_found": total_found,

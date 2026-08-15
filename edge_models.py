@@ -30,6 +30,14 @@ class HistoricalMarketRecord(BaseModel):
     selector_rank: int | None = None
     selector_method: str | None = None
     portfolio_selected: bool | None = None
+    projected_strikeouts: float | None = None
+    projection_error: float | None = None
+    projection_side_gap: float | None = None
+    confidence_skill: float | None = None
+    confidence_lineup: float | None = None
+    confidence_workload: float | None = None
+    confidence_stability: float | None = None
+    confidence_recent: float | None = None
 
 
 class SavedTradeSnapshot(BaseModel):

@@ -41,9 +41,39 @@ def _calibration(rows):
     mae=sum(abs((1 if _won(r) else 0)-r.model_probability) for r in rows)/len(rows) if rows else None
     return {'brier_score':brier,'mean_absolute_probability_error':mae,'buckets':out}
 
+def _projection_summary(rows):
+    vals=[r for r in rows if r.projected_strikeouts is not None]
+    if not vals:
+        return {'observations':0,'mae':None,'bias':None,'rmse':None,'avg_projected':None,'avg_actual':None}
+    errors=[float(r.projected_strikeouts)-float(r.actual_strikeouts) for r in vals]
+    return {
+        'observations':len(vals),
+        'mae':sum(abs(x) for x in errors)/len(errors),
+        'bias':sum(errors)/len(errors),
+        'rmse':sqrt(sum(x*x for x in errors)/len(errors)),
+        'avg_projected':sum(float(r.projected_strikeouts) for r in vals)/len(vals),
+        'avg_actual':sum(float(r.actual_strikeouts) for r in vals)/len(vals),
+    }
+
+def _projection_segment_summary(rows):
+    base=_summary(rows)
+    ps=_projection_summary(rows)
+    return {**base,**{f'projection_{k}':v for k,v in ps.items()}}
+
+def _projection_segments(rows, fn):
+    g=defaultdict(list)
+    for r in rows:g[fn(r)].append(r)
+    return [{'segment':k,**_projection_segment_summary(v)} for k,v in sorted(g.items(),key=lambda kv:str(kv[0]))]
+
+def _component_segments(rows, attr):
+    vals=[r for r in rows if getattr(r,attr,None) is not None]
+    return _projection_segments(vals, lambda r:_bucket(float(getattr(r,attr)),[60,70,80,90],['<60','60-69','70-79','80-89','90+']))
+
 def build_diagnostics(records: list[dict], strategy='unlimited_model'):
     rows=[HistoricalMarketRecord(**r) for r in records]
     raw_deltas=[(r.model_probability-r.raw_model_probability) for r in rows if r.raw_model_probability is not None]
+    projection_rows=[r for r in rows if r.projected_strikeouts is not None]
+    gap_rows=[r for r in rows if r.projection_side_gap is not None]
     result={
       'strategy':strategy,'overall':_summary(rows),'calibration':_calibration(rows),
       'by_side':_segments(rows,lambda r:r.side),
@@ -53,10 +83,22 @@ def build_diagnostics(records: list[dict], strategy='unlimited_model'):
       'by_confidence_band':_segments(rows,lambda r:_bucket(float(r.confidence or 0),[70,75,80,85,90],['<70','70-74','75-79','80-84','85-89','90+'])),
       'by_selector_rank':_segments([r for r in rows if r.selector_rank is not None],lambda r:str(r.selector_rank)),
       'calibration_shift': {'observations':len(raw_deltas),'average_calibrated_minus_raw_probability':(sum(raw_deltas)/len(raw_deltas) if raw_deltas else None)},
+      'projection_accuracy': _projection_summary(projection_rows),
+      'projection_by_side': _projection_segments(projection_rows,lambda r:r.side),
+      'projection_by_ladder': _projection_segments(projection_rows,lambda r:r.threshold),
+      'by_projection_side_gap': _projection_segments(gap_rows,lambda r:_bucket(float(r.projection_side_gap),[-1,0,1,2],['<-1','-1 to <0','0 to <1','1 to <2','2+'])),
+      'component_diagnostics': {
+          'skill': _component_segments(rows,'confidence_skill'),
+          'lineup': _component_segments(rows,'confidence_lineup'),
+          'workload': _component_segments(rows,'confidence_workload'),
+          'stability': _component_segments(rows,'confidence_stability'),
+          'recent': _component_segments(rows,'confidence_recent'),
+      },
       'availability': {
         'available_now':['side','ladder','entry price','adjusted edge','overall confidence','raw fair probability','calibrated fair probability','selector rank'],
-        'not_captured_in_v2_6_8_checkpoint':['projection-to-line gap','Skill component','Lineup component','Workload component','Stability component','Recent component'],
-        'note':'The missing fields cannot be reconstructed faithfully from the completed July checkpoint without rerunning the frozen historical model. They are intentionally not guessed.'
+        'diagnostic_capture_available':['projected strikeouts','actual strikeouts','projection error','projection-to-threshold gap','Skill component','Lineup component','Workload component','Stability component','Recent component'] if projection_rows else [],
+        'not_captured_in_v2_6_8_checkpoint':([] if projection_rows else ['projection-to-line gap','Skill component','Lineup component','Workload component','Stability component','Recent component']),
+        'note':('v2.7.1 diagnostic fields are present in this checkpoint.' if projection_rows else 'This checkpoint predates v2.7.1 diagnostic capture. Rerun the frozen historical model to populate projection and component diagnostics.')
       }
     }
     return result

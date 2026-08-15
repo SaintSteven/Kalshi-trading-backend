@@ -42,7 +42,7 @@ from workload_experiment_models import WorkloadExperimentRequest, WorkloadExperi
 
 app = FastAPI(
     title="Kalshi Trading Engine",
-    version="2.7.0",
+    version="2.7.1",
     description=(
         "Paper-only MLB research engine with leakage-safe "
         "historical backtesting and model experimentation."
@@ -62,7 +62,7 @@ app.add_middleware(
 async def root():
     return {
         "service": "Kalshi Trading Engine",
-        "version": "2.7.0",
+        "version": "2.7.1",
         "mode": "paper-only",
         "docs": "/docs",
     }
@@ -72,7 +72,7 @@ async def root():
 async def health():
     return {
         "status": "ok",
-        "version": "2.7.0",
+        "version": "2.7.1",
         "mode": "paper-only",
         "pipeline": [
             "collect",
