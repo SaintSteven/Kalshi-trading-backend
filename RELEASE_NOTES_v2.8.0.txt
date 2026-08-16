@@ -1,0 +1,8 @@
+v2.8.0 — Probability Engine Lab
+- No live betting-model change.
+- Reuses the completed v2.7.1 June+July diagnostic checkpoint; no 61-day rerun required.
+- Adds two-way month holdout testing: fit June/test July and fit July/test June.
+- Compares frozen baseline, train-only affine calibration, market-anchored disagreement shrinkage, and a projection-error empirical distribution.
+- Reports Brier score, log loss, calibration buckets, and simulated 5-point-edge ROI/action count.
+- Confidence components are excluded from candidate probability construction.
+- Research-only; no automatic promotion.
