@@ -1,0 +1,17 @@
+Kalshi Trading Engine v2.9.0 — Model Error Diagnostic Lab
+
+Research-only upgrade. No live/paper betting logic is changed.
+
+New endpoint:
+GET /historical-trading-backtest/jobs/{job_id}/model-error-lab
+
+The lab reuses the saved frozen April–July diagnostic checkpoint and requires no historical rerun.
+It diagnoses:
+- projection error and directional selection error
+- month, side, ladder, entry-price, probability, claimed-edge, adjusted-edge, projection-gap and confidence segments
+- ladder × price, projection-gap × price, month × side, adjusted-edge × price, and confidence × directional-error interactions
+- largest descriptive loss segments
+- stage-level comparison of model probability, executable market probability and actual win rate
+
+Directional projection error is positive when the projection miss moved in the same direction as the wager.
+All interaction cells require at least 3 bets. Loss-driver tables are descriptive and overlapping, not additive causal attribution.

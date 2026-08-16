@@ -27,3 +27,26 @@ def test_diagnostics_report_projection_accuracy():
     assert d['projection_accuracy']['observations'] == 2
     assert d['availability']['diagnostic_capture_available']
     assert d['component_diagnostics']['skill']
+
+
+def test_model_error_lab_reports_directional_selection_error():
+    from historical_diagnostics import build_model_error_lab
+    yes=_record_from_rec(_rec('YES'), '2026-06-01', 5, 1.0, '2.6.6-frozen')
+    no=_record_from_rec(_rec('NO'), '2026-06-02', 7, 1.0, '2.6.6-frozen')
+    d=build_model_error_lab([yes.model_dump(),no.model_dump()])
+    assert d['version']=='2.9.0'
+    assert d['records']==2
+    assert 'directional_projection_error' in d['segments']
+    assert 'ladder_x_price' in d['interactions']
+    assert d['stage_assessment']['projection_mae'] is not None
+
+
+def test_model_error_lab_requires_projection_capture():
+    from historical_diagnostics import build_model_error_lab
+    import pytest
+    row={
+        'player':'P','game_date':'2026-06-01','threshold':'6+','side':'YES',
+        'model_probability':.5,'entry_price_cents':35,'actual_strikeouts':5,
+    }
+    with pytest.raises(ValueError):
+        build_model_error_lab([row])
