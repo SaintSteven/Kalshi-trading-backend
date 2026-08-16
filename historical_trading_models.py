@@ -6,7 +6,7 @@ from pydantic import BaseModel, Field
 class HistoricalTradingBacktestRequest(BaseModel):
     start_date: str
     end_date: str
-    max_days: int = Field(default=31, ge=1, le=62)
+    max_days: int = Field(default=31, ge=1, le=123)
     bankroll: float = Field(default=100.0, ge=0)
     unit_size: float = Field(default=1.0, gt=0)
     minimum_edge_points: float = Field(default=5.0, ge=0, le=50)

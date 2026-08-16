@@ -1,0 +1,11 @@
+v2.8.1 — Extended Historical Diagnostic Capture + Walk-Forward Lab
+
+- Raises historical trading backtest maximum to 123 days for Apr 1–Jul 31, 2026 capture.
+- Keeps frozen v2.6.6 betting logic unchanged.
+- Adds an extended walk-forward probability lab using strict chronological folds:
+  * fit April -> test May
+  * fit April+May -> test June
+  * fit April+May+June -> test July
+- Reuses the v2.8 probability candidates: frozen baseline, affine calibration, market-anchored shrink, and projection-error empirical.
+- Reports Brier score, log loss, 5-point-edge action, P/L, ROI, and positive-fold count.
+- Research-only; no live-model promotion.

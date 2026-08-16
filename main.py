@@ -22,6 +22,7 @@ from historical_trading_models import HistoricalTradingBacktestRequest, Historic
 from historical_trading_backtest import run_historical_trading_backtest
 from historical_diagnostics import build_diagnostics
 from probability_engine_lab import build_probability_lab
+from walk_forward_probability_lab import build_walk_forward_lab
 from historical_job_store import HistoricalJobStore
 from lineup_experiment import run_lineup_experiment
 from lineup_experiment_models import LineupExperimentRequest, LineupExperimentResponse
@@ -43,7 +44,7 @@ from workload_experiment_models import WorkloadExperimentRequest, WorkloadExperi
 
 app = FastAPI(
     title="Kalshi Trading Engine",
-    version="2.8.0",
+    version="2.8.1",
     description=(
         "Paper-only MLB research engine with leakage-safe "
         "historical backtesting and model experimentation."
@@ -63,7 +64,7 @@ app.add_middleware(
 async def root():
     return {
         "service": "Kalshi Trading Engine",
-        "version": "2.8.0",
+        "version": "2.8.1",
         "mode": "paper-only",
         "docs": "/docs",
     }
@@ -73,7 +74,7 @@ async def root():
 async def health():
     return {
         "status": "ok",
-        "version": "2.8.0",
+        "version": "2.8.1",
         "mode": "paper-only",
         "pipeline": [
             "collect",
@@ -565,6 +566,26 @@ async def historical_probability_engine_lab(job_id: str, minimum_edge_points: fl
         raise HTTPException(status_code=404, detail="No frozen qualifier records were found for this job.")
     try:
         return build_probability_lab(records, minimum_edge_points=minimum_edge_points)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@app.get("/historical-trading-backtest/jobs/{job_id}/walk-forward-lab")
+async def historical_walk_forward_probability_lab(job_id: str, minimum_edge_points: float = Query(default=5.0, ge=0, le=50)):
+    job = _HISTORICAL_JOBS.get(job_id) or _HISTORICAL_JOB_STORE.get(job_id)
+    if not job:
+        raise HTTPException(status_code=404, detail="Historical backtest job not found.")
+    checkpoint = job.get("checkpoint")
+    if not isinstance(checkpoint, dict):
+        try:
+            checkpoint = _HISTORICAL_JOB_STORE.recover_latest_checkpoint(job_id)
+        except Exception as exc:
+            raise HTTPException(status_code=502, detail=f"Could not recover durable extended diagnostic checkpoint: {exc}") from exc
+    records = (checkpoint or {}).get("all_unlimited") or []
+    if not records:
+        raise HTTPException(status_code=404, detail="No frozen qualifier records were found for this job.")
+    try:
+        return build_walk_forward_lab(records, minimum_edge_points=minimum_edge_points)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
