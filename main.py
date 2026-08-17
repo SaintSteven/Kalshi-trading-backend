@@ -45,7 +45,7 @@ from workload_experiment_models import WorkloadExperimentRequest, WorkloadExperi
 
 app = FastAPI(
     title="Kalshi Trading Engine",
-    version="3.0.0",
+    version="3.0.1",
     description=(
         "Paper-only MLB research engine with leakage-safe "
         "historical backtesting and model experimentation."
@@ -65,7 +65,7 @@ app.add_middleware(
 async def root():
     return {
         "service": "Kalshi Trading Engine",
-        "version": "3.0.0",
+        "version": "3.0.1",
         "mode": "paper-only",
         "docs": "/docs",
     }
@@ -75,7 +75,7 @@ async def root():
 async def health():
     return {
         "status": "ok",
-        "version": "3.0.0",
+        "version": "3.0.1",
         "mode": "paper-only",
         "pipeline": [
             "collect",
@@ -611,22 +611,69 @@ async def historical_model_error_lab(job_id: str):
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
+def _v3_full_universe_checkpoint_for_job(job_id: str):
+    """Return a valid v3 full-universe checkpoint, preferring the requested job.
+
+    Completed jobs can have their current checkpoint cleared, and the UI may still
+    hold an older completed job id after the user presses only the *Prepare* button.
+    Search recent durable jobs for the newest completed v3 capture before failing.
+    """
+    def recover(jid: str, job: dict | None):
+        checkpoint = (job or {}).get("checkpoint") if isinstance(job, dict) else None
+        if isinstance(checkpoint, dict) and checkpoint.get("all_evaluated"):
+            return checkpoint
+        try:
+            checkpoint = _HISTORICAL_JOB_STORE.recover_latest_checkpoint(jid)
+        except Exception:
+            checkpoint = None
+        if isinstance(checkpoint, dict) and checkpoint.get("all_evaluated"):
+            return checkpoint
+        return None
+
+    requested = _HISTORICAL_JOBS.get(job_id) or _HISTORICAL_JOB_STORE.get(job_id)
+    if requested:
+        checkpoint = recover(job_id, requested)
+        if checkpoint:
+            return job_id, checkpoint
+
+    try:
+        recent = _HISTORICAL_JOB_STORE.list_recent(50)
+    except Exception:
+        recent = []
+    for candidate in recent:
+        if candidate.get("status") != "completed":
+            continue
+        request = candidate.get("request") or {}
+        result = candidate.get("result") or {}
+        model_label = str(request.get("model_version") or request.get("frozen_model_label") or "")
+        if model_label != "3.0.0-full-universe-capture" and not result.get("v3_full_universe_records"):
+            continue
+        jid = candidate.get("job_id")
+        if not jid:
+            continue
+        checkpoint = recover(jid, candidate)
+        if checkpoint:
+            return jid, checkpoint
+    return None, None
+
+
 @app.get("/historical-trading-backtest/jobs/{job_id}/v3-challenger-lab")
 async def historical_v3_challenger_lab(job_id: str, minimum_edge_points: float = Query(default=5.0, ge=0, le=50)):
     job = _HISTORICAL_JOBS.get(job_id) or _HISTORICAL_JOB_STORE.get(job_id)
     if not job:
         raise HTTPException(status_code=404, detail="Historical backtest job not found.")
-    checkpoint = job.get("checkpoint")
-    if not isinstance(checkpoint, dict):
-        try:
-            checkpoint = _HISTORICAL_JOB_STORE.recover_latest_checkpoint(job_id)
-        except Exception as exc:
-            raise HTTPException(status_code=502, detail=f"Could not recover durable v3 full-universe checkpoint: {exc}") from exc
+    try:
+        source_job_id, checkpoint = _v3_full_universe_checkpoint_for_job(job_id)
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Could not recover durable v3 full-universe checkpoint: {exc}") from exc
     records = (checkpoint or {}).get("all_evaluated") or []
     if not records:
-        raise HTTPException(status_code=400, detail="This checkpoint predates v3 full-universe capture. Prepare and run the Apr-Jul v3 Full Universe Capture first.")
+        raise HTTPException(status_code=400, detail="No completed v3 full-universe capture exists yet. 'Prepare v3 Full Universe Capture' only changes the form; you must then tap Start Background Backtest and wait for it to finish before running the challenger.")
     try:
-        return build_v3_challenger_lab(records, minimum_edge_points=minimum_edge_points)
+        payload = build_v3_challenger_lab(records, minimum_edge_points=minimum_edge_points)
+        payload["source_job_id"] = source_job_id
+        payload["source_checkpoint_records"] = len(records)
+        return payload
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
