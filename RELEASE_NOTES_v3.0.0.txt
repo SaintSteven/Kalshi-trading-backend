@@ -1,0 +1,8 @@
+v3.0.0 — MLB K Challenger Architecture
+
+- Production/frozen v2 remains unchanged and paper-only.
+- Historical backtest can now persist the full evaluable recommendation universe, including v2 PASS/WATCH rows.
+- New strict walk-forward v3 challenger:
+  corrected K distribution -> explicit residual uncertainty -> Kalshi executable-price prior -> posterior fair probability.
+- No hand-picked ladder, side, price or ROI filters are used.
+- v3 is research-only and cannot be promoted from this lab alone.

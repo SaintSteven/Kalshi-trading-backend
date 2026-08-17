@@ -32,6 +32,7 @@ class HistoricalTradingBacktestResponse(BaseModel):
     recommendations_evaluated: int
     unique_qualifiers: int
     v27_candidate_unique_qualifiers: int | None = None
+    v3_full_universe_records: int | None = None
     model_correction_validation: dict | None = None
     strategy_results: dict
     daily_results: list[dict]

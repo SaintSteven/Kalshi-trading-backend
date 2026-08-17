@@ -327,6 +327,9 @@ async def run_historical_trading_backtest(
     all_extreme: list[HistoricalMarketRecord] = _restore_records("all_extreme")
     all_v27_candidate: list[HistoricalMarketRecord] = _restore_records("all_v27_candidate")
     all_v27_selector: list[HistoricalMarketRecord] = _restore_records("all_v27_selector")
+    # v3 research universe: every evaluable recommendation, including v2 PASS/WATCH rows.
+    # This is required so the v3 challenger is not restricted to bets selected by the broken v2 filter.
+    all_evaluated: list[HistoricalMarketRecord] = _restore_records("all_evaluated")
     daily_results: list[dict] = list(resume_state.get("daily_results") or [])
     totals = resume_state.get("totals") or {}
     total_found = int(totals.get("markets_found", 0))
@@ -373,6 +376,20 @@ async def run_historical_trading_backtest(
             total_eval += len(recs)
             deployable = [r for r in recs if r.decision == "MODEL EDGE" and not r.research_only and r.model_units > 0]
             total_qualifiers += len(deployable)
+
+            # Persist the full research universe for v3.0.0 challenger testing.
+            # Use a neutral $1 research stake solely so HistoricalMarketRecord can be reused;
+            # this does NOT make PASS/WATCH recommendations historical bets.
+            day_evaluated = []
+            for rec in recs:
+                if rec.side not in {"YES", "NO"} or rec.market_price_cents is None:
+                    continue
+                actual = actuals.get((ds, _norm(rec.player)))
+                if actual is None:
+                    continue
+                row = _record_from_rec(rec, ds, actual, 1.0, "3.0.0-full-universe-capture")
+                if row:
+                    day_evaluated.append(row)
 
             # v2.7 validation candidate: same raw projection, side choice, confidence,
             # staking and guardrails. Only the post-v2.6 reliability calibration changes.
@@ -455,6 +472,7 @@ async def run_historical_trading_backtest(
             all_unlimited.extend(day_unlimited); all_edge_first.extend(day_edge); all_selector.extend(day_selector)
             all_4yes.extend(day_4); all_extreme.extend(day_extreme)
             all_v27_candidate.extend(day_v27); all_v27_selector.extend(day_v27_selector)
+            all_evaluated.extend(day_evaluated)
             daily_results.append({
                 "date": ds,
                 "markets_found": found,
@@ -462,6 +480,7 @@ async def run_historical_trading_backtest(
                 "matched_pitchers": len(matched_names),
                 "qualifiers": len(day_unlimited),
                 "v27_qualifiers": len(day_v27) if request.compare_v27_candidate else None,
+                "evaluated_records_captured": len(day_evaluated),
                 "unlimited": _strategy_summary(day_unlimited),
                 "edge_first": _strategy_summary(day_edge),
                 "selector_v2": _strategy_summary(day_selector),
@@ -491,6 +510,7 @@ async def run_historical_trading_backtest(
                     "all_extreme": [r.model_dump() for r in all_extreme],
                     "all_v27_candidate": [r.model_dump() for r in all_v27_candidate],
                     "all_v27_selector": [r.model_dump() for r in all_v27_selector],
+                    "all_evaluated": [r.model_dump() for r in all_evaluated],
                     "totals": {
                         "markets_found": total_found,
                         "usable_quotes": total_quotes,
@@ -498,6 +518,7 @@ async def run_historical_trading_backtest(
                         "qualifiers": total_qualifiers,
                         "matched_pitchers": matched_pitchers,
                         "v27_qualifiers": total_v27_qualifiers,
+                        "evaluated_records_captured": len(all_evaluated),
                     },
                     "warnings": warnings,
                     "last_completed_date": ds,
@@ -542,6 +563,7 @@ async def run_historical_trading_backtest(
         "matched_pitchers": matched_pitchers,
         "recommendations_evaluated": total_eval,
         "unique_qualifiers": len({r.ticker for r in all_unlimited if r.ticker}),
+        "v3_full_universe_records": len(all_evaluated),
         "v27_candidate_unique_qualifiers": len({r.ticker for r in all_v27_candidate if r.ticker}) if request.compare_v27_candidate else None,
         "model_correction_validation": {
             "enabled": bool(request.compare_v27_candidate),

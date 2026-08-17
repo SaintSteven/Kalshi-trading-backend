@@ -16,3 +16,28 @@ def test_walk_forward_lab_runs_all_three_folds():
     assert len(d['folds'])==3
     assert d['month_counts']['2026-04']==4
     assert len(d['summary'])==4
+
+
+def test_v3_challenger_uses_full_universe_and_walks_forward():
+    from v3_challenger_lab import build_v3_challenger_lab
+    rows=[]
+    for month in ['04','05','06','07']:
+        for i in range(20):
+            actual=4+(i%4)
+            proj=actual+((-1)**i)*0.7
+            threshold='5+'
+            yes=actual>=5
+            side='YES' if i%2==0 else 'NO'
+            rows.append({
+                'player':f'P{month}{i}','game_date':f'2026-{month}-{(i%20)+1:02d}','threshold':threshold,
+                'side':side,'model_probability':0.48,'raw_model_probability':0.50,'entry_price_cents':38,
+                'actual_strikeouts':actual,'stake':1.0,'projected_strikeouts':proj,
+            })
+    result=build_v3_challenger_lab(rows,5)
+    assert result['version']=='3.0.0'
+    assert result['records']==80
+    assert len(result['folds'])==3
+    assert any(x['method']=='v3_market_prior_posterior' for x in result['summary'])
+    for fold in result['folds']:
+        assert 0 <= fold['fit']['market_prior_weight'] <= 1
+        assert fold['fit']['projection_sigma'] > 0
