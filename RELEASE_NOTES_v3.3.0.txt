@@ -1,0 +1,7 @@
+v3.3.0 — Forward Validation / Paper Trading
+- Freezes the v3.1 residual-edge architecture and Apr-Jul historical training universe.
+- Adds durable GitHub-backed prospective capture of every >=5pt residual-edge opportunity.
+- Pre-registers >=10pt residual edge as the primary unseen-data hypothesis.
+- Adds settlement and cumulative forward validation dashboard data.
+- Target: at least 100 settled >=10pt paper trades before any real-money promotion review.
+- No production/live betting model is changed.

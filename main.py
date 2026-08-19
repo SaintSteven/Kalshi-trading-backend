@@ -26,6 +26,7 @@ from walk_forward_probability_lab import build_walk_forward_lab
 from v3_challenger_lab import build_v3_challenger_lab
 from v31_residual_edge_lab import build_v31_residual_edge_lab
 from v32_robustness_lab import build_v32_robustness_lab
+from v33_forward_validation import ForwardValidationStore, score_recommendations, settle_state, summarize_state
 from historical_job_store import HistoricalJobStore
 from lineup_experiment import run_lineup_experiment
 from lineup_experiment_models import LineupExperimentRequest, LineupExperimentResponse
@@ -47,7 +48,7 @@ from workload_experiment_models import WorkloadExperimentRequest, WorkloadExperi
 
 app = FastAPI(
     title="Kalshi Trading Engine",
-    version="3.2.0",
+    version="3.3.0",
     description=(
         "Paper-only MLB research engine with leakage-safe "
         "historical backtesting and model experimentation."
@@ -67,7 +68,7 @@ app.add_middleware(
 async def root():
     return {
         "service": "Kalshi Trading Engine",
-        "version": "3.2.0",
+        "version": "3.3.0",
         "mode": "paper-only",
         "docs": "/docs",
     }
@@ -77,7 +78,7 @@ async def root():
 async def health():
     return {
         "status": "ok",
-        "version": "3.2.0",
+        "version": "3.3.0",
         "mode": "paper-only",
         "pipeline": [
             "collect",
@@ -106,6 +107,7 @@ async def health():
             "restart_resume_for_historical_jobs",
             "active_job_keepalive",
             "candlestick_cap_safe_batching",
+            "v33_forward_validation",
         ],
         "time_utc": datetime.now(timezone.utc).isoformat(),
     }
@@ -714,6 +716,67 @@ async def historical_v32_robustness_lab(job_id: str, minimum_edge_points: float 
         return payload
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+_V33_FORWARD_STORE = ForwardValidationStore()
+
+
+@app.post("/v33-forward-validation/capture")
+async def v33_forward_validation_capture(request: PaperCardRequest, job_id: str | None = Query(default=None)):
+    try:
+        if not job_id:
+            recent = _HISTORICAL_JOB_STORE.list_recent(50)
+            job_id = next((j.get("job_id") for j in recent if j.get("status") == "completed" and (j.get("result") or {}).get("v3_full_universe_records")), None)
+        if not job_id:
+            raise HTTPException(status_code=400, detail="No completed v3 full-universe checkpoint is available. Tap Check Status in Lab first.")
+        source_job_id, checkpoint = _v3_full_universe_checkpoint_for_job(job_id)
+        history = (checkpoint or {}).get("all_evaluated") or []
+        if not history:
+            raise HTTPException(status_code=400, detail="No completed v3 full-universe checkpoint is available.")
+
+        from zoneinfo import ZoneInfo
+        target_date = normalize_target_date(request.date)
+        game_date = target_date or datetime.now(ZoneInfo("America/New_York")).date().isoformat()
+        selected, tradable_markets, _ = await collect_mlb_strikeout_markets(game_date, tradable_only=True)
+        markets = [m for m in tradable_markets if m.game_status not in {"LIVE", "STARTED"}]
+        pipeline = await run_research_pipeline(game_date)
+        capture_request = request.model_copy(update={"minimum_edge_points": 0.0, "already_committed_today": 0.0})
+        recommendations, matched = build_card_from_pipeline(markets, capture_request, pipeline)
+        scored = score_recommendations(history, recommendations, game_date, source_job_id=source_job_id)
+        state = _V33_FORWARD_STORE.append_capture(scored, game_date)
+        summary = summarize_state(state)
+        return {
+            "status": "captured", "selected_slate": selected, "game_date": game_date,
+            "markets_reviewed": len(markets), "projections_matched": matched, "scored_pitchers": len(scored.get("scored", [])),
+            "qualifiers_5pt": len(scored.get("qualifiers", [])), "primary_10pt": len(scored.get("primary", [])),
+            "added": state.get("added", 0), "today": scored.get("qualifiers", []), "summary": summary,
+            "source_job_id": source_job_id,
+        }
+    except HTTPException:
+        raise
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"v3.3 forward capture failed: {exc}") from exc
+
+
+@app.post("/v33-forward-validation/settle")
+async def v33_forward_validation_settle():
+    try:
+        state = _V33_FORWARD_STORE.load()
+        state, warnings = await settle_state(state)
+        _V33_FORWARD_STORE.save(state)
+        return {"status": "settled", "warnings": warnings, "summary": summarize_state(state)}
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"v3.3 forward settlement failed: {exc}") from exc
+
+
+@app.get("/v33-forward-validation/status")
+async def v33_forward_validation_status():
+    try:
+        return summarize_state(_V33_FORWARD_STORE.load())
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"v3.3 forward validation status failed: {exc}") from exc
 
 
 @app.delete("/historical-trading-backtest/jobs/{job_id}")
