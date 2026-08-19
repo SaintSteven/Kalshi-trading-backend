@@ -1,0 +1,6 @@
+v3.0.1 — Full-Universe Checkpoint UX / Recovery Fix
+
+- Challenger endpoint now prefers the requested v3 capture, then searches recent completed durable jobs for the newest valid full-universe checkpoint.
+- Clear error when the user has only prepared the form but has not actually run the 122-day v3 capture.
+- Challenger response reports the source job id and record count used.
+- No v3 model math, fitting rules, edge threshold, or walk-forward specification changed.

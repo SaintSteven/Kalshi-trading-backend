@@ -1,0 +1,6 @@
+v3.1.0 Residual Edge Lab
+- Reuses the completed v3 full-universe checkpoint; no historical rerun required.
+- Starts from Kalshi executable probability and tests whether pregame baseball information predicts residual market error.
+- Strict April→May, Apr+May→June, Apr+May+June→July walk-forward fitting.
+- Excludes realized projection error and post-hoc ROI bucket filters.
+- Research only; no live model changes.
