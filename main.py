@@ -48,7 +48,7 @@ from workload_experiment_models import WorkloadExperimentRequest, WorkloadExperi
 
 app = FastAPI(
     title="Kalshi Trading Engine",
-    version="3.3.1",
+    version="3.3.2",
     description=(
         "Paper-only MLB research engine with leakage-safe "
         "historical backtesting and model experimentation."
@@ -68,7 +68,7 @@ app.add_middleware(
 async def root():
     return {
         "service": "Kalshi Trading Engine",
-        "version": "3.3.1",
+        "version": "3.3.2",
         "mode": "paper-only",
         "docs": "/docs",
     }
@@ -78,7 +78,7 @@ async def root():
 async def health():
     return {
         "status": "ok",
-        "version": "3.3.1",
+        "version": "3.3.2",
         "mode": "paper-only",
         "pipeline": [
             "collect",
@@ -737,15 +737,80 @@ async def v33_forward_validation_capture(request: PaperCardRequest, job_id: str 
         from zoneinfo import ZoneInfo
         target_date = normalize_target_date(request.date)
         game_date = target_date or datetime.now(ZoneInfo("America/New_York")).date().isoformat()
-        selected, tradable_markets, _ = await collect_mlb_strikeout_markets(game_date, tradable_only=True)
+        # v3.3.2: force a fresh Kalshi read for prospective capture and expose
+        # every pre-scorer count so a zero-trade day can be distinguished from
+        # a pipeline/data-availability problem.
+        selected, tradable_markets, all_markets = await collect_mlb_strikeout_markets(
+            game_date, tradable_only=True, force_refresh=True
+        )
         markets = [m for m in tradable_markets if m.game_status not in {"LIVE", "STARTED"}]
+        market_pitchers = sorted({m.player.strip() for m in markets if getattr(m, "player", None)})
         pipeline = await run_research_pipeline(game_date)
+        projected_pitchers = sorted((pipeline.projections or {}).keys())
         capture_request = request.model_copy(update={"minimum_edge_points": 0.0, "already_committed_today": 0.0})
         recommendations, matched = build_card_from_pipeline(markets, capture_request, pipeline)
         scored = score_recommendations(history, recommendations, game_date, source_job_id=source_job_id)
+
+        matched_names = sorted({
+            m.player.strip() for m in markets
+            if m.player.strip().lower() in (pipeline.projections or {})
+        })
+        unmatched_names = [x for x in market_pitchers if x not in matched_names]
+        diagnostics = {
+            "requested_date": game_date,
+            "selected_slate": selected,
+            "kalshi_markets_all": len(all_markets),
+            "kalshi_markets_tradable": len(tradable_markets),
+            "kalshi_markets_upcoming": len(markets),
+            "kalshi_unique_pitchers": len(market_pitchers),
+            "mlb_raw_probable_pitchers": len(getattr(pipeline, "raw_inputs", []) or []),
+            "mlb_projection_pitchers": len(projected_pitchers),
+            "mlb_excluded_pitchers": len(getattr(pipeline, "excluded", []) or []),
+            "matched_pitchers": matched,
+            "recommendations_built": len(recommendations),
+            "scored_pitchers": len(scored.get("scored", [])),
+            "market_pitcher_sample": market_pitchers[:8],
+            "matched_pitcher_sample": matched_names[:8],
+            "unmatched_pitcher_sample": unmatched_names[:8],
+            "excluded_sample": (getattr(pipeline, "excluded", []) or [])[:5],
+        }
+
+        # Do not write a fake zero-capture marker when the upstream slate was
+        # not actually scorable.  Return a diagnostic state instead.
+        if not markets:
+            summary = summarize_state(_V33_FORWARD_STORE.load())
+            return {
+                **summary, "summary": summary, "status": "waiting_for_kalshi_markets",
+                "message": "No upcoming tradable Kalshi MLB strikeout markets are available for this slate yet.",
+                "selected_slate": selected, "game_date": game_date, "diagnostics": diagnostics,
+                "markets_reviewed": 0, "projections_matched": 0, "scored_pitchers": 0,
+                "qualifiers_5pt": 0, "primary_10pt_count": 0, "added": 0, "today": [],
+                "source_job_id": source_job_id,
+            }
+        if not (pipeline.projections or {}):
+            summary = summarize_state(_V33_FORWARD_STORE.load())
+            return {
+                **summary, "summary": summary, "status": "waiting_for_mlb_pitcher_data",
+                "message": "Kalshi markets are live, but MLB probable-starter/projection data is not ready for this slate yet.",
+                "selected_slate": selected, "game_date": game_date, "diagnostics": diagnostics,
+                "markets_reviewed": len(markets), "projections_matched": 0, "scored_pitchers": 0,
+                "qualifiers_5pt": 0, "primary_10pt_count": 0, "added": 0, "today": [],
+                "source_job_id": source_job_id,
+            }
+        if matched == 0:
+            summary = summarize_state(_V33_FORWARD_STORE.load())
+            return {
+                **summary, "summary": summary, "status": "pitcher_match_failure",
+                "message": "Kalshi markets and MLB projections both exist, but no pitcher names matched. Review the diagnostic samples below.",
+                "selected_slate": selected, "game_date": game_date, "diagnostics": diagnostics,
+                "markets_reviewed": len(markets), "projections_matched": 0, "scored_pitchers": 0,
+                "qualifiers_5pt": 0, "primary_10pt_count": 0, "added": 0, "today": [],
+                "source_job_id": source_job_id,
+            }
+
         state = _V33_FORWARD_STORE.append_capture(scored, game_date)
         summary = summarize_state(state)
-        # Response contract v3.3.1: keep the nested summary used by the current UI,
+        # Response contract v3.3.2: keep the nested summary used by the current UI,
         # while also mirroring summary fields at the top level for compatibility.
         # This prevents a successful durable capture from looking like a failure
         # if a cached frontend/backend pair disagrees about the response shape.
@@ -755,7 +820,7 @@ async def v33_forward_validation_capture(request: PaperCardRequest, job_id: str 
             "markets_reviewed": len(markets), "projections_matched": matched, "scored_pitchers": len(scored.get("scored", [])),
             "qualifiers_5pt": len(scored.get("qualifiers", [])), "primary_10pt_count": len(scored.get("primary", [])),
             "added": state.get("added", 0), "today": scored.get("qualifiers", []), "summary": summary,
-            "source_job_id": source_job_id,
+            "diagnostics": diagnostics, "source_job_id": source_job_id,
         }
         return response
     except HTTPException:

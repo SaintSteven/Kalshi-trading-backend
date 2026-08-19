@@ -1,0 +1,6 @@
+v3.3.2 — Forward Pipeline Diagnostics + Fresh Market Capture
+- Forces a fresh Kalshi market request on every forward capture attempt.
+- Exposes stage-by-stage counts: all/tradable/upcoming Kalshi markets, unique market pitchers, MLB probable pitchers, projections, exclusions, matches, recommendations, scored pitchers.
+- Returns explicit waiting_for_kalshi_markets / waiting_for_mlb_pitcher_data / pitcher_match_failure states.
+- Does not persist fake zero-capture ledger entries when upstream data is not ready.
+- Frozen v3.1 residual-edge architecture, Apr-Jul training history, >=10pt primary hypothesis, and 100-trade target are unchanged.

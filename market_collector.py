@@ -237,10 +237,10 @@ async def pull_open_markets(client, *, force_refresh: bool = False):
             _save_market_cache(markets)
             return markets
 
-async def collect_mlb_strikeout_markets(target_date=None, *, tradable_only=True, min_ask=2, max_ask=98, max_combined_ask=110):
+async def collect_mlb_strikeout_markets(target_date=None, *, tradable_only=True, min_ask=2, max_ask=98, max_combined_ask=110, force_refresh=False):
     target_date = normalize_target_date(target_date)
     async with httpx.AsyncClient(headers={"User-Agent":"KalshiTradingPlatform/0.4.1"}) as client:
-        raw=await pull_open_markets(client)
+        raw=await pull_open_markets(client, force_refresh=force_refresh)
     selected=resolve_slate_token(raw,target_date)
     output=[]
     for item in raw:
