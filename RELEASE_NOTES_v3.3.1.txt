@@ -1,0 +1,8 @@
+v3.3.1 — Forward Capture Response Fix
+
+- Fixes the v3.3 paper-slate capture UI crash: `undefined is not an object (evaluating d.all_5pt)`.
+- Keeps the durable ledger and frozen v3.1 model unchanged.
+- Capture responses now include both the nested `summary` object and compatible top-level summary fields.
+- Renames the capture count field to `primary_10pt_count` so it cannot collide with the summary object named `primary_10pt`.
+- No historical rerun required.
+- Real-money mode remains OFF.

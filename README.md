@@ -1,3 +1,5 @@
+v3.3.1 forward-capture response compatibility fix.
+
 # Kalshi Trading Backend v0.2 — Phone-Friendly Flat Build
 
 This version is intentionally flat because GitHub's mobile upload flow can flatten

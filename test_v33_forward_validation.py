@@ -19,7 +19,7 @@ def test_v33_scores_and_primary_summary():
         calibrated_fair_probability=.45,fair_probability=.5,projected_strikeouts=6.5,matchup='A @ B',game_start_display='7:00 PM ET',
         confidence={'overall':80,'pitcher_skill':82,'lineup':72,'workload':80,'workload_stability':76,'recent_change':72})
     out=score_recommendations(_history(),[rec],'2026-08-19','source')
-    assert out['version']=='3.3.0'
+    assert out['version']=='3.3.1'
     assert len(out['scored'])==1
     row=out['scored'][0]
     assert 'residual_edge_points' in row

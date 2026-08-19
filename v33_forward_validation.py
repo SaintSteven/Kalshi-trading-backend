@@ -97,7 +97,7 @@ def score_recommendations(history_records: list[dict], recommendations: list[Any
         }
         scored.append(row)
     return {
-        "version": "3.3.0",
+        "version": "3.3.1",
         "fit": {"projection_intercept": a, "projection_slope": b, "projection_sigma": sigma, "residual_coefficients": weights},
         "scored": scored,
         "qualifiers": [x for x in scored if x["qualifies_5pt"]],
@@ -111,7 +111,7 @@ class ForwardValidationStore:
 
     def _empty(self):
         return {
-            "version": "3.3.0",
+            "version": "3.3.1",
             "created_at": _now(),
             "updated_at": _now(),
             "candidate": "Frozen v3.1 residual-edge architecture fit only on Apr-Jul historical full-universe data",
@@ -197,7 +197,7 @@ def summarize_state(state: dict) -> dict:
         vals = [x for x in rows if x.get("game_date") == d]
         daily.append({"date": d, **_summ(vals), "primary_captured": sum(1 for x in vals if x.get("primary_10pt"))})
     return {
-        "version": "3.3.0", "candidate": state.get("candidate"), "primary_hypothesis": state.get("primary_hypothesis"),
+        "version": "3.3.1", "candidate": state.get("candidate"), "primary_hypothesis": state.get("primary_hypothesis"),
         "primary_edge_points": PRIMARY_EDGE, "target_primary_settled": state.get("target_primary_settled",100),
         "all_5pt": _summ(rows), "primary_10pt": _summ(primary), "edge_buckets": buckets, "daily": daily[:30],
         "recent_captures": sorted(rows, key=lambda x: x.get("captured_at") or "", reverse=True)[:50],

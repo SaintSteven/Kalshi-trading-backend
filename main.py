@@ -48,7 +48,7 @@ from workload_experiment_models import WorkloadExperimentRequest, WorkloadExperi
 
 app = FastAPI(
     title="Kalshi Trading Engine",
-    version="3.3.0",
+    version="3.3.1",
     description=(
         "Paper-only MLB research engine with leakage-safe "
         "historical backtesting and model experimentation."
@@ -68,7 +68,7 @@ app.add_middleware(
 async def root():
     return {
         "service": "Kalshi Trading Engine",
-        "version": "3.3.0",
+        "version": "3.3.1",
         "mode": "paper-only",
         "docs": "/docs",
     }
@@ -78,7 +78,7 @@ async def root():
 async def health():
     return {
         "status": "ok",
-        "version": "3.3.0",
+        "version": "3.3.1",
         "mode": "paper-only",
         "pipeline": [
             "collect",
@@ -745,13 +745,19 @@ async def v33_forward_validation_capture(request: PaperCardRequest, job_id: str 
         scored = score_recommendations(history, recommendations, game_date, source_job_id=source_job_id)
         state = _V33_FORWARD_STORE.append_capture(scored, game_date)
         summary = summarize_state(state)
-        return {
+        # Response contract v3.3.1: keep the nested summary used by the current UI,
+        # while also mirroring summary fields at the top level for compatibility.
+        # This prevents a successful durable capture from looking like a failure
+        # if a cached frontend/backend pair disagrees about the response shape.
+        response = {
+            **summary,
             "status": "captured", "selected_slate": selected, "game_date": game_date,
             "markets_reviewed": len(markets), "projections_matched": matched, "scored_pitchers": len(scored.get("scored", [])),
-            "qualifiers_5pt": len(scored.get("qualifiers", [])), "primary_10pt": len(scored.get("primary", [])),
+            "qualifiers_5pt": len(scored.get("qualifiers", [])), "primary_10pt_count": len(scored.get("primary", [])),
             "added": state.get("added", 0), "today": scored.get("qualifiers", []), "summary": summary,
             "source_job_id": source_job_id,
         }
+        return response
     except HTTPException:
         raise
     except ValueError as exc:
