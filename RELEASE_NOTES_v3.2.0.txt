@@ -1,0 +1,10 @@
+Kalshi Trading Engine v3.2.0 — Robustness / Validation Lab
+
+Research-only validation of the frozen v3.1 residual-edge candidate.
+- Reuses the existing Apr-Jul v3 full-universe checkpoint; no historical rerun required.
+- Replays the exact v3.1 strict walk-forward candidate without adding predictive filters.
+- Adds pitcher-game clustered bootstrap confidence intervals.
+- Adds one-best-trade-per-pitcher-game concentration stress test.
+- Adds pre-specified edge-threshold sensitivity at 5 / 7.5 / 10 / 12.5 / 15 points.
+- Adds descriptive diagnostics by month, side, ladder, entry price, residual edge, and simultaneous ladders.
+- Does not change production/live MLB logic.

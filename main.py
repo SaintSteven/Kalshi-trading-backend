@@ -25,6 +25,7 @@ from probability_engine_lab import build_probability_lab
 from walk_forward_probability_lab import build_walk_forward_lab
 from v3_challenger_lab import build_v3_challenger_lab
 from v31_residual_edge_lab import build_v31_residual_edge_lab
+from v32_robustness_lab import build_v32_robustness_lab
 from historical_job_store import HistoricalJobStore
 from lineup_experiment import run_lineup_experiment
 from lineup_experiment_models import LineupExperimentRequest, LineupExperimentResponse
@@ -46,7 +47,7 @@ from workload_experiment_models import WorkloadExperimentRequest, WorkloadExperi
 
 app = FastAPI(
     title="Kalshi Trading Engine",
-    version="3.1.0",
+    version="3.2.0",
     description=(
         "Paper-only MLB research engine with leakage-safe "
         "historical backtesting and model experimentation."
@@ -66,7 +67,7 @@ app.add_middleware(
 async def root():
     return {
         "service": "Kalshi Trading Engine",
-        "version": "3.1.0",
+        "version": "3.2.0",
         "mode": "paper-only",
         "docs": "/docs",
     }
@@ -76,7 +77,7 @@ async def root():
 async def health():
     return {
         "status": "ok",
-        "version": "3.1.0",
+        "version": "3.2.0",
         "mode": "paper-only",
         "pipeline": [
             "collect",
@@ -690,6 +691,24 @@ async def historical_v31_residual_edge_lab(job_id: str, minimum_edge_points: flo
         raise HTTPException(status_code=400, detail="No completed v3 full-universe checkpoint is available.")
     try:
         payload = build_v31_residual_edge_lab(records, minimum_edge_points=minimum_edge_points)
+        payload["source_job_id"] = source_job_id
+        payload["source_checkpoint_records"] = len(records)
+        return payload
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@app.get("/historical-trading-backtest/jobs/{job_id}/v32-robustness-lab")
+async def historical_v32_robustness_lab(job_id: str, minimum_edge_points: float = Query(default=5.0, ge=0, le=50)):
+    job = _HISTORICAL_JOBS.get(job_id) or _HISTORICAL_JOB_STORE.get(job_id)
+    if not job:
+        raise HTTPException(status_code=404, detail="Historical backtest job not found.")
+    source_job_id, checkpoint = _v3_full_universe_checkpoint_for_job(job_id)
+    records = (checkpoint or {}).get("all_evaluated") or []
+    if not records:
+        raise HTTPException(status_code=400, detail="No completed v3 full-universe checkpoint is available.")
+    try:
+        payload = build_v32_robustness_lab(records, minimum_edge_points=minimum_edge_points)
         payload["source_job_id"] = source_job_id
         payload["source_checkpoint_records"] = len(records)
         return payload
