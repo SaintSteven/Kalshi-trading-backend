@@ -1,0 +1,5 @@
+v3.3.3 Forward Pipeline Diagnostic Hardening
+- Makes scorer-stage failures explicit: recommendation_build_failure and scoring_failure never write fake zero-capture ledger entries.
+- Returns a compact raw diagnostics summary on every capture response.
+- Version bumped to 3.3.3 for deployment verification.
+- Frozen v3.1 model and forward validation hypothesis are unchanged.

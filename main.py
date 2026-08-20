@@ -48,7 +48,7 @@ from workload_experiment_models import WorkloadExperimentRequest, WorkloadExperi
 
 app = FastAPI(
     title="Kalshi Trading Engine",
-    version="3.3.2",
+    version="3.3.3",
     description=(
         "Paper-only MLB research engine with leakage-safe "
         "historical backtesting and model experimentation."
@@ -68,7 +68,7 @@ app.add_middleware(
 async def root():
     return {
         "service": "Kalshi Trading Engine",
-        "version": "3.3.2",
+        "version": "3.3.3",
         "mode": "paper-only",
         "docs": "/docs",
     }
@@ -78,7 +78,7 @@ async def root():
 async def health():
     return {
         "status": "ok",
-        "version": "3.3.2",
+        "version": "3.3.3",
         "mode": "paper-only",
         "pipeline": [
             "collect",
@@ -737,7 +737,7 @@ async def v33_forward_validation_capture(request: PaperCardRequest, job_id: str 
         from zoneinfo import ZoneInfo
         target_date = normalize_target_date(request.date)
         game_date = target_date or datetime.now(ZoneInfo("America/New_York")).date().isoformat()
-        # v3.3.2: force a fresh Kalshi read for prospective capture and expose
+        # v3.3.3: force a fresh Kalshi read for prospective capture and expose
         # every pre-scorer count so a zero-trade day can be distinguished from
         # a pipeline/data-availability problem.
         selected, tradable_markets, all_markets = await collect_mlb_strikeout_markets(
@@ -774,6 +774,11 @@ async def v33_forward_validation_capture(request: PaperCardRequest, job_id: str 
             "unmatched_pitcher_sample": unmatched_names[:8],
             "excluded_sample": (getattr(pipeline, "excluded", []) or [])[:5],
         }
+        diagnostics["summary_text"] = (
+            f"Kalshi all/tradable/upcoming {diagnostics['kalshi_markets_all']}/{diagnostics['kalshi_markets_tradable']}/{diagnostics['kalshi_markets_upcoming']} · "
+            f"Kalshi pitchers {diagnostics['kalshi_unique_pitchers']} · MLB probable/projections {diagnostics['mlb_raw_probable_pitchers']}/{diagnostics['mlb_projection_pitchers']} · "
+            f"matched {diagnostics['matched_pitchers']} · recommendations {diagnostics['recommendations_built']} · scored {diagnostics['scored_pitchers']}"
+        )
 
         # Do not write a fake zero-capture marker when the upstream slate was
         # not actually scorable.  Return a diagnostic state instead.
@@ -807,10 +812,30 @@ async def v33_forward_validation_capture(request: PaperCardRequest, job_id: str 
                 "qualifiers_5pt": 0, "primary_10pt_count": 0, "added": 0, "today": [],
                 "source_job_id": source_job_id,
             }
+        if not recommendations:
+            summary = summarize_state(_V33_FORWARD_STORE.load())
+            return {
+                **summary, "summary": summary, "status": "recommendation_build_failure",
+                "message": "Pitchers matched, but the live card builder produced zero recommendations. No ledger entry was created.",
+                "selected_slate": selected, "game_date": game_date, "diagnostics": diagnostics,
+                "markets_reviewed": len(markets), "projections_matched": matched, "scored_pitchers": 0,
+                "qualifiers_5pt": 0, "primary_10pt_count": 0, "added": 0, "today": [],
+                "source_job_id": source_job_id,
+            }
+        if not scored.get("scored"):
+            summary = summarize_state(_V33_FORWARD_STORE.load())
+            return {
+                **summary, "summary": summary, "status": "scoring_failure",
+                "message": "Recommendations were built, but frozen v3.1 scored zero pitchers. No ledger entry was created.",
+                "selected_slate": selected, "game_date": game_date, "diagnostics": diagnostics,
+                "markets_reviewed": len(markets), "projections_matched": matched, "scored_pitchers": 0,
+                "qualifiers_5pt": 0, "primary_10pt_count": 0, "added": 0, "today": [],
+                "source_job_id": source_job_id,
+            }
 
         state = _V33_FORWARD_STORE.append_capture(scored, game_date)
         summary = summarize_state(state)
-        # Response contract v3.3.2: keep the nested summary used by the current UI,
+        # Response contract v3.3.3: keep the nested summary used by the current UI,
         # while also mirroring summary fields at the top level for compatibility.
         # This prevents a successful durable capture from looking like a failure
         # if a cached frontend/backend pair disagrees about the response shape.
