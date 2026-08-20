@@ -1,0 +1,6 @@
+v3.3.4 — Network-Direct Forward Capture
+
+- No model changes. Frozen v3.1 forward-validation hypothesis remains unchanged.
+- Adds a tiny /v33-forward-validation/connectivity endpoint.
+- Intended to pair with frontend v3.3.4, whose service worker does not intercept cross-origin Render API calls.
+- Forward ledger behavior and 100-trade primary target are unchanged.
