@@ -48,7 +48,7 @@ from workload_experiment_models import WorkloadExperimentRequest, WorkloadExperi
 
 app = FastAPI(
     title="Kalshi Trading Engine",
-    version="3.3.4",
+    version="3.3.5",
     description=(
         "Paper-only MLB research engine with leakage-safe "
         "historical backtesting and model experimentation."
@@ -68,7 +68,7 @@ app.add_middleware(
 async def root():
     return {
         "service": "Kalshi Trading Engine",
-        "version": "3.3.4",
+        "version": "3.3.5",
         "mode": "paper-only",
         "docs": "/docs",
     }
@@ -78,7 +78,7 @@ async def root():
 async def health():
     return {
         "status": "ok",
-        "version": "3.3.4",
+        "version": "3.3.5",
         "mode": "paper-only",
         "pipeline": [
             "collect",
@@ -725,10 +725,10 @@ _V33_FORWARD_STORE = ForwardValidationStore()
 
 @app.get("/v33-forward-validation/connectivity")
 async def v33_forward_validation_connectivity():
-    """Tiny network-direct probe used by the v3.3.4 mobile frontend."""
+    """Tiny same-origin proxy probe used by the v3.3.5 mobile frontend."""
     return {
         "status": "ok",
-        "version": "3.3.4",
+        "version": "3.3.5",
         "transport": "network-direct",
         "service_worker_bypass_expected": True,
         "timestamp": datetime.now(timezone.utc).isoformat(),

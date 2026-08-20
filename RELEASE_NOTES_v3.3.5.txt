@@ -1,0 +1,5 @@
+v3.3.5 — Same-Origin API Proxy
+
+- Backend modeling and forward-validation logic are unchanged from v3.3.4.
+- Version bump pairs with frontend v3.3.5, which sends browser API requests to same-origin Vercel /api/* routes.
+- Vercel reverse-proxies those requests server-to-server to Render, removing Safari cross-origin transport from the capture path.
