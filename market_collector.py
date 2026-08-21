@@ -297,3 +297,55 @@ async def collect_mlb_strikeout_markets(target_date=None, *, tradable_only=True,
     if trace_callback:
         trace_callback("market_objects_built", {"all_series_markets": len(output), "visible_tradable": len(visible), "selected_slate": selected})
     return selected, visible, output
+
+
+async def inspect_mlb_strikeout_markets(target_date=None, *, force_refresh=True):
+    """Return a compact, read-only explanation of KXMLBKS market parsing/filtering."""
+    target_date = normalize_target_date(target_date)
+    async with httpx.AsyncClient(headers={"User-Agent":"KalshiTradingPlatform/0.4.1"}) as client:
+        raw = await pull_open_markets(client, force_refresh=force_refresh)
+    selected = resolve_slate_token(raw, target_date)
+    now = datetime.now(ET)
+    rows = []
+    for item in raw:
+        ticker = str(item.get("ticker", ""))
+        if not ticker.startswith(MLB_STRIKEOUT_PREFIX) or selected not in ticker:
+            continue
+        title = str(item.get("title", ""))
+        subtitle = str(item.get("subtitle", "") or item.get("sub_title", "") or "")
+        yes_ask = _first_price(item, "yes_ask_dollars", "yes_ask")
+        no_ask = _first_price(item, "no_ask_dollars", "no_ask")
+        tradable, reasons = evaluate_tradability(yes_ask, no_ask)
+        game = _game_details_from_ticker(ticker)
+        player = _extract_player(title)
+        threshold = _extract_threshold(title)
+        status = game.get("game_status") or "UNKNOWN"
+        rejection = list(reasons)
+        if status in {"LIVE", "STARTED"}: rejection.append("Game has already started.")
+        if not player: rejection.append("Player could not be parsed from title.")
+        if not threshold: rejection.append("Strikeout ladder could not be parsed from title.")
+        rows.append({
+            "ticker": ticker, "event_ticker": item.get("event_ticker"), "title": title, "subtitle": subtitle,
+            "raw_status": item.get("status"), "player_parsed": player, "threshold_parsed": threshold,
+            "game_status": status, "game_start_display": game.get("game_start_display"),
+            "yes_bid_cents": _first_price(item, "yes_bid_dollars", "yes_bid"), "yes_ask_cents": yes_ask,
+            "no_bid_cents": _first_price(item, "no_bid_dollars", "no_bid"), "no_ask_cents": no_ask,
+            "tradable_by_price": tradable,
+            "eligible_upcoming": bool(tradable and status not in {"LIVE", "STARTED"} and player and threshold),
+            "rejection_reasons": rejection, "close_time": item.get("close_time"),
+        })
+    rows.sort(key=lambda r: (r.get("game_start_display") or "", r.get("ticker") or ""))
+    reason_counts = {}
+    for row in rows:
+        for reason in row["rejection_reasons"]: reason_counts[reason] = reason_counts.get(reason, 0) + 1
+    return {
+        "status": "ok", "selected_slate": selected, "target_date": target_date, "now_et": now.isoformat(),
+        "summary": {
+            "raw_series_markets": len(raw), "slate_markets": len(rows),
+            "upcoming_markets": sum(1 for r in rows if r["game_status"] == "UPCOMING"),
+            "live_or_started_markets": sum(1 for r in rows if r["game_status"] in {"LIVE", "STARTED"}),
+            "tradable_by_price": sum(1 for r in rows if r["tradable_by_price"]),
+            "eligible_upcoming": sum(1 for r in rows if r["eligible_upcoming"]),
+        },
+        "reason_counts": reason_counts, "markets": rows, "ledger_write": False,
+    }

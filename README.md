@@ -1,5 +1,3 @@
-# Kalshi Trading Backend v3.3.10
+# Kalshi Trading Backend v3.3.11 — Market Object Inspector
 
-Forward Pipeline Tracer release. Upload these files to the backend repository root.
-
-The new tracer is diagnostic only and never writes a forward-validation trade. It runs the same live pipeline in the background and exposes stage-by-stage timing via `/v33-forward-validation/trace/{trace_id}`.
+Adds a read-only KXMLBKS market inspector with per-market parsing, prices, status, and rejection reasons. No v3.1 model or forward-ledger rules changed.
