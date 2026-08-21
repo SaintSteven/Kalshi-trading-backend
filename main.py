@@ -48,7 +48,7 @@ from workload_experiment_models import WorkloadExperimentRequest, WorkloadExperi
 
 app = FastAPI(
     title="Kalshi Trading Engine",
-    version="3.3.5",
+    version="3.3.8",
     description=(
         "Paper-only MLB research engine with leakage-safe "
         "historical backtesting and model experimentation."
@@ -68,7 +68,7 @@ app.add_middleware(
 async def root():
     return {
         "service": "Kalshi Trading Engine",
-        "version": "3.3.5",
+        "version": "3.3.8",
         "mode": "paper-only",
         "docs": "/docs",
     }
@@ -78,7 +78,7 @@ async def root():
 async def health():
     return {
         "status": "ok",
-        "version": "3.3.5",
+        "version": "3.3.8",
         "mode": "paper-only",
         "pipeline": [
             "collect",
@@ -728,14 +728,38 @@ async def v33_forward_validation_connectivity():
     """Tiny same-origin proxy probe used by the v3.3.5 mobile frontend."""
     return {
         "status": "ok",
-        "version": "3.3.5",
+        "version": "3.3.8",
         "transport": "network-direct",
         "service_worker_bypass_expected": True,
         "timestamp": datetime.now(timezone.utc).isoformat(),
     }
 
+@app.post("/v33-forward-validation/transport-echo")
+async def v33_forward_validation_transport_echo(request: PaperCardRequest, job_id: str | None = Query(default=None)):
+    """Fast POST/body/proxy diagnostic. Never touches the forward ledger or live data providers."""
+    return {
+        "status": "ok",
+        "version": "3.3.8",
+        "diagnostic": "transport_echo",
+        "method": "POST",
+        "job_id": job_id,
+        "request": {
+            "date": request.date,
+            "bankroll": request.bankroll,
+            "already_committed_today": request.already_committed_today,
+            "max_bet": request.max_bet,
+            "minimum_edge_points": request.minimum_edge_points,
+            "use_automatic_data": request.use_automatic_data,
+            "pitcher_count": len(request.pitchers or []),
+        },
+        "ledger_write": False,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+    }
+
+
 @app.post("/v33-forward-validation/capture")
-async def v33_forward_validation_capture(request: PaperCardRequest, job_id: str | None = Query(default=None)):
+async def v33_forward_validation_capture(request: PaperCardRequest, job_id: str | None = Query(default=None), dry_run: bool = Query(default=False)):
+
     try:
         if not job_id:
             recent = _HISTORICAL_JOB_STORE.list_recent(50)
@@ -844,6 +868,27 @@ async def v33_forward_validation_capture(request: PaperCardRequest, job_id: str 
                 "markets_reviewed": len(markets), "projections_matched": matched, "scored_pitchers": 0,
                 "qualifiers_5pt": 0, "primary_10pt_count": 0, "added": 0, "today": [],
                 "source_job_id": source_job_id,
+            }
+
+        if dry_run:
+            summary = summarize_state(_V33_FORWARD_STORE.load())
+            return {
+                **summary,
+                "summary": summary,
+                "status": "dry_run_complete",
+                "message": "Full forward pipeline completed in dry-run mode. No ledger write occurred.",
+                "selected_slate": selected,
+                "game_date": game_date,
+                "markets_reviewed": len(markets),
+                "projections_matched": matched,
+                "scored_pitchers": len(scored.get("scored", [])),
+                "qualifiers_5pt": len(scored.get("qualifiers", [])),
+                "primary_10pt_count": len(scored.get("primary", [])),
+                "added": 0,
+                "today": scored.get("qualifiers", []),
+                "diagnostics": diagnostics,
+                "source_job_id": source_job_id,
+                "ledger_write": False,
             }
 
         state = _V33_FORWARD_STORE.append_capture(scored, game_date)

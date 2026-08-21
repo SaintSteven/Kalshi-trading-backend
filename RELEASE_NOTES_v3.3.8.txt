@@ -1,0 +1,6 @@
+v3.3.8 — Forward Transport Inspector
+
+- Adds POST /v33-forward-validation/transport-echo (no ledger write, no live-provider work).
+- Adds dry_run=true support to the real capture endpoint; full pipeline runs but never writes the forward ledger.
+- Keeps v3.1 model architecture and forward-validation thresholds frozen.
+- Version bump only; no model tuning.
