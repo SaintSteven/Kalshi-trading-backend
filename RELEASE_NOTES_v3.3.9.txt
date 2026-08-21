@@ -1,9 +1,8 @@
-Kalshi Trading Backend v3.3.9 — Forward Pipeline Tracer
+Kalshi Trading Backend v3.3.10 — Kalshi Market Subtrace
 
-- Adds a non-writing background trace for the v3.3 forward pipeline.
-- Trace stages: history checkpoint, date normalization, Kalshi markets, MLB research pipeline,
-  recommendation building, frozen v3.1 scoring, and durable-ledger summary read.
-- Each stage records elapsed time and counts, and emits the same markers to Render logs.
-- Trace start returns immediately, avoiding the ~26 second gateway failure seen in the synchronous dry run.
-- Trace can never append to the forward-validation ledger.
-- Frozen v3.1 model architecture, Apr-Jul training history, >=10pt primary hypothesis, and 100-trade target are unchanged.
+- Breaks the live Kalshi market stage into request/response/parse/pagination milestones.
+- Persists trace snapshots to /tmp so the last recorded substage can survive a backend process restart when the instance filesystem survives.
+- Prevents duplicate background trace starts by returning the already-running trace id.
+- Scopes live market collection to series_ticker=KXMLBKS instead of paging through every open Kalshi market.
+- Does not change frozen v3.1 scoring, edge thresholds, historical training data, or forward-ledger rules.
+- Trace remains diagnostic-only with ledger writes disabled.

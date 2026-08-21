@@ -1,4 +1,4 @@
-# Kalshi Trading Backend v3.3.9
+# Kalshi Trading Backend v3.3.10
 
 Forward Pipeline Tracer release. Upload these files to the backend repository root.
 

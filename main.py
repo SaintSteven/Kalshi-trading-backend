@@ -4,6 +4,8 @@ import os
 import uuid
 import time
 import traceback
+import json
+from pathlib import Path
 
 import httpx
 
@@ -50,7 +52,7 @@ from workload_experiment_models import WorkloadExperimentRequest, WorkloadExperi
 
 app = FastAPI(
     title="Kalshi Trading Engine",
-    version="3.3.9",
+    version="3.3.10",
     description=(
         "Paper-only MLB research engine with leakage-safe "
         "historical backtesting and model experimentation."
@@ -70,7 +72,7 @@ app.add_middleware(
 async def root():
     return {
         "service": "Kalshi Trading Engine",
-        "version": "3.3.9",
+        "version": "3.3.10",
         "mode": "paper-only",
         "docs": "/docs",
     }
@@ -80,7 +82,7 @@ async def root():
 async def health():
     return {
         "status": "ok",
-        "version": "3.3.9",
+        "version": "3.3.10",
         "mode": "paper-only",
         "pipeline": [
             "collect",
@@ -730,7 +732,7 @@ async def v33_forward_validation_connectivity():
     """Tiny same-origin proxy probe used by the v3.3.5 mobile frontend."""
     return {
         "status": "ok",
-        "version": "3.3.9",
+        "version": "3.3.10",
         "transport": "network-direct",
         "service_worker_bypass_expected": True,
         "timestamp": datetime.now(timezone.utc).isoformat(),
@@ -741,7 +743,7 @@ async def v33_forward_validation_transport_echo(request: PaperCardRequest, job_i
     """Fast POST/body/proxy diagnostic. Never touches the forward ledger or live data providers."""
     return {
         "status": "ok",
-        "version": "3.3.9",
+        "version": "3.3.10",
         "diagnostic": "transport_echo",
         "method": "POST",
         "job_id": job_id,
@@ -761,6 +763,29 @@ async def v33_forward_validation_transport_echo(request: PaperCardRequest, job_i
 
 _V339_TRACE_JOBS: dict[str, dict] = {}
 _V339_TRACE_TASKS: dict[str, asyncio.Task] = {}
+_V3310_TRACE_FILE = Path(os.getenv("V3310_TRACE_FILE", "/tmp/kalshi_v3310_forward_traces.json"))
+
+
+def _v3310_persist_traces() -> None:
+    try:
+        _V3310_TRACE_FILE.write_text(json.dumps(_V339_TRACE_JOBS, default=str))
+    except Exception as exc:
+        print(f"[v3.3.10 trace persist warning] {type(exc).__name__}: {exc}", flush=True)
+
+
+def _v3310_restore_traces() -> None:
+    if _V339_TRACE_JOBS or not _V3310_TRACE_FILE.exists():
+        return
+    try:
+        data = json.loads(_V3310_TRACE_FILE.read_text())
+        if isinstance(data, dict):
+            for item in data.values():
+                if isinstance(item, dict) and item.get("status") in {"queued", "running"}:
+                    item["status"] = "interrupted_after_restart"
+                    item["message"] = "Trace state was recovered after a backend process restart; last recorded substage is preserved below."
+            _V339_TRACE_JOBS.update(data)
+    except Exception as exc:
+        print(f"[v3.3.10 trace restore warning] {type(exc).__name__}: {exc}", flush=True)
 
 
 def _v339_trace_now() -> str:
@@ -782,7 +807,8 @@ def _v339_trace_mark(trace: dict, stage: str, status: str, started_perf: float, 
     trace["updated_at"] = row["at"]
     trace["elapsed_ms"] = elapsed_ms
     # Also emit to Render logs so a worker crash still leaves the last completed stage visible there.
-    print(f"[v3.3.9 trace {trace.get('trace_id')}] {stage} {status} +{elapsed_ms}ms {detail or ''}", flush=True)
+    _v3310_persist_traces()
+    print(f"[v3.3.10 trace {trace.get('trace_id')}] {stage} {status} +{elapsed_ms}ms {detail or ''}", flush=True)
 
 
 async def _run_v339_forward_trace(trace_id: str, request: PaperCardRequest, job_id: str | None):
@@ -817,9 +843,15 @@ async def _run_v339_forward_trace(trace_id: str, request: PaperCardRequest, job_
         trace["game_date"] = game_date
         _v339_trace_mark(trace, "normalize_date", "complete", started, {"game_date": game_date})
 
-        _v339_trace_mark(trace, "kalshi_markets", "begin", started)
+        _v339_trace_mark(trace, "kalshi_markets", "begin", started, {"scope": "series_ticker=KXMLBKS"})
+
+        def _kalshi_trace(substage: str, detail: dict | None = None):
+            # Persist each network/parsing milestone. If Render restarts, the last
+            # completed substage can be restored from /tmp on the next status call.
+            _v339_trace_mark(trace, f"kalshi_markets.{substage}", "complete", started, detail or {})
+
         selected, tradable_markets, all_markets = await collect_mlb_strikeout_markets(
-            game_date, tradable_only=True, force_refresh=True
+            game_date, tradable_only=True, force_refresh=True, trace_callback=_kalshi_trace
         )
         markets = [m for m in tradable_markets if m.game_status not in {"LIVE", "STARTED"}]
         market_pitchers = sorted({m.player.strip() for m in markets if getattr(m, "player", None)})
@@ -904,10 +936,20 @@ async def _run_v339_forward_trace(trace_id: str, request: PaperCardRequest, job_
 
 @app.post("/v33-forward-validation/trace/start")
 async def v339_forward_trace_start(request: PaperCardRequest, job_id: str | None = Query(default=None)):
+    _v3310_restore_traces()
+    running = next((t for t in _V339_TRACE_JOBS.values() if t.get("status") in {"queued", "running"}), None)
+    if running:
+        return {
+            "status": "already_running",
+            "version": "3.3.10",
+            "trace_id": running.get("trace_id"),
+            "ledger_write": False,
+            "message": "A diagnostic trace is already running. Use Check Trace Status instead of starting another.",
+        }
     trace_id = uuid.uuid4().hex[:12]
     trace = {
         "trace_id": trace_id,
-        "version": "3.3.9",
+        "version": "3.3.10",
         "status": "queued",
         "created_at": _v339_trace_now(),
         "updated_at": _v339_trace_now(),
@@ -917,11 +959,12 @@ async def v339_forward_trace_start(request: PaperCardRequest, job_id: str | None
         "ledger_write": False,
     }
     _V339_TRACE_JOBS[trace_id] = trace
+    _v3310_persist_traces()
     task = asyncio.create_task(_run_v339_forward_trace(trace_id, request, job_id))
     _V339_TRACE_TASKS[trace_id] = task
     return {
         "status": "started",
-        "version": "3.3.9",
+        "version": "3.3.10",
         "trace_id": trace_id,
         "ledger_write": False,
         "message": "Background forward pipeline trace started. Poll trace status for stage timing/results.",
@@ -930,9 +973,10 @@ async def v339_forward_trace_start(request: PaperCardRequest, job_id: str | None
 
 @app.get("/v33-forward-validation/trace/{trace_id}")
 async def v339_forward_trace_status(trace_id: str):
+    _v3310_restore_traces()
     trace = _V339_TRACE_JOBS.get(trace_id)
     if not trace:
-        raise HTTPException(status_code=404, detail="Forward trace not found. If Render restarted, start a new trace.")
+        raise HTTPException(status_code=404, detail="Forward trace not found after in-memory and persisted-state lookup. Start one new trace.")
     return trace
 
 

@@ -190,7 +190,7 @@ def evaluate_tradability(yes_ask, no_ask, *, min_ask=2, max_ask=98, max_combined
     if yes_ask is not None and no_ask is not None and yes_ask + no_ask > max_combined_ask: reasons.append("Combined asks above sanity limit.")
     return not reasons, reasons
 
-async def pull_open_markets(client, *, force_refresh: bool = False):
+async def pull_open_markets(client, *, force_refresh: bool = False, trace_callback=None):
     if not force_refresh:
         cached = _cached_markets()
         if cached is not None:
@@ -198,13 +198,22 @@ async def pull_open_markets(client, *, force_refresh: bool = False):
 
     markets=[]; cursor=None
     retry_delays=(2,5)
+    page=0
     while True:
-        params={"status":"open","limit":1000,"mve_filter":"exclude"}
+        page += 1
+        # Scope the live pull to the MLB strikeout series. The prior implementation
+        # paginated through every open Kalshi market and filtered locally, which is
+        # unnecessary for forward MLB capture and can make the request extremely heavy.
+        params={"series_ticker":MLB_STRIKEOUT_PREFIX,"status":"open","limit":1000,"mve_filter":"exclude"}
+        if trace_callback:
+            trace_callback("request_begin", {"page": page, "cursor": bool(cursor), "markets_so_far": len(markets), "series_ticker": MLB_STRIKEOUT_PREFIX})
         if cursor: params["cursor"]=cursor
 
         response = None
         for attempt in range(len(retry_delays) + 1):
             response=await client.get(f"{KALSHI_BASE_URL}/markets",params=params,timeout=30)
+            if trace_callback:
+                trace_callback("response_received", {"page": page, "attempt": attempt + 1, "status_code": response.status_code, "content_length": response.headers.get("content-length")})
             if response.status_code != 429:
                 break
             if attempt < len(retry_delays):
@@ -230,18 +239,33 @@ async def pull_open_markets(client, *, force_refresh: bool = False):
             raise KalshiRateLimitError(retry_after_seconds)
 
         response.raise_for_status()
+        if trace_callback:
+            trace_callback("response_status_ok", {"page": page, "status_code": response.status_code})
         payload=response.json()
-        markets.extend(payload.get("markets",[]))
+        page_markets = payload.get("markets",[])
+        if trace_callback:
+            trace_callback("response_parsed", {"page": page, "page_markets": len(page_markets), "has_cursor": bool(payload.get("cursor"))})
+        markets.extend(page_markets)
         cursor=payload.get("cursor")
+        if trace_callback:
+            trace_callback("page_accumulated", {"page": page, "markets_total": len(markets), "has_cursor": bool(cursor)})
         if not cursor:
             _save_market_cache(markets)
+            if trace_callback:
+                trace_callback("pull_complete", {"pages": page, "markets_total": len(markets)})
             return markets
 
-async def collect_mlb_strikeout_markets(target_date=None, *, tradable_only=True, min_ask=2, max_ask=98, max_combined_ask=110, force_refresh=False):
+async def collect_mlb_strikeout_markets(target_date=None, *, tradable_only=True, min_ask=2, max_ask=98, max_combined_ask=110, force_refresh=False, trace_callback=None):
     target_date = normalize_target_date(target_date)
     async with httpx.AsyncClient(headers={"User-Agent":"KalshiTradingPlatform/0.4.1"}) as client:
-        raw=await pull_open_markets(client, force_refresh=force_refresh)
+        if trace_callback:
+            trace_callback("client_ready", {"target_date": target_date, "force_refresh": force_refresh})
+        raw=await pull_open_markets(client, force_refresh=force_refresh, trace_callback=trace_callback)
+        if trace_callback:
+            trace_callback("raw_markets_ready", {"raw_markets": len(raw)})
     selected=resolve_slate_token(raw,target_date)
+    if trace_callback:
+        trace_callback("slate_resolved", {"selected_slate": selected, "raw_markets": len(raw)})
     output=[]
     for item in raw:
         ticker=str(item.get("ticker",""))
@@ -270,4 +294,6 @@ async def collect_mlb_strikeout_markets(target_date=None, *, tradable_only=True,
         ))
     output.sort(key=lambda m:(m.close_time or datetime.max.replace(tzinfo=ET),m.event_ticker or "",m.player,int(m.threshold.rstrip("+")) if m.threshold.rstrip("+").isdigit() else 999))
     visible=[m for m in output if m.tradable] if tradable_only else output
+    if trace_callback:
+        trace_callback("market_objects_built", {"all_series_markets": len(output), "visible_tradable": len(visible), "selected_slate": selected})
     return selected, visible, output
