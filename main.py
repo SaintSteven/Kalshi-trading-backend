@@ -2,6 +2,8 @@ from datetime import datetime, timezone
 import asyncio
 import os
 import uuid
+import time
+import traceback
 
 import httpx
 
@@ -48,7 +50,7 @@ from workload_experiment_models import WorkloadExperimentRequest, WorkloadExperi
 
 app = FastAPI(
     title="Kalshi Trading Engine",
-    version="3.3.8",
+    version="3.3.9",
     description=(
         "Paper-only MLB research engine with leakage-safe "
         "historical backtesting and model experimentation."
@@ -68,7 +70,7 @@ app.add_middleware(
 async def root():
     return {
         "service": "Kalshi Trading Engine",
-        "version": "3.3.8",
+        "version": "3.3.9",
         "mode": "paper-only",
         "docs": "/docs",
     }
@@ -78,7 +80,7 @@ async def root():
 async def health():
     return {
         "status": "ok",
-        "version": "3.3.8",
+        "version": "3.3.9",
         "mode": "paper-only",
         "pipeline": [
             "collect",
@@ -728,7 +730,7 @@ async def v33_forward_validation_connectivity():
     """Tiny same-origin proxy probe used by the v3.3.5 mobile frontend."""
     return {
         "status": "ok",
-        "version": "3.3.8",
+        "version": "3.3.9",
         "transport": "network-direct",
         "service_worker_bypass_expected": True,
         "timestamp": datetime.now(timezone.utc).isoformat(),
@@ -739,7 +741,7 @@ async def v33_forward_validation_transport_echo(request: PaperCardRequest, job_i
     """Fast POST/body/proxy diagnostic. Never touches the forward ledger or live data providers."""
     return {
         "status": "ok",
-        "version": "3.3.8",
+        "version": "3.3.9",
         "diagnostic": "transport_echo",
         "method": "POST",
         "job_id": job_id,
@@ -755,6 +757,183 @@ async def v33_forward_validation_transport_echo(request: PaperCardRequest, job_i
         "ledger_write": False,
         "timestamp": datetime.now(timezone.utc).isoformat(),
     }
+
+
+_V339_TRACE_JOBS: dict[str, dict] = {}
+_V339_TRACE_TASKS: dict[str, asyncio.Task] = {}
+
+
+def _v339_trace_now() -> str:
+    return datetime.now(timezone.utc).isoformat()
+
+
+def _v339_trace_mark(trace: dict, stage: str, status: str, started_perf: float, detail: dict | None = None):
+    elapsed_ms = int((time.perf_counter() - started_perf) * 1000)
+    row = {
+        "stage": stage,
+        "status": status,
+        "elapsed_ms": elapsed_ms,
+        "at": _v339_trace_now(),
+    }
+    if detail:
+        row["detail"] = detail
+    trace.setdefault("events", []).append(row)
+    trace["current_stage"] = stage
+    trace["updated_at"] = row["at"]
+    trace["elapsed_ms"] = elapsed_ms
+    # Also emit to Render logs so a worker crash still leaves the last completed stage visible there.
+    print(f"[v3.3.9 trace {trace.get('trace_id')}] {stage} {status} +{elapsed_ms}ms {detail or ''}", flush=True)
+
+
+async def _run_v339_forward_trace(trace_id: str, request: PaperCardRequest, job_id: str | None):
+    """Run the real forward pipeline in the background, with NO ledger write.
+
+    The HTTP request that starts this trace returns immediately, so a 25-30 second
+    Render/Vercel request timeout cannot hide which backend stage is slow or failing.
+    """
+    trace = _V339_TRACE_JOBS[trace_id]
+    started = time.perf_counter()
+    trace.update(status="running", started_at=_v339_trace_now(), current_stage="start")
+    _v339_trace_mark(trace, "start", "begin", started, {"ledger_write": False})
+    try:
+        _v339_trace_mark(trace, "resolve_history", "begin", started)
+        resolved_job_id = job_id
+        if not resolved_job_id:
+            recent = _HISTORICAL_JOB_STORE.list_recent(50)
+            resolved_job_id = next((j.get("job_id") for j in recent if j.get("status") == "completed" and (j.get("result") or {}).get("v3_full_universe_records")), None)
+        if not resolved_job_id:
+            raise RuntimeError("No completed v3 full-universe checkpoint is available.")
+        source_job_id, checkpoint = _v3_full_universe_checkpoint_for_job(resolved_job_id)
+        history = (checkpoint or {}).get("all_evaluated") or []
+        if not history:
+            raise RuntimeError("Completed checkpoint contains no v3 full-universe history.")
+        trace["source_job_id"] = source_job_id
+        _v339_trace_mark(trace, "resolve_history", "complete", started, {"history_records": len(history)})
+
+        _v339_trace_mark(trace, "normalize_date", "begin", started)
+        from zoneinfo import ZoneInfo
+        target_date = normalize_target_date(request.date)
+        game_date = target_date or datetime.now(ZoneInfo("America/New_York")).date().isoformat()
+        trace["game_date"] = game_date
+        _v339_trace_mark(trace, "normalize_date", "complete", started, {"game_date": game_date})
+
+        _v339_trace_mark(trace, "kalshi_markets", "begin", started)
+        selected, tradable_markets, all_markets = await collect_mlb_strikeout_markets(
+            game_date, tradable_only=True, force_refresh=True
+        )
+        markets = [m for m in tradable_markets if m.game_status not in {"LIVE", "STARTED"}]
+        market_pitchers = sorted({m.player.strip() for m in markets if getattr(m, "player", None)})
+        trace["selected_slate"] = selected
+        trace["counts"] = {
+            "kalshi_all": len(all_markets),
+            "kalshi_tradable": len(tradable_markets),
+            "kalshi_upcoming": len(markets),
+            "kalshi_pitchers": len(market_pitchers),
+        }
+        _v339_trace_mark(trace, "kalshi_markets", "complete", started, trace["counts"].copy())
+
+        _v339_trace_mark(trace, "research_pipeline", "begin", started)
+        pipeline = await run_research_pipeline(game_date)
+        projected_pitchers = sorted((pipeline.projections or {}).keys())
+        trace["counts"].update({
+            "mlb_raw_probables": len(getattr(pipeline, "raw_inputs", []) or []),
+            "mlb_projections": len(projected_pitchers),
+            "mlb_excluded": len(getattr(pipeline, "excluded", []) or []),
+        })
+        _v339_trace_mark(trace, "research_pipeline", "complete", started, {
+            "mlb_raw_probables": trace["counts"]["mlb_raw_probables"],
+            "mlb_projections": trace["counts"]["mlb_projections"],
+            "mlb_excluded": trace["counts"]["mlb_excluded"],
+        })
+
+        _v339_trace_mark(trace, "build_recommendations", "begin", started)
+        capture_request = request.model_copy(update={"minimum_edge_points": 0.0, "already_committed_today": 0.0})
+        recommendations, matched = build_card_from_pipeline(markets, capture_request, pipeline)
+        trace["counts"].update({"matched_pitchers": matched, "recommendations": len(recommendations)})
+        _v339_trace_mark(trace, "build_recommendations", "complete", started, {
+            "matched_pitchers": matched, "recommendations": len(recommendations)
+        })
+
+        _v339_trace_mark(trace, "score_v31", "begin", started)
+        scored = score_recommendations(history, recommendations, game_date, source_job_id=source_job_id)
+        trace["counts"].update({
+            "scored": len(scored.get("scored", [])),
+            "qualifiers_5pt": len(scored.get("qualifiers", [])),
+            "primary_10pt": len(scored.get("primary", [])),
+        })
+        _v339_trace_mark(trace, "score_v31", "complete", started, {
+            "scored": trace["counts"]["scored"],
+            "qualifiers_5pt": trace["counts"]["qualifiers_5pt"],
+            "primary_10pt": trace["counts"]["primary_10pt"],
+        })
+
+        _v339_trace_mark(trace, "summarize_ledger", "begin", started)
+        summary = summarize_state(_V33_FORWARD_STORE.load())
+        trace["ledger_snapshot"] = {
+            "all_captured": (summary.get("all_5pt") or {}).get("captured", 0),
+            "primary_settled": (summary.get("primary_10pt") or {}).get("settled", 0),
+        }
+        _v339_trace_mark(trace, "summarize_ledger", "complete", started, trace["ledger_snapshot"].copy())
+
+        trace.update(
+            status="complete",
+            current_stage="complete",
+            finished_at=_v339_trace_now(),
+            elapsed_ms=int((time.perf_counter() - started) * 1000),
+            ledger_write=False,
+            message="Full forward pipeline trace completed without writing the validation ledger.",
+        )
+        _v339_trace_mark(trace, "complete", "complete", started, {"ledger_write": False})
+    except asyncio.CancelledError:
+        trace.update(status="cancelled", finished_at=_v339_trace_now(), error="Trace task cancelled.")
+        _v339_trace_mark(trace, trace.get("current_stage") or "unknown", "cancelled", started)
+        raise
+    except BaseException as exc:
+        trace.update(
+            status="error",
+            finished_at=_v339_trace_now(),
+            error_type=type(exc).__name__,
+            error=str(exc),
+            traceback="".join(traceback.format_exception(type(exc), exc, exc.__traceback__))[-6000:],
+            ledger_write=False,
+        )
+        _v339_trace_mark(trace, trace.get("current_stage") or "unknown", "error", started, {
+            "error_type": type(exc).__name__, "error": str(exc)[:1000]
+        })
+
+
+@app.post("/v33-forward-validation/trace/start")
+async def v339_forward_trace_start(request: PaperCardRequest, job_id: str | None = Query(default=None)):
+    trace_id = uuid.uuid4().hex[:12]
+    trace = {
+        "trace_id": trace_id,
+        "version": "3.3.9",
+        "status": "queued",
+        "created_at": _v339_trace_now(),
+        "updated_at": _v339_trace_now(),
+        "current_stage": "queued",
+        "events": [],
+        "counts": {},
+        "ledger_write": False,
+    }
+    _V339_TRACE_JOBS[trace_id] = trace
+    task = asyncio.create_task(_run_v339_forward_trace(trace_id, request, job_id))
+    _V339_TRACE_TASKS[trace_id] = task
+    return {
+        "status": "started",
+        "version": "3.3.9",
+        "trace_id": trace_id,
+        "ledger_write": False,
+        "message": "Background forward pipeline trace started. Poll trace status for stage timing/results.",
+    }
+
+
+@app.get("/v33-forward-validation/trace/{trace_id}")
+async def v339_forward_trace_status(trace_id: str):
+    trace = _V339_TRACE_JOBS.get(trace_id)
+    if not trace:
+        raise HTTPException(status_code=404, detail="Forward trace not found. If Render restarted, start a new trace.")
+    return trace
 
 
 @app.post("/v33-forward-validation/capture")

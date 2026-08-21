@@ -1,4 +1,4 @@
-v2.6.3 MOBILE UPLOAD
-Upload the files in this folder to the ROOT of the existing backend repository.
-Do not upload a containing folder. No __pycache__ or .pyc files are required.
-This release only fixes Historical Kalshi Price POC routing and diagnostics.
+v3.3.9 MOBILE UPLOAD
+Upload the files in this folder to the ROOT of the Kalshi backend repository.
+Exactly 99 files are included.
+Forward Pipeline Tracer is diagnostic-only and does not write the v3.3 validation ledger.
