@@ -214,10 +214,17 @@ async def _collect_espn_games(client: httpx.AsyncClient, start: date, end: date,
                 summary = await _request_json(client, ESPN_SUMMARY, params={"event": event.get("id")})
             except Exception:
                 summary = {}
-            return day, event, summary
+            pick = (summary.get("pickcenter") or [None])[0] or {}
+            current_probs = _novig((pick.get("awayTeamOdds") or {}).get("moneyLine"), (pick.get("homeTeamOdds") or {}).get("moneyLine"))
+            moneyline = pick.get("moneyline") or {}
+            open_probs = _novig(((moneyline.get("away") or {}).get("open") or {}).get("odds"), ((moneyline.get("home") or {}).get("open") or {}).get("odds"))
+            # Return only the fields the backtest needs. Full ESPN summaries are
+            # large, and retaining hundreds until gather completes can exhaust a
+            # small Render worker.
+            return day, event, current_probs, open_probs
     rows = await asyncio.gather(*(fetch(item) for item in events))
     output = {}
-    for day, event, summary in rows:
+    for day, event, current_probs, open_probs in rows:
         competition = (event.get("competitions") or [{}])[0]
         competitors = competition.get("competitors", [])
         away = next((row for row in competitors if row.get("homeAway") == "away"), None)
@@ -226,10 +233,6 @@ async def _collect_espn_games(client: httpx.AsyncClient, start: date, end: date,
             continue
         away_code = _norm(away.get("team", {}).get("abbreviation"))
         home_code = _norm(home.get("team", {}).get("abbreviation"))
-        pick = (summary.get("pickcenter") or [None])[0] or {}
-        current_probs = _novig((pick.get("awayTeamOdds") or {}).get("moneyLine"), (pick.get("homeTeamOdds") or {}).get("moneyLine"))
-        moneyline = pick.get("moneyline") or {}
-        open_probs = _novig(((moneyline.get("away") or {}).get("open") or {}).get("odds"), ((moneyline.get("home") or {}).get("open") or {}).get("odds"))
         winner = away_code if away.get("winner") is True else home_code if home.get("winner") is True else None
         output[(day, frozenset({away_code, home_code}))] = {
             "event_id": event.get("id"), "away_code": away_code, "home_code": home_code,

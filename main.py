@@ -56,7 +56,7 @@ from workload_experiment_models import WorkloadExperimentRequest, WorkloadExperi
 
 app = FastAPI(
     title="Kalshi Trading Engine",
-    version="3.6.0",
+    version="3.6.1",
     description=(
         "Paper-only MLB research engine with leakage-safe "
         "historical backtesting and model experimentation."
@@ -76,7 +76,7 @@ app.add_middleware(
 async def root():
     return {
         "service": "Kalshi Trading Engine",
-        "version": "3.6.0",
+        "version": "3.6.1",
         "mode": "paper-only",
         "docs": "/docs",
     }
@@ -86,7 +86,7 @@ async def root():
 async def health():
     return {
         "status": "ok",
-        "version": "3.6.0",
+        "version": "3.6.1",
         "mode": "paper-only",
         "pipeline": [
             "collect",
@@ -122,6 +122,8 @@ async def health():
             "automatic_hybrid_result_settlement",
             "historical_hybrid_proxy_backtest",
             "historical_hybrid_holdout_reporting",
+            "hybrid_backtest_single_job_guard",
+            "memory_safe_historical_odds_collection",
         ],
         "time_utc": datetime.now(timezone.utc).isoformat(),
     }
@@ -742,7 +744,7 @@ async def v33_forward_validation_connectivity():
     """Tiny same-origin proxy probe used by the v3.3.5 mobile frontend."""
     return {
         "status": "ok",
-        "version": "3.6.0",
+        "version": "3.6.1",
         "transport": "network-direct",
         "service_worker_bypass_expected": True,
         "timestamp": datetime.now(timezone.utc).isoformat(),
@@ -755,7 +757,7 @@ async def v33_forward_validation_market_inspector(date: str | None = Query(defau
     """Read-only inspection of the current KXMLBKS slate before filtering."""
     try:
         payload = await inspect_mlb_strikeout_markets(date, force_refresh=True)
-        payload["version"] = "3.6.0"
+        payload["version"] = "3.6.1"
         payload["ledger_write"] = False
         payload["timestamp"] = datetime.now(timezone.utc).isoformat()
         return payload
@@ -769,7 +771,7 @@ async def v33_forward_validation_transport_echo(request: PaperCardRequest, job_i
     """Fast POST/body/proxy diagnostic. Never touches the forward ledger or live data providers."""
     return {
         "status": "ok",
-        "version": "3.6.0",
+        "version": "3.6.1",
         "diagnostic": "transport_echo",
         "method": "POST",
         "job_id": job_id,
@@ -796,7 +798,7 @@ def _v3310_persist_traces() -> None:
     try:
         _V3310_TRACE_FILE.write_text(json.dumps(_V339_TRACE_JOBS, default=str))
     except Exception as exc:
-        print(f"[v3.6.0 trace persist warning] {type(exc).__name__}: {exc}", flush=True)
+        print(f"[v3.6.1 trace persist warning] {type(exc).__name__}: {exc}", flush=True)
 
 
 def _v3310_restore_traces() -> None:
@@ -811,7 +813,7 @@ def _v3310_restore_traces() -> None:
                     item["message"] = "Trace state was recovered after a backend process restart; last recorded substage is preserved below."
             _V339_TRACE_JOBS.update(data)
     except Exception as exc:
-        print(f"[v3.6.0 trace restore warning] {type(exc).__name__}: {exc}", flush=True)
+        print(f"[v3.6.1 trace restore warning] {type(exc).__name__}: {exc}", flush=True)
 
 
 def _v339_trace_now() -> str:
@@ -834,7 +836,7 @@ def _v339_trace_mark(trace: dict, stage: str, status: str, started_perf: float, 
     trace["elapsed_ms"] = elapsed_ms
     # Also emit to Render logs so a worker crash still leaves the last completed stage visible there.
     _v3310_persist_traces()
-    print(f"[v3.6.0 trace {trace.get('trace_id')}] {stage} {status} +{elapsed_ms}ms {detail or ''}", flush=True)
+    print(f"[v3.6.1 trace {trace.get('trace_id')}] {stage} {status} +{elapsed_ms}ms {detail or ''}", flush=True)
 
 
 async def _run_v339_forward_trace(trace_id: str, request: PaperCardRequest, job_id: str | None):
@@ -967,7 +969,7 @@ async def v339_forward_trace_start(request: PaperCardRequest, job_id: str | None
     if running:
         return {
             "status": "already_running",
-            "version": "3.6.0",
+            "version": "3.6.1",
             "trace_id": running.get("trace_id"),
             "ledger_write": False,
             "message": "A diagnostic trace is already running. Use Check Trace Status instead of starting another.",
@@ -975,7 +977,7 @@ async def v339_forward_trace_start(request: PaperCardRequest, job_id: str | None
     trace_id = uuid.uuid4().hex[:12]
     trace = {
         "trace_id": trace_id,
-        "version": "3.6.0",
+        "version": "3.6.1",
         "status": "queued",
         "created_at": _v339_trace_now(),
         "updated_at": _v339_trace_now(),
@@ -990,7 +992,7 @@ async def v339_forward_trace_start(request: PaperCardRequest, job_id: str | None
     _V339_TRACE_TASKS[trace_id] = task
     return {
         "status": "started",
-        "version": "3.6.0",
+        "version": "3.6.1",
         "trace_id": trace_id,
         "ledger_write": False,
         "message": "Background forward pipeline trace started. Poll trace status for stage timing/results.",
@@ -1301,6 +1303,14 @@ async def start_hybrid_historical_backtest_job(request: HybridBacktestRequest):
             raise ValueError("The backtest end date must be before today.")
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+    requested = request.model_dump()
+    active = [job for job in _HYBRID_BACKTEST_JOBS.values() if job.get("status") in {"queued", "running"}]
+    duplicate = next((job for job in active if job.get("request") == requested), None)
+    if duplicate:
+        duplicate["message"] = "An identical historical hybrid backtest is already running; returning the existing job."
+        return duplicate
+    if active:
+        raise HTTPException(status_code=409, detail="Another historical hybrid backtest is already running. Check its progress before starting a new one.")
     job_id = uuid.uuid4().hex[:12]
     job = {
         "job_id": job_id, "status": "queued", "created_at": _job_now(), "updated_at": _job_now(),
@@ -1341,7 +1351,7 @@ async def hybrid_mlb_settle_auto(records: list[dict]):
 @app.get("/hybrid-mlb/schema")
 async def hybrid_mlb_schema():
     return {
-        "version": "3.6.0",
+        "version": "3.6.1",
         "mode": "paper-only",
         "game_pipeline": ["top_down_discovery", "independent_model", "qc", "kalshi_price", "decision", "clv"],
         "strikeout_pipeline": ["bottom_up_projection", "external_validation", "qc", "kalshi_price", "decision", "clv"],
