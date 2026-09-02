@@ -80,7 +80,7 @@ async def _request_json(client: httpx.AsyncClient, url: str, *, params: dict | N
 class HybridBacktestRequest(BaseModel):
     start_date: str
     end_date: str
-    max_days: int = Field(default=31, ge=1, le=62)
+    max_days: int = Field(default=31, ge=1, le=31)
     unit_size: float = Field(default=1.0, gt=0, le=100)
     minimum_edge_points: float = Field(default=5.0, ge=0, le=30)
     minutes_before_first_pitch: int = Field(default=10, ge=5, le=120)
