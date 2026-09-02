@@ -48,7 +48,7 @@ from pipeline_card_builder import build_card_from_pipeline
 from excel_export import build_card_workbook
 from research_pipeline import run_research_pipeline
 from hybrid_mlb import CLVRecord, HybridCandidateRequest, evaluate_candidate, summarize_clv
-from automatic_hybrid_card import build_automatic_game_card
+from automatic_hybrid_card import build_automatic_game_card, settle_automatic_records
 from workload_experiment import run_workload_experiment
 from workload_experiment_models import WorkloadExperimentRequest, WorkloadExperimentResponse
 
@@ -118,6 +118,7 @@ async def health():
             "hybrid_mlb_discovery_qc_clv",
             "automatic_free_source_hybrid_card",
             "timestamped_hybrid_snapshots",
+            "automatic_hybrid_result_settlement",
         ],
         "time_utc": datetime.now(timezone.utc).isoformat(),
     }
@@ -1266,6 +1267,11 @@ async def hybrid_mlb_auto_card(
         return await build_automatic_game_card(date, minimum_edge_points)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@app.post("/hybrid-mlb/settle-auto")
+async def hybrid_mlb_settle_auto(records: list[dict]):
+    return await settle_automatic_records(records)
 
 
 @app.get("/hybrid-mlb/schema")
