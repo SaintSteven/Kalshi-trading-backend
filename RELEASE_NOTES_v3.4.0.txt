@@ -1,0 +1,8 @@
+KALSHI RESEARCH BACKEND v3.4.0
+
+- Adds hybrid MLB candidate evaluation for game and strikeout markets.
+- Discovery grades source independence A/B/C without allowing consensus to bypass QC.
+- Uses market-heavy blending for game bets and model-heavy blending for strikeouts.
+- Returns BUY/WATCH/PASS, required edge, and maximum Kalshi entry price.
+- Adds CLV summaries by discovery grade, market type, and source.
+- Paper/research only; no trades are placed.
