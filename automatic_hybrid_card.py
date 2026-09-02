@@ -64,6 +64,12 @@ def _record_pct(records: list[dict], name: str = "overall") -> float | None:
     return wins / (wins + losses) if wins + losses else None
 
 
+def _record_games(records: list[dict], name: str = "overall") -> int:
+    row = next((r for r in records or [] if str(r.get("name", "")).lower() == name.lower()), None)
+    match = re.match(r"(\d+)-(\d+)", str((row or {}).get("summary", "")))
+    return sum(map(int, match.groups())) if match else 0
+
+
 def _stat(competitor: dict, abbreviation: str) -> float | None:
     row = next((s for s in competitor.get("statistics", []) if s.get("abbreviation") == abbreviation), None)
     try:
@@ -88,8 +94,8 @@ def _independent_team_probability(away: dict, home: dict) -> tuple[float, dict]:
     venue = _log5(away_road, home_home)
     probability = 0.6 * overall + 0.4 * venue
 
-    away_games = sum(map(int, re.match(r"(\d+)-(\d+)", next((r.get("summary", "") for r in away.get("records", []) if r.get("name") == "overall"), "0-0")).groups()))
-    home_games = sum(map(int, re.match(r"(\d+)-(\d+)", next((r.get("summary", "") for r in home.get("records", []) if r.get("name") == "overall"), "0-0")).groups()))
+    away_games = _record_games(away.get("records", []))
+    home_games = _record_games(home.get("records", []))
     away_rpg = (_stat(away, "R") or 0) / away_games if away_games else None
     home_rpg = (_stat(home, "R") or 0) / home_games if home_games else None
     away_era, home_era = _stat(away, "ERA"), _stat(home, "ERA")
@@ -274,7 +280,10 @@ async def build_automatic_game_card(target_date: str | None = None, minimum_edge
             row.update({
                 "ticker": market.get("ticker"), "event_ticker": event_ticker,
                 "matchup": f"{away_name} at {home_name}", "game_start_time": start_text,
-                "team_code": team_code, "probable_pitchers": {"away": probables[0], "home": probables[1]},
+                "team_code": team_code,
+                "away_code": _norm(away.get("team", {}).get("abbreviation")),
+                "home_code": _norm(home.get("team", {}).get("abbreviation")),
+                "probable_pitchers": {"away": probables[0], "home": probables[1]},
                 "model_detail": model_detail, "external_moneyline": current_away if is_away else current_home,
                 "opening_external_probability": open_probability, "market_move_points": round(move, 2),
             })
@@ -294,4 +303,102 @@ async def build_automatic_game_card(target_date: str | None = None, minimum_edge
         "captured_at": captured_at, "requested_date": requested_date, "selected_date": selected_date,
         "markets_reviewed": len(slate_markets), "games_mapped": len(grouped), "source_health": source_health,
         "candidates": candidates[:16], "warnings": warnings,
+    }
+
+
+def _record_game_date(record: dict) -> str | None:
+    value = record.get("game_start_time") or record.get("saved_at")
+    if not value:
+        return None
+    try:
+        parsed = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+        if parsed.tzinfo:
+            parsed = parsed.astimezone(ET)
+        return parsed.strftime("%Y-%m-%d")
+    except (TypeError, ValueError):
+        match = re.match(r"(\d{4}-\d{2}-\d{2})", str(value))
+        return match.group(1) if match else None
+
+
+async def settle_automatic_records(records: list[dict]) -> dict:
+    """Settle timestamped paper candidates from free ESPN final scores.
+
+    Stakes are interpreted as dollars risked buying YES at the captured ask.
+    Records without a completed matching game remain pending and unchanged.
+    """
+    updated = [dict(record) for record in records]
+    dates = sorted({date for record in updated if record.get("automatic") and record.get("profit_loss") is None for date in [_record_game_date(record)] if date})
+    scoreboards: dict[str, dict] = {}
+    warnings: list[str] = []
+    async with httpx.AsyncClient(headers={"User-Agent": "KalshiResearchDashboard/3.5.0"}) as client:
+        for date in dates:
+            try:
+                scoreboards[date] = await _fetch_json(client, ESPN_SCOREBOARD, params={"dates": date.replace("-", ""), "limit": 100})
+            except Exception as exc:
+                warnings.append(f"Could not fetch final scores for {date}: {exc}")
+
+    completed_by_date: dict[str, list[dict]] = {}
+    for date, scoreboard in scoreboards.items():
+        games = []
+        for event in scoreboard.get("events", []):
+            competition = (event.get("competitions") or [{}])[0]
+            if not ((event.get("status") or {}).get("type") or {}).get("completed"):
+                continue
+            competitors = competition.get("competitors", [])
+            codes = {_norm((row.get("team") or {}).get("abbreviation")) for row in competitors}
+            winner = next((_norm((row.get("team") or {}).get("abbreviation")) for row in competitors if row.get("winner") is True), None)
+            games.append({"codes": codes, "winner": winner, "event_id": event.get("id"), "start_time": event.get("date")})
+        completed_by_date[date] = games
+
+    settled_now = 0
+    for record in updated:
+        if not record.get("automatic") or record.get("profit_loss") is not None:
+            continue
+        date = _record_game_date(record)
+        team_code = _norm(record.get("team_code"))
+        expected_codes = {_norm(record.get("away_code")), _norm(record.get("home_code"))} - {""}
+        matches = [game for game in completed_by_date.get(date or "", []) if team_code in game["codes"] and (len(expected_codes) < 2 or game["codes"] == expected_codes)]
+        if len(matches) > 1 and record.get("game_start_time"):
+            matches = [game for game in matches if game.get("start_time") == record.get("game_start_time")]
+        if len(matches) != 1 or not matches[0].get("winner"):
+            continue
+        won = matches[0]["winner"] == team_code
+        try:
+            price = float(record.get("entry_price_cents"))
+            stake = float(record.get("stake") or 1)
+        except (TypeError, ValueError):
+            continue
+        if not 0 < price < 100 or stake <= 0:
+            continue
+        profit = stake * (100 - price) / price if won else -stake
+        record.update({
+            "result": "WIN" if won else "LOSS",
+            "profit_loss": round(profit, 4),
+            "settled_at": datetime.now(timezone.utc).isoformat(),
+            "settlement_source": "ESPN final score",
+            "settlement_event_id": matches[0]["event_id"],
+        })
+        settled_now += 1
+
+    settled = [r for r in updated if r.get("automatic") and r.get("profit_loss") is not None]
+    total_staked = sum(float(r.get("stake") or 0) for r in settled)
+    total_profit = sum(float(r.get("profit_loss") or 0) for r in settled)
+    wins = sum(1 for r in settled if r.get("result") == "WIN")
+    return {
+        "version": "3.5.0",
+        "records": updated,
+        "settled_now": settled_now,
+        "summary": {
+            "tracked": sum(1 for r in updated if r.get("automatic")),
+            "settled": len(settled),
+            "pending": sum(1 for r in updated if r.get("automatic") and r.get("profit_loss") is None),
+            "wins": wins,
+            "losses": len(settled) - wins,
+            "win_rate": round(wins / len(settled), 4) if settled else None,
+            "total_staked": round(total_staked, 2),
+            "profit_loss": round(total_profit, 2),
+            "roi": round(total_profit / total_staked, 4) if total_staked else None,
+        },
+        "warnings": warnings,
+        "methodology_note": "Prospective paper ROI from timestamped entry asks and final outcomes. This is not a reconstructed historical internet-consensus backtest and does not yet include closing-line value.",
     }
