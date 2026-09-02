@@ -5,3 +5,7 @@ KALSHI RESEARCH BACKEND v3.5.0
 - Reports source health and downgrades missing data instead of fabricating consensus.
 - Produces timestamped, backtest-ready paper snapshots.
 - No trades are placed.
+
+- Added automatic final-score settlement for timestamped BUY recommendations.
+- Added prospective paper P/L, win rate, and ROI tracking; WATCH candidates are excluded from performance.
+- Historical internet consensus is not reconstructed; validation is forward-only from captured snapshots.
