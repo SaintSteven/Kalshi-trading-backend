@@ -371,7 +371,7 @@ async def run_hybrid_historical_backtest(request: HybridBacktestRequest, progres
             result = progress_callback({"phase": phase, "percent": percent, "message": message})
             if asyncio.iscoroutine(result):
                 await result
-    headers = {"User-Agent": "KalshiTradingPlatform/3.6.0-hybrid-backtest"}
+    headers = {"User-Agent": "KalshiTradingPlatform/3.6.2-hybrid-backtest"}
     async with httpx.AsyncClient(headers=headers, timeout=60) as client:
         await emit("features", 5, "Rebuilding team information available before each historical game…")
         mlb_task = asyncio.create_task(_collect_mlb_games(client, start, end))
@@ -410,7 +410,7 @@ async def run_hybrid_historical_backtest(request: HybridBacktestRequest, progres
             model = mlb["away_model_probability"] if is_away else round(1 - mlb["away_model_probability"], 4)
             move = (external - opening) * 100 if opening is not None else 0.0
             price = (prices.get(str(market.get("ticker"))) or {}).get("price")
-            if price is None:
+            if price is None or not 1 <= price <= 99:
                 continue
             pair_prices = [(prices.get(str(row.get("ticker"))) or {}).get("price") for row in pair]
             pair_sum = sum(pair_prices) if all(value is not None for value in pair_prices) else 999
@@ -454,7 +454,7 @@ async def run_hybrid_historical_backtest(request: HybridBacktestRequest, progres
     by_price = {label: _summary([row for row in bets if low <= row["entry_price_cents"] <= high], request.unit_size) for label, low, high in buckets}
     await emit("complete", 100, f"Backtest complete: {len(bets)} historical BUY recommendations.")
     return {
-        "version": "3.6.0", "status": "complete", "mode": "historical-proxy-paper-only",
+        "version": "3.6.2", "status": "complete", "mode": "historical-proxy-paper-only",
         "start_date": request.start_date, "end_date": request.end_date,
         "entry_rule": f"Last quoted Kalshi ask at or before {request.minutes_before_first_pitch} minutes before first pitch.",
         "methodology": "DraftKings closing-line proxy plus opening-to-close movement; rolling team features use only games completed earlier. Archived internet handicapper picks are not imputed.",
