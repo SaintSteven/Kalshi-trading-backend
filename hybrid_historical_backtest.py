@@ -167,9 +167,20 @@ async def _collect_mlb_games(client: httpx.AsyncClient, start: date, end: date) 
     season_start = date(start.year, 3, 15)
     payload = await _request_json(client, MLB_SCHEDULE, params={
         "sportId": 1, "startDate": season_start.isoformat(), "endDate": end.isoformat(),
-        "hydrate": "probablePitcher", "gameType": "R",
+        "gameType": "R",
     })
     raw = [game for day in payload.get("dates", []) for game in day.get("games", [])]
+    probable_payload = await _request_json(client, MLB_SCHEDULE, params={
+        "sportId": 1, "startDate": start.isoformat(), "endDate": end.isoformat(),
+        "hydrate": "probablePitcher", "gameType": "R",
+    })
+    probable_by_pk = {
+        game.get("gamePk"): (
+            ((game.get("teams", {}).get("away", {}).get("probablePitcher") or {}).get("fullName")),
+            ((game.get("teams", {}).get("home", {}).get("probablePitcher") or {}).get("fullName")),
+        )
+        for day in probable_payload.get("dates", []) for game in day.get("games", [])
+    }
     raw.sort(key=lambda game: game.get("gameDate") or "")
     states: dict[str, dict] = defaultdict(_blank_team)
     output: dict[tuple[str, frozenset], dict] = {}
@@ -183,11 +194,11 @@ async def _collect_mlb_games(client: httpx.AsyncClient, start: date, end: date) 
             continue
         model, detail = _model_probability(states[away], states[home])
         if start.isoformat() <= game_date <= end.isoformat():
+            away_probable, home_probable = probable_by_pk.get(game.get("gamePk"), (None, None))
             output[(game_date, frozenset({away, home}))] = {
                 "away_code": away, "home_code": home, "away_model_probability": model,
                 "model_detail": detail,
-                "away_probable": (away_row.get("probablePitcher") or {}).get("fullName"),
-                "home_probable": (home_row.get("probablePitcher") or {}).get("fullName"),
+                "away_probable": away_probable, "home_probable": home_probable,
                 "game_pk": game.get("gamePk"), "game_start_time": game.get("gameDate"),
             }
         away_score, home_score = away_row.get("score"), home_row.get("score")
@@ -200,15 +211,10 @@ async def _collect_mlb_games(client: httpx.AsyncClient, start: date, end: date) 
 
 
 async def _collect_espn_games(client: httpx.AsyncClient, start: date, end: date, progress=None) -> dict[tuple[str, frozenset], dict]:
-    events: list[tuple[str, dict]] = []
-    current = start
-    while current <= end:
-        payload = await _request_json(client, ESPN_SCOREBOARD, params={"dates": current.strftime("%Y%m%d"), "limit": 100})
-        events.extend((current.isoformat(), event) for event in payload.get("events", []))
-        current += timedelta(days=1)
-    semaphore = asyncio.Semaphore(8)
-    async def fetch(item):
-        day, event = item
+    output = {}
+    semaphore = asyncio.Semaphore(4)
+
+    async def fetch(day: str, event: dict):
         async with semaphore:
             try:
                 summary = await _request_json(client, ESPN_SUMMARY, params={"event": event.get("id")})
@@ -218,28 +224,30 @@ async def _collect_espn_games(client: httpx.AsyncClient, start: date, end: date,
             current_probs = _novig((pick.get("awayTeamOdds") or {}).get("moneyLine"), (pick.get("homeTeamOdds") or {}).get("moneyLine"))
             moneyline = pick.get("moneyline") or {}
             open_probs = _novig(((moneyline.get("away") or {}).get("open") or {}).get("odds"), ((moneyline.get("home") or {}).get("open") or {}).get("odds"))
-            # Return only the fields the backtest needs. Full ESPN summaries are
-            # large, and retaining hundreds until gather completes can exhaust a
-            # small Render worker.
             return day, event, current_probs, open_probs
-    rows = await asyncio.gather(*(fetch(item) for item in events))
-    output = {}
-    for day, event, current_probs, open_probs in rows:
-        competition = (event.get("competitions") or [{}])[0]
-        competitors = competition.get("competitors", [])
-        away = next((row for row in competitors if row.get("homeAway") == "away"), None)
-        home = next((row for row in competitors if row.get("homeAway") == "home"), None)
-        if not away or not home:
-            continue
-        away_code = _norm(away.get("team", {}).get("abbreviation"))
-        home_code = _norm(home.get("team", {}).get("abbreviation"))
-        winner = away_code if away.get("winner") is True else home_code if home.get("winner") is True else None
-        output[(day, frozenset({away_code, home_code}))] = {
-            "event_id": event.get("id"), "away_code": away_code, "home_code": home_code,
-            "away_name": away.get("team", {}).get("displayName"), "home_name": home.get("team", {}).get("displayName"),
-            "game_start_time": event.get("date"), "winner": winner,
-            "current_probs": current_probs, "open_probs": open_probs,
-        }
+
+    current = start
+    while current <= end:
+        payload = await _request_json(client, ESPN_SCOREBOARD, params={"dates": current.strftime("%Y%m%d"), "limit": 100})
+        day = current.isoformat()
+        rows = await asyncio.gather(*(fetch(day, event) for event in payload.get("events", [])))
+        for row_day, event, current_probs, open_probs in rows:
+            competition = (event.get("competitions") or [{}])[0]
+            competitors = competition.get("competitors", [])
+            away = next((row for row in competitors if row.get("homeAway") == "away"), None)
+            home = next((row for row in competitors if row.get("homeAway") == "home"), None)
+            if not away or not home:
+                continue
+            away_code = _norm(away.get("team", {}).get("abbreviation"))
+            home_code = _norm(home.get("team", {}).get("abbreviation"))
+            winner = away_code if away.get("winner") is True else home_code if home.get("winner") is True else None
+            output[(row_day, frozenset({away_code, home_code}))] = {
+                "event_id": event.get("id"), "away_code": away_code, "home_code": home_code,
+                "away_name": away.get("team", {}).get("displayName"), "home_name": home.get("team", {}).get("displayName"),
+                "game_start_time": event.get("date"), "winner": winner,
+                "current_probs": current_probs, "open_probs": open_probs,
+            }
+        current += timedelta(days=1)
     return output
 
 
@@ -371,7 +379,7 @@ async def run_hybrid_historical_backtest(request: HybridBacktestRequest, progres
             result = progress_callback({"phase": phase, "percent": percent, "message": message})
             if asyncio.iscoroutine(result):
                 await result
-    headers = {"User-Agent": "KalshiTradingPlatform/3.6.2-hybrid-backtest"}
+    headers = {"User-Agent": "KalshiTradingPlatform/3.6.3-hybrid-backtest"}
     async with httpx.AsyncClient(headers=headers, timeout=60) as client:
         await emit("features", 5, "Rebuilding team information available before each historical game…")
         mlb_task = asyncio.create_task(_collect_mlb_games(client, start, end))
@@ -454,7 +462,7 @@ async def run_hybrid_historical_backtest(request: HybridBacktestRequest, progres
     by_price = {label: _summary([row for row in bets if low <= row["entry_price_cents"] <= high], request.unit_size) for label, low, high in buckets}
     await emit("complete", 100, f"Backtest complete: {len(bets)} historical BUY recommendations.")
     return {
-        "version": "3.6.2", "status": "complete", "mode": "historical-proxy-paper-only",
+        "version": "3.6.3", "status": "complete", "mode": "historical-proxy-paper-only",
         "start_date": request.start_date, "end_date": request.end_date,
         "entry_rule": f"Last quoted Kalshi ask at or before {request.minutes_before_first_pitch} minutes before first pitch.",
         "methodology": "DraftKings closing-line proxy plus opening-to-close movement; rolling team features use only games completed earlier. Archived internet handicapper picks are not imputed.",
