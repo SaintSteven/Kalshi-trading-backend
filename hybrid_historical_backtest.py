@@ -290,8 +290,11 @@ async def _candles_for_markets(client: httpx.AsyncClient, tagged: list[tuple[dic
                 if start:
                     target = start - timedelta(minutes=minutes_before)
                     specs.append((market, int((target - timedelta(hours=3)).astimezone(UTC).timestamp()), int(target.astimezone(UTC).timestamp())))
-            for chunk_start in range(0, len(specs), 100):
-                chunk = specs[chunk_start:chunk_start + 100]
+            # The batch endpoint also caps total returned candles at 10,000.
+            # Ten contracts keeps even a spread-out MLB slate below that cap.
+            specs.sort(key=lambda item: item[2])
+            for chunk_start in range(0, len(specs), 10):
+                chunk = specs[chunk_start:chunk_start + 10]
                 if not chunk:
                     continue
                 try:
