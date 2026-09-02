@@ -1,0 +1,7 @@
+KALSHI RESEARCH BACKEND v3.5.0
+
+- Adds one-button automatic MLB game discovery using free sources.
+- Pulls executable KXMLBGAME prices, ESPN/DraftKings no-vig odds and movement, an odds-blind record/venue/ERA model, and MLB probable pitchers.
+- Reports source health and downgrades missing data instead of fabricating consensus.
+- Produces timestamped, backtest-ready paper snapshots.
+- No trades are placed.
