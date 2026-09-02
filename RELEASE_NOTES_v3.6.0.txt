@@ -1,0 +1,10 @@
+KALSHI RESEARCH BACKEND v3.6.0
+
+- Adds a historical proxy backtest for automated MLB game BUY decisions.
+- Rebuilds rolling records, home/road splits, scoring, and run prevention using only earlier completed games.
+- Reconstructs executable pregame Kalshi YES asks from timestamped candlesticks.
+- Uses archived DraftKings opening/closing moneylines and reports their timing limitation explicitly.
+- Reports $1-unit P/L, ROI, maximum drawdown, average edge, discovery-grade and price-range breakdowns.
+- Preserves the final 30% of dates as a chronological holdout.
+- Runs as a background backend job so the phone page does not need to remain open.
+- Paper/research only; no trades are placed.
