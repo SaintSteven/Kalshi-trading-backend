@@ -16,6 +16,7 @@ from pydantic import BaseModel, Field
 MarketType = Literal["GAME", "STRIKEOUT"]
 SignalKind = Literal["MODEL", "HANDICAPPER", "SHARP_MARKET", "PROJECTION"]
 QCStatus = Literal["PASS", "WARN", "FAIL", "PENDING"]
+PricingPolicy = Literal["LEGACY_V36", "MARKET_FIRST_V37"]
 
 
 class DiscoverySignal(BaseModel):
@@ -44,6 +45,8 @@ class HybridCandidateRequest(BaseModel):
     qc_checks: list[QCCheck] = []
     minimum_edge_points: float = Field(default=5.0, ge=0, le=30)
     market_move_points: float = Field(default=0.0, ge=-30, le=30)
+    pricing_policy: PricingPolicy = "LEGACY_V36"
+    estimated_cost_cents: float = Field(default=0.0, ge=0, le=10)
     notes: str | None = None
 
 
@@ -60,10 +63,17 @@ class HybridCandidateResult(BaseModel):
     model_fair_probability: float
     external_market_probability: float | None
     blended_fair_probability: float
+    decision_fair_probability: float
+    fair_value_method: str
     kalshi_price_cents: int
     raw_edge_points: float
+    gross_edge_points: float
+    net_edge_points: float
+    estimated_cost_cents: float
     required_edge_points: float
     maximum_entry_cents: int
+    pricing_policy: PricingPolicy
+    model_veto_applied: bool
     qc_status: Literal["CLEAN", "WARN", "FAIL", "INCOMPLETE"]
     decision: Literal["BUY", "WATCH", "PASS"]
     reasons: list[str]
@@ -117,23 +127,35 @@ def evaluate_candidate(request: HybridCandidateRequest) -> HybridCandidateResult
     qc_status = _qc_status(request.qc_checks)
 
     external = request.external_market_probability
-    if external is None:
+    market_first = request.market_type == "GAME" and request.pricing_policy == "MARKET_FIRST_V37"
+    model_veto = market_first and request.model_fair_probability < 0.50
+    if market_first and external is not None:
+        blended = external
+        fair_value_method = "Sportsbook no-vig baseline; independent model used only as a veto."
+    elif external is None:
         blended = request.model_fair_probability
+        fair_value_method = "Independent model only; external market unavailable."
     elif request.market_type == "GAME":
         blended = 0.45 * request.model_fair_probability + 0.55 * external
+        fair_value_method = "Frozen v3.6 45/55 model-market blend."
     else:
         blended = 0.65 * request.model_fair_probability + 0.35 * external
+        fair_value_method = "Strikeout 65/35 model-market blend."
 
     blended = round(min(0.99, max(0.01, blended)), 4)
-    raw_edge = round(blended * 100 - request.kalshi_price_cents, 2)
+    gross_edge = round(blended * 100 - request.kalshi_price_cents, 2)
+    costs = request.estimated_cost_cents if market_first else 0.0
+    net_edge = round(gross_edge - costs, 2)
+    # Retain raw_edge_points for compatibility with the existing mobile UI.
+    raw_edge = net_edge if market_first else gross_edge
     grade_penalty = {"A": 0.0, "B": 0.0, "C": 2.0}[grade]
     qc_penalty = 1.0 if qc_status == "WARN" else 0.0
     required_edge = round(request.minimum_edge_points + grade_penalty + qc_penalty, 2)
-    maximum_entry = max(1, min(99, floor(blended * 100 - required_edge)))
+    maximum_entry = max(1, min(99, floor(blended * 100 - required_edge - costs)))
 
     reasons = [
         f"Discovery {grade}: {independent} independent supporting source(s) across {len(kinds)} signal type(s).",
-        f"Blended fair value {blended * 100:.1f}% versus Kalshi {request.kalshi_price_cents} cents.",
+        f"Decision fair value {blended * 100:.1f}% versus Kalshi {request.kalshi_price_cents} cents.",
         f"Minimum required edge {required_edge:.1f} points; maximum entry {maximum_entry} cents.",
     ]
     warnings: list[str] = []
@@ -144,6 +166,15 @@ def evaluate_candidate(request: HybridCandidateRequest) -> HybridCandidateResult
     elif qc_status == "INCOMPLETE":
         decision = "WATCH"
         warnings.append("QC is incomplete; candidate cannot be promoted to BUY.")
+    elif market_first and external is None:
+        decision = "WATCH"
+        warnings.append("Market-first game pricing requires an external no-vig probability.")
+    elif market_first and grade == "C":
+        decision = "WATCH"
+        warnings.append("Grade C is watch-only under the v3.7 game policy.")
+    elif model_veto:
+        decision = "WATCH"
+        warnings.append("The independent model disagrees with the market selection and vetoed BUY.")
     elif raw_edge >= required_edge:
         decision = "BUY"
     elif raw_edge >= required_edge - 2.0:
@@ -156,6 +187,8 @@ def evaluate_candidate(request: HybridCandidateRequest) -> HybridCandidateResult
     disagreeing = [s.source for s in request.signals if not s.supports_candidate]
     if disagreeing:
         warnings.append("Disagreeing signal(s): " + ", ".join(sorted(set(disagreeing))))
+    if market_first and costs:
+        warnings.append(f"Net edge includes {costs:.1f} cents of estimated fees and slippage.")
     failed = [c.label for c in request.qc_checks if c.status == "FAIL"]
     pending = [c.label for c in request.qc_checks if c.status == "PENDING"]
     if failed:
@@ -177,7 +210,12 @@ def evaluate_candidate(request: HybridCandidateRequest) -> HybridCandidateResult
         "our_fair_probability": request.model_fair_probability,
         "market_fair_probability": external,
         "blended_fair_probability": blended,
+        "decision_fair_probability": blended,
+        "fair_value_method": fair_value_method,
         "kalshi_entry_price": request.kalshi_price_cents,
+        "estimated_cost_cents": costs,
+        "gross_edge_points": gross_edge,
+        "net_edge_points": net_edge,
         "kalshi_close_price": None,
         "clv_cents": None,
         "result": None,
@@ -198,10 +236,17 @@ def evaluate_candidate(request: HybridCandidateRequest) -> HybridCandidateResult
         model_fair_probability=request.model_fair_probability,
         external_market_probability=external,
         blended_fair_probability=blended,
+        decision_fair_probability=blended,
+        fair_value_method=fair_value_method,
         kalshi_price_cents=request.kalshi_price_cents,
         raw_edge_points=raw_edge,
+        gross_edge_points=gross_edge,
+        net_edge_points=net_edge,
+        estimated_cost_cents=costs,
         required_edge_points=required_edge,
         maximum_entry_cents=maximum_entry,
+        pricing_policy=request.pricing_policy,
+        model_veto_applied=model_veto,
         qc_status=qc_status,
         decision=decision,
         reasons=reasons,

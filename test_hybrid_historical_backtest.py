@@ -1,4 +1,14 @@
-from hybrid_historical_backtest import _blank_team, _event_date, _model_probability, _summary, _update_team
+from datetime import date
+
+from hybrid_historical_backtest import (
+    _blank_team,
+    _event_date,
+    _model_probability,
+    _probability_diagnostics,
+    _strategy_report,
+    _summary,
+    _update_team,
+)
 
 
 def test_event_date_parses_game_ticker():
@@ -29,3 +39,21 @@ def test_summary_uses_dollars_risked_and_tracks_drawdown():
     assert result["risked"] == 3
     assert result["profit_loss"] == -1
     assert result["maximum_drawdown"] == 2
+
+
+def test_strategy_report_preserves_chronological_holdout():
+    rows = [
+        {"date": "2026-08-01", "game_start_time": "1", "ticker": "A", "profit_loss": 1.0, "won": True, "edge_points": 5, "entry_price_cents": 50, "discovery_grade": "B"},
+        {"date": "2026-08-25", "game_start_time": "1", "ticker": "B", "profit_loss": -1.0, "won": False, "edge_points": 5, "entry_price_cents": 50, "discovery_grade": "B"},
+    ]
+    report = _strategy_report(rows, 1, date(2026, 8, 22))
+    assert report["training"]["bets"] == 1
+    assert report["holdout"]["bets"] == 1
+
+
+def test_probability_diagnostics_rewards_better_forecast():
+    result = _probability_diagnostics([
+        {"won": True, "kalshi_probability": 0.50, "external_probability": 0.70, "model_probability": 0.30, "legacy_probability": 0.50},
+        {"won": False, "kalshi_probability": 0.50, "external_probability": 0.30, "model_probability": 0.70, "legacy_probability": 0.50},
+    ])
+    assert result["sportsbook_no_vig"]["brier_score"] < result["independent_model"]["brier_score"]

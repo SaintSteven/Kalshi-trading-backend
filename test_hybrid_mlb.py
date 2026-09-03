@@ -55,6 +55,34 @@ def test_single_source_requires_extra_edge_and_pending_qc_cannot_buy():
     assert result.decision == "WATCH"
 
 
+def test_market_first_game_uses_external_probability_and_costs():
+    request = strong_game_candidate(price=49)
+    request.pricing_policy = "MARKET_FIRST_V37"
+    request.estimated_cost_cents = 2
+    result = evaluate_candidate(request)
+    assert result.decision_fair_probability == 0.56
+    assert result.gross_edge_points == 7
+    assert result.net_edge_points == 5
+    assert result.maximum_entry_cents == 49
+    assert result.decision == "BUY"
+
+
+def test_market_first_game_makes_grade_c_watch_only():
+    result = evaluate_candidate(HybridCandidateRequest(
+        market_type="GAME",
+        selection="Undiversified game idea",
+        kalshi_price_cents=40,
+        model_fair_probability=0.70,
+        external_market_probability=0.55,
+        signals=[DiscoverySignal(source="One model", kind="MODEL")],
+        qc_checks=[QCCheck(label="pregame", status="PASS")],
+        pricing_policy="MARKET_FIRST_V37",
+        estimated_cost_cents=2,
+    ))
+    assert result.discovery_grade == "C"
+    assert result.decision == "WATCH"
+
+
 def test_clv_summary_groups_sources():
     result = summarize_clv([
         CLVRecord(candidate_id="a", market_type="GAME", discovery_grade="A", source_names=["X"], entry_price_cents=51, close_price_cents=55, stake=1, profit_loss=0.8),

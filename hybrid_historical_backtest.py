@@ -85,6 +85,7 @@ class HybridBacktestRequest(BaseModel):
     minimum_edge_points: float = Field(default=5.0, ge=0, le=30)
     minutes_before_first_pitch: int = Field(default=10, ge=5, le=120)
     holdout_fraction: float = Field(default=0.30, ge=0.20, le=0.50)
+    estimated_cost_cents: float = Field(default=2.0, ge=0, le=10)
 
 
 def _date_token(value: str) -> str:
@@ -363,6 +364,46 @@ def _summary(rows: list[dict], unit_size: float) -> dict:
     }
 
 
+def _strategy_report(rows: list[dict], unit_size: float, split_date: date) -> dict:
+    rows.sort(key=lambda row: (row["date"], row["game_start_time"], row["ticker"]))
+    training = [row for row in rows if datetime.strptime(row["date"], "%Y-%m-%d").date() < split_date]
+    holdout = [row for row in rows if datetime.strptime(row["date"], "%Y-%m-%d").date() >= split_date]
+    grades = sorted({row["discovery_grade"] for row in rows})
+    buckets = [("2-39¢", 2, 39), ("40-59¢", 40, 59), ("60-79¢", 60, 79), ("80-98¢", 80, 98)]
+    return {
+        "overall": _summary(rows, unit_size),
+        "training": _summary(training, unit_size),
+        "holdout": _summary(holdout, unit_size),
+        "by_discovery_grade": {grade: _summary([row for row in rows if row["discovery_grade"] == grade], unit_size) for grade in grades},
+        "by_price_range": {label: _summary([row for row in rows if low <= row["entry_price_cents"] <= high], unit_size) for label, low, high in buckets},
+        "bets": rows,
+    }
+
+
+def _probability_diagnostics(rows: list[dict]) -> dict:
+    if not rows:
+        return {}
+
+    def score(key: str) -> dict:
+        probabilities = [float(row[key]) for row in rows]
+        outcomes = [1.0 if row["won"] else 0.0 for row in rows]
+        brier = sum((probability - outcome) ** 2 for probability, outcome in zip(probabilities, outcomes)) / len(rows)
+        return {
+            "brier_score": round(brier, 4),
+            "average_probability": round(sum(probabilities) / len(probabilities), 4),
+            "actual_win_rate": round(sum(outcomes) / len(outcomes), 4),
+        }
+
+    return {
+        "markets_scored": len(rows),
+        "lower_brier_is_better": True,
+        "kalshi_entry": score("kalshi_probability"),
+        "sportsbook_no_vig": score("external_probability"),
+        "independent_model": score("model_probability"),
+        "legacy_v36_blend": score("legacy_probability"),
+    }
+
+
 async def run_hybrid_historical_backtest(request: HybridBacktestRequest, progress_callback=None) -> dict:
     start = datetime.strptime(request.start_date, "%Y-%m-%d").date()
     end = datetime.strptime(request.end_date, "%Y-%m-%d").date()
@@ -379,7 +420,7 @@ async def run_hybrid_historical_backtest(request: HybridBacktestRequest, progres
             result = progress_callback({"phase": phase, "percent": percent, "message": message})
             if asyncio.iscoroutine(result):
                 await result
-    headers = {"User-Agent": "KalshiTradingPlatform/3.6.3-hybrid-backtest"}
+    headers = {"User-Agent": "KalshiTradingPlatform/3.7.0-hybrid-backtest"}
     async with httpx.AsyncClient(headers=headers, timeout=60) as client:
         await emit("features", 5, "Rebuilding team information available before each historical game…")
         mlb_task = asyncio.create_task(_collect_mlb_games(client, start, end))
@@ -391,7 +432,9 @@ async def run_hybrid_historical_backtest(request: HybridBacktestRequest, progres
     grouped: dict[str, list[dict]] = defaultdict(list)
     for market, _ in tagged:
         grouped[str(market.get("event_ticker"))].append(market)
-    bets = []
+    benchmark_bets: list[dict] = []
+    challenger_bets: list[dict] = []
+    probability_rows: list[dict] = []
     games_evaluated = 0
     coverage = {"market_events": len(grouped), "espn_games": len(espn_games), "mlb_games": len(mlb_games), "quoted_contracts": sum(1 for row in prices.values() if row.get("price") is not None), "odds_games": 0}
     for event_ticker, pair in grouped.items():
@@ -423,7 +466,7 @@ async def run_hybrid_historical_backtest(request: HybridBacktestRequest, progres
             pair_prices = [(prices.get(str(row.get("ticker"))) or {}).get("price") for row in pair]
             pair_sum = sum(pair_prices) if all(value is not None for value in pair_prices) else 999
             probables = (mlb.get("away_probable"), mlb.get("home_probable"))
-            result = evaluate_candidate(HybridCandidateRequest(
+            candidate_kwargs = dict(
                 candidate_id=str(market.get("ticker")), market_type="GAME",
                 selection=str(market.get("title") or f"{team} wins"), contract_side="YES",
                 kalshi_price_cents=int(price), model_fair_probability=model,
@@ -440,40 +483,72 @@ async def run_hybrid_historical_backtest(request: HybridBacktestRequest, progres
                     QCCheck(label="Completed game outcome", status="PASS" if espn.get("winner") else "FAIL"),
                     QCCheck(label="Archived probable pitchers", status="PASS" if all(probables) else "PENDING"),
                 ],
+            )
+            benchmark = evaluate_candidate(HybridCandidateRequest(
+                **candidate_kwargs, pricing_policy="LEGACY_V36",
             ))
-            if result.decision != "BUY":
-                continue
+            challenger = evaluate_candidate(HybridCandidateRequest(
+                **candidate_kwargs, pricing_policy="MARKET_FIRST_V37",
+                estimated_cost_cents=request.estimated_cost_cents,
+            ))
             won = espn.get("winner") == team
-            profit = request.unit_size * (100 - price) / price if won else -request.unit_size
-            bets.append({
-                "date": day_value.isoformat(), "ticker": market.get("ticker"), "selection": result.selection,
-                "matchup": f"{espn['away_name']} at {espn['home_name']}", "game_start_time": espn["game_start_time"],
-                "team_code": team, "entry_price_cents": int(price), "model_probability": model,
-                "external_probability": external, "blended_probability": result.blended_fair_probability,
-                "edge_points": result.raw_edge_points, "discovery_grade": result.discovery_grade,
-                "won": won, "profit_loss": round(profit, 4), "move_points": round(move, 2),
+            probability_rows.append({
+                "won": won, "kalshi_probability": price / 100,
+                "external_probability": external, "model_probability": model,
+                "legacy_probability": benchmark.decision_fair_probability,
             })
-    bets.sort(key=lambda row: (row["date"], row["game_start_time"], row["ticker"]))
+
+            for strategy, result, cost_cents, destination in (
+                ("LEGACY_V36", benchmark, 0.0, benchmark_bets),
+                ("MARKET_FIRST_V37", challenger, request.estimated_cost_cents, challenger_bets),
+            ):
+                if result.decision != "BUY":
+                    continue
+                effective_price = min(99.0, float(price) + cost_cents)
+                profit = request.unit_size * (100 - effective_price) / effective_price if won else -request.unit_size
+                destination.append({
+                    "date": day_value.isoformat(), "ticker": market.get("ticker"), "selection": result.selection,
+                    "matchup": f"{espn['away_name']} at {espn['home_name']}", "game_start_time": espn["game_start_time"],
+                    "team_code": team, "entry_price_cents": int(price),
+                    "effective_entry_price_cents": round(effective_price, 2),
+                    "estimated_cost_cents": cost_cents, "model_probability": model,
+                    "external_probability": external, "blended_probability": result.blended_fair_probability,
+                    "decision_probability": result.decision_fair_probability,
+                    "edge_points": result.net_edge_points, "gross_edge_points": result.gross_edge_points,
+                    "discovery_grade": result.discovery_grade, "strategy": strategy,
+                    "won": won, "profit_loss": round(profit, 4), "move_points": round(move, 2),
+                })
+
     split_date = start + timedelta(days=max(1, math.floor(days * (1 - request.holdout_fraction))))
-    training = [row for row in bets if datetime.strptime(row["date"], "%Y-%m-%d").date() < split_date]
-    holdout = [row for row in bets if datetime.strptime(row["date"], "%Y-%m-%d").date() >= split_date]
-    by_grade = {grade: _summary([row for row in bets if row["discovery_grade"] == grade], request.unit_size) for grade in sorted({row["discovery_grade"] for row in bets})}
-    buckets = [("2-39¢", 2, 39), ("40-59¢", 40, 59), ("60-79¢", 60, 79), ("80-98¢", 80, 98)]
-    by_price = {label: _summary([row for row in bets if low <= row["entry_price_cents"] <= high], request.unit_size) for label, low, high in buckets}
-    await emit("complete", 100, f"Backtest complete: {len(bets)} historical BUY recommendations.")
+    benchmark_report = _strategy_report(benchmark_bets, request.unit_size, split_date)
+    challenger_report = _strategy_report(challenger_bets, request.unit_size, split_date)
+    benchmark_pnl = benchmark_report["overall"]["profit_loss"]
+    challenger_pnl = challenger_report["overall"]["profit_loss"]
+    await emit("complete", 100, f"Backtest complete: {len(challenger_bets)} v3.7 BUY recommendations versus {len(benchmark_bets)} v3.6 benchmark recommendations.")
     return {
-        "version": "3.6.3", "status": "complete", "mode": "historical-proxy-paper-only",
+        "version": "3.7.0", "status": "complete", "mode": "historical-proxy-paper-only",
+        "strategy": "MARKET_FIRST_V37", "benchmark_strategy": "LEGACY_V36",
         "start_date": request.start_date, "end_date": request.end_date,
         "entry_rule": f"Last quoted Kalshi ask at or before {request.minutes_before_first_pitch} minutes before first pitch.",
-        "methodology": "DraftKings closing-line proxy plus opening-to-close movement; rolling team features use only games completed earlier. Archived internet handicapper picks are not imputed.",
+        "methodology": "v3.7 prices game sides from the DraftKings no-vig probability, uses the independent model as a veto, keeps Grade C watch-only, and subtracts estimated costs. v3.6 remains frozen as the comparison benchmark.",
         "limitations": [
             "The free ESPN archive exposes opening and closing odds, not the exact intraday line seen by the live morning card.",
             "Historical team run prevention uses rolling runs allowed per game as the reproducible proxy for the live team-ERA component.",
+            "Estimated costs are modeled as an increase to effective entry price; actual Kalshi fees and fills vary.",
             "Backtest performance estimates uncertainty; it cannot guarantee future profit.",
         ],
-        "coverage": {**coverage, "games_evaluated": games_evaluated, "buy_recommendations": len(bets)},
-        "split_date": split_date.isoformat(), "overall": _summary(bets, request.unit_size),
-        "training": _summary(training, request.unit_size), "holdout": _summary(holdout, request.unit_size),
-        "by_discovery_grade": by_grade, "by_price_range": by_price,
-        "bets": bets, "warnings": warnings[:50],
+        "coverage": {**coverage, "games_evaluated": games_evaluated,
+                     "buy_recommendations": len(challenger_bets),
+                     "benchmark_buy_recommendations": len(benchmark_bets)},
+        "split_date": split_date.isoformat(),
+        **challenger_report,
+        "benchmark_v36": benchmark_report,
+        "comparison": {
+            "challenger": challenger_report["overall"],
+            "benchmark": benchmark_report["overall"],
+            "profit_loss_improvement": round(challenger_pnl - benchmark_pnl, 2),
+            "estimated_cost_cents": request.estimated_cost_cents,
+            "probability_diagnostics": _probability_diagnostics(probability_rows),
+        },
+        "warnings": warnings[:50],
     }

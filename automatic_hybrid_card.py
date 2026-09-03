@@ -134,7 +134,11 @@ async def _fetch_json(client: httpx.AsyncClient, url: str, **kwargs) -> dict:
     return response.json()
 
 
-async def build_automatic_game_card(target_date: str | None = None, minimum_edge_points: float = 5.0) -> dict:
+async def build_automatic_game_card(
+    target_date: str | None = None,
+    minimum_edge_points: float = 5.0,
+    estimated_cost_cents: float = 2.0,
+) -> dict:
     captured_at = datetime.now(timezone.utc).isoformat()
     today = datetime.now(ET).strftime("%Y-%m-%d")
     requested_date = target_date or today
@@ -147,7 +151,7 @@ async def build_automatic_game_card(target_date: str | None = None, minimum_edge
         "record_era_model": {"status": "pending", "records": 0},
     }
 
-    async with httpx.AsyncClient(headers={"User-Agent": "KalshiResearchDashboard/3.5.0"}) as client:
+    async with httpx.AsyncClient(headers={"User-Agent": "KalshiResearchDashboard/3.7.0"}) as client:
         try:
             kalshi_payload = await _fetch_json(client, f"{KALSHI_BASE_URL}/markets", params={"series_ticker": GAME_SERIES, "status": "open", "limit": 1000, "mve_filter": "exclude"})
             markets = kalshi_payload.get("markets", [])
@@ -275,6 +279,8 @@ async def build_automatic_game_card(target_date: str | None = None, minimum_edge
                 external_market_probability=external,
                 signals=signals, qc_checks=qc, minimum_edge_points=minimum_edge_points,
                 market_move_points=round(move, 2),
+                pricing_policy="MARKET_FIRST_V37",
+                estimated_cost_cents=estimated_cost_cents,
             ))
             row = result.model_dump()
             row.update({
@@ -286,6 +292,7 @@ async def build_automatic_game_card(target_date: str | None = None, minimum_edge
                 "probable_pitchers": {"away": probables[0], "home": probables[1]},
                 "model_detail": model_detail, "external_moneyline": current_away if is_away else current_home,
                 "opening_external_probability": open_probability, "market_move_points": round(move, 2),
+                "effective_entry_price_cents": min(99.0, round(price + estimated_cost_cents, 2)),
             })
             if row["decision"] != "PASS" or row["raw_edge_points"] >= 0:
                 candidates.append(row)
@@ -299,7 +306,8 @@ async def build_automatic_game_card(target_date: str | None = None, minimum_edge
         warnings.append("One or more free sources were unavailable; affected candidates were downgraded rather than promoted.")
 
     return {
-        "version": "3.5.0", "mode": "paper-only", "snapshot_id": f"auto-{selected_date}-{int(datetime.now(timezone.utc).timestamp())}",
+        "version": "3.7.0", "mode": "paper-only", "snapshot_id": f"auto-{selected_date}-{int(datetime.now(timezone.utc).timestamp())}",
+        "strategy": "MARKET_FIRST_V37", "estimated_cost_cents": estimated_cost_cents,
         "captured_at": captured_at, "requested_date": requested_date, "selected_date": selected_date,
         "markets_reviewed": len(slate_markets), "games_mapped": len(grouped), "source_health": source_health,
         "candidates": candidates[:16], "warnings": warnings,
@@ -330,7 +338,7 @@ async def settle_automatic_records(records: list[dict]) -> dict:
     dates = sorted({date for record in updated if record.get("automatic") and record.get("profit_loss") is None for date in [_record_game_date(record)] if date})
     scoreboards: dict[str, dict] = {}
     warnings: list[str] = []
-    async with httpx.AsyncClient(headers={"User-Agent": "KalshiResearchDashboard/3.5.0"}) as client:
+    async with httpx.AsyncClient(headers={"User-Agent": "KalshiResearchDashboard/3.7.0"}) as client:
         for date in dates:
             try:
                 scoreboards[date] = await _fetch_json(client, ESPN_SCOREBOARD, params={"dates": date.replace("-", ""), "limit": 100})
@@ -364,7 +372,7 @@ async def settle_automatic_records(records: list[dict]) -> dict:
             continue
         won = matches[0]["winner"] == team_code
         try:
-            price = float(record.get("entry_price_cents"))
+            price = float(record.get("effective_entry_price_cents") or record.get("entry_price_cents"))
             stake = float(record.get("stake") or 1)
         except (TypeError, ValueError):
             continue
@@ -385,7 +393,7 @@ async def settle_automatic_records(records: list[dict]) -> dict:
     total_profit = sum(float(r.get("profit_loss") or 0) for r in settled)
     wins = sum(1 for r in settled if r.get("result") == "WIN")
     return {
-        "version": "3.5.0",
+        "version": "3.7.0",
         "records": updated,
         "settled_now": settled_now,
         "summary": {
@@ -400,5 +408,5 @@ async def settle_automatic_records(records: list[dict]) -> dict:
             "roi": round(total_profit / total_staked, 4) if total_staked else None,
         },
         "warnings": warnings,
-        "methodology_note": "Prospective paper ROI from timestamped entry asks and final outcomes. This is not a reconstructed historical internet-consensus backtest and does not yet include closing-line value.",
+        "methodology_note": "Prospective paper ROI from timestamped entry asks and final outcomes. v3.7 records can use an effective entry price that includes estimated fees and slippage. This is not a reconstructed historical internet-consensus backtest and does not yet include closing-line value.",
     }
