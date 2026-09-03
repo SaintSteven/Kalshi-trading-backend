@@ -53,11 +53,12 @@ from hybrid_historical_backtest import HybridBacktestRequest, run_hybrid_histori
 from workload_experiment import run_workload_experiment
 from workload_experiment_models import WorkloadExperimentRequest, WorkloadExperimentResponse
 from v38_research_lab import V38LineMovementRequest, run_v38_line_movement_backtest
+from v4_strikeout_lab import V4StrikeoutRequest, run_v4_strikeout_backtest
 
 
 app = FastAPI(
     title="Kalshi Trading Engine",
-    version="3.8.0",
+    version="4.0.0",
     description=(
         "Paper-only MLB research engine with leakage-safe "
         "historical backtesting and model experimentation."
@@ -77,7 +78,7 @@ app.add_middleware(
 async def root():
     return {
         "service": "Kalshi Trading Engine",
-        "version": "3.8.0",
+        "version": "4.0.0",
         "mode": "paper-only",
         "docs": "/docs",
     }
@@ -128,6 +129,12 @@ async def health():
             "v38_line_movement_research_lab",
             "three_timestamp_executable_quote_sampling",
             "exact_contract_fee_backtesting",
+            "v4_full_ladder_strikeout_challenger",
+            "negative_binomial_distribution",
+            "both_executable_yes_and_no_asks",
+            "one_trade_per_pitcher_game",
+            "market_anchored_residual_weight",
+            "cluster_bootstrap_promotion_gate",
         ],
         "time_utc": datetime.now(timezone.utc).isoformat(),
     }
@@ -1271,6 +1278,40 @@ _HYBRID_BACKTEST_JOBS: dict[str, dict] = {}
 _HYBRID_BACKTEST_TASKS: dict[str, asyncio.Task] = {}
 _V38_BACKTEST_JOBS: dict[str, dict] = {}
 _V38_BACKTEST_TASKS: dict[str, asyncio.Task] = {}
+_V4_STRIKEOUT_JOBS: dict[str, dict] = {}
+_V4_STRIKEOUT_TASKS: dict[str, asyncio.Task] = {}
+
+
+async def _run_v4_strikeout_job(job_id: str, request: V4StrikeoutRequest):
+    job = _V4_STRIKEOUT_JOBS[job_id]
+    job.update(status="running", started_at=_job_now())
+
+    async def progress(payload: dict):
+        job["progress"] = payload
+        job["updated_at"] = _job_now()
+
+    async def keepalive():
+        base = (os.getenv("RENDER_EXTERNAL_URL") or "").rstrip("/")
+        if not base:
+            return
+        async with httpx.AsyncClient(timeout=20) as client:
+            while _V4_STRIKEOUT_JOBS.get(job_id, {}).get("status") in {"queued", "running"}:
+                await asyncio.sleep(8 * 60)
+                try:
+                    await client.get(f"{base}/health", params={"job": job_id, "lab": "v4-strikeouts"})
+                except Exception:
+                    pass
+
+    keepalive_task = asyncio.create_task(keepalive())
+    try:
+        job["result"] = await run_v4_strikeout_backtest(request, progress_callback=progress)
+        job.update(status="completed", finished_at=_job_now(), updated_at=_job_now())
+    except Exception as exc:
+        job.update(status="failed", error=str(exc), finished_at=_job_now(), updated_at=_job_now())
+    finally:
+        if not keepalive_task.done():
+            keepalive_task.cancel()
+        _V4_STRIKEOUT_TASKS.pop(job_id, None)
 
 
 async def _run_v38_backtest_job(job_id: str, request: V38LineMovementRequest):
@@ -1382,6 +1423,37 @@ async def start_v38_line_movement_job(request: V38LineMovementRequest):
     return job
 
 
+@app.post("/v4/strikeouts/backtest/jobs")
+async def start_v4_strikeout_job(request: V4StrikeoutRequest):
+    active = next((job for job in _V4_STRIKEOUT_JOBS.values() if job.get("status") in {"queued", "running"}), None)
+    requested = request.model_dump()
+    if active and active.get("request") == requested:
+        active["message"] = "An identical v4 strikeout research job is already running."
+        return active
+    if active:
+        raise HTTPException(status_code=409, detail="Another v4 strikeout job is running. Check its progress first.")
+    job_id = uuid.uuid4().hex[:12]
+    job = {
+        "job_id": job_id, "status": "queued", "created_at": _job_now(), "updated_at": _job_now(),
+        "request": requested,
+        "progress": {"phase": "queued", "percent": 0, "message": "v4 full-ladder strikeout research queued."},
+        "result": None, "error": None,
+        "message": "The backend job continues if the phone closes the page. Up to two months can be tested in one frozen run.",
+    }
+    _V4_STRIKEOUT_JOBS[job_id] = job
+    task = asyncio.create_task(_run_v4_strikeout_job(job_id, request))
+    _V4_STRIKEOUT_TASKS[job_id] = task
+    return job
+
+
+@app.get("/v4/strikeouts/backtest/jobs/{job_id}")
+async def get_v4_strikeout_job(job_id: str):
+    job = _V4_STRIKEOUT_JOBS.get(job_id)
+    if not job:
+        raise HTTPException(status_code=404, detail="v4 strikeout job was not found; the backend may have restarted.")
+    return job
+
+
 @app.get("/v38/line-movement/backtest/jobs/{job_id}")
 async def get_v38_line_movement_job(job_id: str):
     job = _V38_BACKTEST_JOBS.get(job_id)
@@ -1409,7 +1481,7 @@ async def hybrid_mlb_settle_auto(records: list[dict]):
 @app.get("/hybrid-mlb/schema")
 async def hybrid_mlb_schema():
     return {
-        "version": "3.8.0",
+        "version": "4.0.0",
         "mode": "paper-only",
         "game_pipeline": ["market_discovery", "sportsbook_no_vig_baseline", "model_veto", "qc", "cost_adjusted_kalshi_price", "decision", "clv"],
         "strikeout_pipeline": ["bottom_up_projection", "external_validation", "qc", "kalshi_price", "decision", "clv"],
@@ -1422,9 +1494,14 @@ async def hybrid_mlb_schema():
         "legacy_benchmark": "LEGACY_V36",
         "default_estimated_cost_cents": 2.0,
         "v38_research_lab": {
-            "status": "challenger",
+            "status": "rejected",
             "hypothesis": "T-4h to T-90m declines partially mean-revert by T-10m.",
             "execution": "T-90m ask entry; T-10m bid exit; contract-level taker fees on both orders.",
+        },
+        "v4_strikeout_lab": {
+            "status": "research_challenger",
+            "pipeline": ["training_only_nb_fit", "kalshi_midpoint_anchor", "both_sides", "executable_ask", "one_best_per_pitcher", "cluster_bootstrap"],
+            "promotion": "No paper/live use unless every reported gate passes.",
         },
     }
 
