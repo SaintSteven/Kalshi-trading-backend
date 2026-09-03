@@ -52,11 +52,12 @@ from automatic_hybrid_card import build_automatic_game_card, settle_automatic_re
 from hybrid_historical_backtest import HybridBacktestRequest, run_hybrid_historical_backtest
 from workload_experiment import run_workload_experiment
 from workload_experiment_models import WorkloadExperimentRequest, WorkloadExperimentResponse
+from v38_research_lab import V38LineMovementRequest, run_v38_line_movement_backtest
 
 
 app = FastAPI(
     title="Kalshi Trading Engine",
-    version="3.7.0",
+    version="3.8.0",
     description=(
         "Paper-only MLB research engine with leakage-safe "
         "historical backtesting and model experimentation."
@@ -76,7 +77,7 @@ app.add_middleware(
 async def root():
     return {
         "service": "Kalshi Trading Engine",
-        "version": "3.7.0",
+        "version": "3.8.0",
         "mode": "paper-only",
         "docs": "/docs",
     }
@@ -124,6 +125,9 @@ async def health():
             "historical_hybrid_holdout_reporting",
             "hybrid_backtest_single_job_guard",
             "memory_safe_historical_odds_collection",
+            "v38_line_movement_research_lab",
+            "three_timestamp_executable_quote_sampling",
+            "exact_contract_fee_backtesting",
         ],
         "time_utc": datetime.now(timezone.utc).isoformat(),
     }
@@ -1265,6 +1269,25 @@ async def model_lab(request: ModelLabRequest):
 
 _HYBRID_BACKTEST_JOBS: dict[str, dict] = {}
 _HYBRID_BACKTEST_TASKS: dict[str, asyncio.Task] = {}
+_V38_BACKTEST_JOBS: dict[str, dict] = {}
+_V38_BACKTEST_TASKS: dict[str, asyncio.Task] = {}
+
+
+async def _run_v38_backtest_job(job_id: str, request: V38LineMovementRequest):
+    job = _V38_BACKTEST_JOBS[job_id]
+    job.update(status="running", started_at=_job_now())
+
+    async def progress(payload: dict):
+        job["progress"] = payload
+        job["updated_at"] = _job_now()
+
+    try:
+        job["result"] = await run_v38_line_movement_backtest(request, progress_callback=progress)
+        job.update(status="completed", finished_at=_job_now(), updated_at=_job_now())
+    except Exception as exc:
+        job.update(status="failed", error=str(exc), finished_at=_job_now(), updated_at=_job_now())
+    finally:
+        _V38_BACKTEST_TASKS.pop(job_id, None)
 
 
 async def _run_hybrid_backtest_job(job_id: str, request: HybridBacktestRequest):
@@ -1332,6 +1355,41 @@ async def get_hybrid_historical_backtest_job(job_id: str):
     return job
 
 
+@app.post("/v38/line-movement/backtest/jobs")
+async def start_v38_line_movement_job(request: V38LineMovementRequest):
+    active = next((job for job in _V38_BACKTEST_JOBS.values() if job.get("status") in {"queued", "running"}), None)
+    requested = request.model_dump()
+    if active and active.get("request") == requested:
+        active["message"] = "An identical v3.8 research job is already running."
+        return active
+    if active:
+        raise HTTPException(status_code=409, detail="Another v3.8 research job is already running. Check its progress first.")
+    job_id = uuid.uuid4().hex[:12]
+    job = {
+        "job_id": job_id,
+        "status": "queued",
+        "created_at": _job_now(),
+        "updated_at": _job_now(),
+        "request": requested,
+        "progress": {"phase": "queued", "percent": 0, "message": "v3.8 line-movement research queued."},
+        "result": None,
+        "error": None,
+        "message": "The backend job continues if the phone closes the page.",
+    }
+    _V38_BACKTEST_JOBS[job_id] = job
+    task = asyncio.create_task(_run_v38_backtest_job(job_id, request))
+    _V38_BACKTEST_TASKS[job_id] = task
+    return job
+
+
+@app.get("/v38/line-movement/backtest/jobs/{job_id}")
+async def get_v38_line_movement_job(job_id: str):
+    job = _V38_BACKTEST_JOBS.get(job_id)
+    if not job:
+        raise HTTPException(status_code=404, detail="v3.8 research job was not found; the backend may have restarted.")
+    return job
+
+
 @app.get("/hybrid-mlb/auto-card")
 async def hybrid_mlb_auto_card(
     date: str | None = None,
@@ -1351,7 +1409,7 @@ async def hybrid_mlb_settle_auto(records: list[dict]):
 @app.get("/hybrid-mlb/schema")
 async def hybrid_mlb_schema():
     return {
-        "version": "3.7.0",
+        "version": "3.8.0",
         "mode": "paper-only",
         "game_pipeline": ["market_discovery", "sportsbook_no_vig_baseline", "model_veto", "qc", "cost_adjusted_kalshi_price", "decision", "clv"],
         "strikeout_pipeline": ["bottom_up_projection", "external_validation", "qc", "kalshi_price", "decision", "clv"],
@@ -1363,6 +1421,11 @@ async def hybrid_mlb_schema():
         "game_pricing_policy": "MARKET_FIRST_V37",
         "legacy_benchmark": "LEGACY_V36",
         "default_estimated_cost_cents": 2.0,
+        "v38_research_lab": {
+            "status": "challenger",
+            "hypothesis": "T-4h to T-90m declines partially mean-revert by T-10m.",
+            "execution": "T-90m ask entry; T-10m bid exit; contract-level taker fees on both orders.",
+        },
     }
 
 
@@ -1389,4 +1452,3 @@ async def settle_edge_snapshots(request: SettleSnapshotsRequest):
 @app.post("/edge-analysis", response_model=EdgeAnalysisResponse)
 async def edge_analysis(request: EdgeAnalysisRequest):
     return analyze_edges(request)
-
