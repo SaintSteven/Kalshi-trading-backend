@@ -61,7 +61,7 @@ def _snapshot(candles: list[dict], target_ts: int) -> dict:
     }
 
 
-async def _candles_at_offsets(client, tagged, offsets, warnings):
+async def _candles_at_offsets(client, tagged, offsets, warnings, progress_callback=None):
     """Fetch one candle series per contract, then sample every declared time."""
     historical_base = KALSHI_HISTORICAL_BASE_URL.rstrip("/")
     recent_base = KALSHI_BASE_URL.rstrip("/")
@@ -81,7 +81,8 @@ async def _candles_at_offsets(client, tagged, offsets, warnings):
                 for offset in offsets
             }
 
-    for day, items in sorted(by_day.items()):
+    day_rows = sorted(by_day.items())
+    for day_index, (day, items) in enumerate(day_rows, start=1):
         recent = [market for market, historical in items if not historical]
         archive = [market for market, historical in items if historical]
         specs = []
@@ -105,7 +106,7 @@ async def _candles_at_offsets(client, tagged, offsets, warnings):
             except Exception as exc:
                 warnings.append(f"{day}: recent candle batch failed: {exc}")
 
-        semaphore = asyncio.Semaphore(3)
+        semaphore = asyncio.Semaphore(5)
         async def archive_one(market):
             ticker = str(market.get("ticker") or "")
             start = _event_start(str(market.get("event_ticker") or ""))
@@ -123,6 +124,10 @@ async def _candles_at_offsets(client, tagged, offsets, warnings):
                 warnings.append(f"{ticker}: historical candles failed: {exc}")
         if archive:
             await asyncio.gather(*(archive_one(market) for market in archive))
+        if progress_callback:
+            returned = progress_callback(day_index, len(day_rows))
+            if asyncio.iscoroutine(returned):
+                await returned
     return output
 
 
@@ -230,7 +235,10 @@ async def run_v38_line_movement_backtest(request, progress_callback=None):
     async with httpx.AsyncClient(headers={"User-Agent": "KalshiTradingPlatform/3.8.0-line-movement-lab"}, timeout=60) as client:
         tagged = await _list_markets(client, start, end)
         await emit("candles", 25, f"Sampling {len(tagged)} contracts at three frozen decision times…")
-        snapshots = await _candles_at_offsets(client, tagged, [request.observation_minutes, request.entry_minutes, request.exit_minutes], warnings)
+        async def candle_progress(completed_days, total_days):
+            percent = 25 + round(55 * completed_days / max(1, total_days))
+            await emit("candles", percent, f"Sampled archived quotes for {completed_days}/{total_days} slate days…")
+        snapshots = await _candles_at_offsets(client, tagged, [request.observation_minutes, request.entry_minutes, request.exit_minutes], warnings, candle_progress)
     grouped = defaultdict(list)
     for market, _ in tagged: grouped[str(market.get("event_ticker") or "")].append(market)
     await emit("analysis", 85, "Applying the frozen trigger and executable ask-to-bid exit…")
