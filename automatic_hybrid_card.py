@@ -120,6 +120,52 @@ def _to_cents(value) -> int | None:
     return round(number * 100) if 0 <= number <= 1 else round(number)
 
 
+def _candle_close(block) -> float | None:
+    if not isinstance(block, dict):
+        return None
+    for key in ("close", "close_dollars", "close_fp"):
+        if block.get(key) not in (None, ""):
+            return block[key]
+    return None
+
+
+async def _collect_pregame_closes(client: httpx.AsyncClient, records: list[dict], warnings: list[str]) -> dict[str, int]:
+    specs = []
+    for record in records:
+        ticker = str(record.get("candidate_id") or "")
+        try:
+            start = datetime.fromisoformat(str(record.get("game_start_time") or "").replace("Z", "+00:00"))
+            target_ts = int(start.timestamp())
+        except (TypeError, ValueError):
+            continue
+        if ticker:
+            specs.append((ticker, target_ts))
+
+    output: dict[str, int] = {}
+    for offset in range(0, len(specs), 10):
+        chunk = specs[offset:offset + 10]
+        try:
+            payload = await _fetch_json(client, f"{KALSHI_BASE_URL}/markets/candlesticks", params={
+                "market_tickers": ",".join(ticker for ticker, _ in chunk),
+                "start_ts": min(target for _, target in chunk) - 3 * 60 * 60,
+                "end_ts": max(target for _, target in chunk),
+                "period_interval": 1,
+                "include_latest_before_start": "false",
+            })
+            targets = dict(chunk)
+            for row in payload.get("markets", []):
+                ticker = str(row.get("market_ticker") or row.get("ticker") or "")
+                target = targets.get(ticker)
+                candles = [candle for candle in row.get("candlesticks", []) if target is not None and int(candle.get("end_period_ts") or 0) <= target]
+                candle = max(candles, key=lambda item: int(item.get("end_period_ts") or 0)) if candles else None
+                price = _to_cents(_candle_close((candle or {}).get("yes_ask")))
+                if price is not None and 1 <= price <= 99:
+                    output[ticker] = price
+        except Exception as exc:
+            warnings.append(f"Could not capture one pregame closing-price batch: {exc}")
+    return output
+
+
 def _date_token(date_value: str) -> str:
     return datetime.strptime(date_value, "%Y-%m-%d").strftime("%y%b%d").upper()
 
@@ -338,12 +384,18 @@ async def settle_automatic_records(records: list[dict]) -> dict:
     dates = sorted({date for record in updated if record.get("automatic") and record.get("profit_loss") is None for date in [_record_game_date(record)] if date})
     scoreboards: dict[str, dict] = {}
     warnings: list[str] = []
+    closing_prices: dict[str, int] = {}
     async with httpx.AsyncClient(headers={"User-Agent": "KalshiResearchDashboard/3.7.0"}) as client:
         for date in dates:
             try:
                 scoreboards[date] = await _fetch_json(client, ESPN_SCOREBOARD, params={"dates": date.replace("-", ""), "limit": 100})
             except Exception as exc:
                 warnings.append(f"Could not fetch final scores for {date}: {exc}")
+        closing_prices = await _collect_pregame_closes(
+            client,
+            [record for record in updated if record.get("automatic") and record.get("profit_loss") is None],
+            warnings,
+        )
 
     completed_by_date: dict[str, list[dict]] = {}
     for date, scoreboard in scoreboards.items():
@@ -379,12 +431,17 @@ async def settle_automatic_records(records: list[dict]) -> dict:
         if not 0 < price < 100 or stake <= 0:
             continue
         profit = stake * (100 - price) / price if won else -stake
+        close_price = closing_prices.get(str(record.get("candidate_id") or ""))
+        raw_entry = float(record.get("entry_price_cents") or price)
         record.update({
             "result": "WIN" if won else "LOSS",
             "profit_loss": round(profit, 4),
             "settled_at": datetime.now(timezone.utc).isoformat(),
             "settlement_source": "ESPN final score",
             "settlement_event_id": matches[0]["event_id"],
+            "close_price_cents": close_price,
+            "clv_cents": round(close_price - raw_entry, 2) if close_price is not None else None,
+            "net_clv_cents": round(close_price - price, 2) if close_price is not None else None,
         })
         settled_now += 1
 
@@ -392,6 +449,8 @@ async def settle_automatic_records(records: list[dict]) -> dict:
     total_staked = sum(float(r.get("stake") or 0) for r in settled)
     total_profit = sum(float(r.get("profit_loss") or 0) for r in settled)
     wins = sum(1 for r in settled if r.get("result") == "WIN")
+    clv_values = [float(r["clv_cents"]) for r in settled if r.get("clv_cents") is not None]
+    net_clv_values = [float(r["net_clv_cents"]) for r in settled if r.get("net_clv_cents") is not None]
     return {
         "version": "3.7.0",
         "records": updated,
@@ -406,7 +465,10 @@ async def settle_automatic_records(records: list[dict]) -> dict:
             "total_staked": round(total_staked, 2),
             "profit_loss": round(total_profit, 2),
             "roi": round(total_profit / total_staked, 4) if total_staked else None,
+            "average_clv_cents": round(sum(clv_values) / len(clv_values), 2) if clv_values else None,
+            "average_net_clv_cents": round(sum(net_clv_values) / len(net_clv_values), 2) if net_clv_values else None,
+            "clv_observations": len(clv_values),
         },
         "warnings": warnings,
-        "methodology_note": "Prospective paper ROI from timestamped entry asks and final outcomes. v3.7 records can use an effective entry price that includes estimated fees and slippage. This is not a reconstructed historical internet-consensus backtest and does not yet include closing-line value.",
+        "methodology_note": "Prospective paper ROI from timestamped entry asks and final outcomes. v3.7 uses an effective entry price for estimated costs and captures the final pregame ask for closing-line value when available.",
     }
