@@ -88,7 +88,7 @@ async def root():
 async def health():
     return {
         "status": "ok",
-        "version": "3.8.0",
+        "version": "4.0.0",
         "mode": "paper-only",
         "pipeline": [
             "collect",
