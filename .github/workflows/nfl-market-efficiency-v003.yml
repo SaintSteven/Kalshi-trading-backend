@@ -1,0 +1,31 @@
+name: NFL Market Efficiency Scanner v0.03
+on:
+  workflow_dispatch:
+  push:
+    branches: [nfl-market-efficiency-v003]
+    paths:
+      - 'research/nfl_market_efficiency_v003/**'
+      - '.github/workflows/nfl-market-efficiency-v003.yml'
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install pandas requests tabulate
+      - name: Build fresh archive inventory
+        run: python research/nfl_market_efficiency_v002/scanner.py --out nfl_market_efficiency_v002_output
+      - name: Run executable-price scanner
+        run: python research/nfl_market_efficiency_v003/scanner.py --inventory nfl_market_efficiency_v002_output/nfl_market_inventory.csv --out nfl_market_efficiency_v003_output | tee nfl_market_efficiency_v003_output/run.log
+      - name: Require outputs
+        run: test -s nfl_market_efficiency_v003_output/SUMMARY.md && test -s nfl_market_efficiency_v003_output/executable_ledger.csv && test -s nfl_market_efficiency_v003_output/broad_summary.csv
+      - name: Write summary
+        run: cat nfl_market_efficiency_v003_output/SUMMARY.md >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nfl-market-efficiency-v003-${{ github.run_number }}
+          path: nfl_market_efficiency_v003_output/
+          retention-days: 30
