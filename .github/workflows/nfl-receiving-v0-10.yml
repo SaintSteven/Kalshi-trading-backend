@@ -11,6 +11,12 @@ on:
         description: Space-separated validation seasons
         required: true
         default: '2024 2025'
+  push:
+    branches:
+      - nfl-v010-smoke-test
+    paths:
+      - '.github/workflows/nfl-receiving-v0-10.yml'
+      - 'research/nfl_receiving_v0_10/**'
 
 permissions:
   contents: read
@@ -35,9 +41,16 @@ jobs:
         shell: bash
         run: |
           mkdir -p nfl_receiving_backtest_v0_10_output
+          if [ "${{ github.event_name }}" = "push" ]; then
+            SEASONS="2025"
+            SIMS="200"
+          else
+            SEASONS="${{ inputs.validation_seasons }}"
+            SIMS="${{ inputs.simulations }}"
+          fi
           python research/nfl_receiving_v0_10/run_v010.py \
-            --validation-seasons ${{ inputs.validation_seasons }} \
-            --simulations ${{ inputs.simulations }} \
+            --validation-seasons $SEASONS \
+            --simulations $SIMS \
             --output-dir nfl_receiving_backtest_v0_10_output | tee nfl_receiving_backtest_v0_10_output/run.log
 
       - name: Write compact job summary
