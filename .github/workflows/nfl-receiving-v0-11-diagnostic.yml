@@ -53,6 +53,7 @@ jobs:
       - name: Run v0.11 diagnostic
         shell: bash
         run: |
+          mkdir -p nfl_receiving_v0_11_output
           python research/nfl_receiving_v0_11/v011_diagnostic.py \
             --input-dir v010_input \
             --output-dir nfl_receiving_v0_11_output | tee nfl_receiving_v0_11_output/run.log
