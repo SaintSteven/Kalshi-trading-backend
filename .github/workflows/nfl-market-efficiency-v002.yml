@@ -1,0 +1,38 @@
+name: NFL Market Efficiency Scanner v0.02
+on:
+  push:
+    branches: [nfl-market-efficiency-v002]
+    paths:
+      - 'research/nfl_market_efficiency_v002/**'
+      - '.github/workflows/nfl-market-efficiency-v002.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install pandas requests tabulate
+      - name: Discover NFL archive
+        run: |
+          python research/nfl_market_efficiency_v002/scanner.py --out nfl_market_efficiency_v002_output | tee run.log
+      - name: Require outputs
+        run: |
+          test -s nfl_market_efficiency_v002_output/nfl_series_inventory.csv
+          test -s nfl_market_efficiency_v002_output/nfl_market_inventory.csv
+          test -s nfl_market_efficiency_v002_output/prop_class_summary.csv
+          test -s nfl_market_efficiency_v002_output/SUMMARY.md
+      - name: Write job summary
+        run: cat nfl_market_efficiency_v002_output/SUMMARY.md >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nfl-market-efficiency-v002-${{ github.run_number }}
+          path: |
+            nfl_market_efficiency_v002_output/
+            run.log
+          retention-days: 30
