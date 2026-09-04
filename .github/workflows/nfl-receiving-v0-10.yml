@@ -42,8 +42,8 @@ jobs:
         run: |
           mkdir -p nfl_receiving_backtest_v0_10_output
           if [ "${{ github.event_name }}" = "push" ]; then
-            SEASONS="2025"
-            SIMS="200"
+            SEASONS="2024 2025"
+            SIMS="12000"
           else
             SEASONS="${{ inputs.validation_seasons }}"
             SIMS="${{ inputs.simulations }}"
