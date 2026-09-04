@@ -1,0 +1,87 @@
+name: NFL Receiving v0.12 Disagreement Forensics
+
+on:
+  push:
+    branches:
+      - nfl-v012-disagreement-forensics
+    paths:
+      - '.github/workflows/nfl-receiving-v0-12-forensics.yml'
+      - 'research/nfl_receiving_v0_12/**'
+  workflow_dispatch:
+    inputs:
+      source_run_id:
+        description: GitHub Actions run ID containing the v0.10 artifact
+        required: true
+        default: '33862667433'
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  forensics:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install pandas numpy scikit-learn tabulate
+
+      - name: Download v0.10 full backtest artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          mkdir -p v010_input
+          if [ "${{ github.event_name }}" = "push" ]; then
+            RUN_ID="33862667433"
+          else
+            RUN_ID="${{ inputs.source_run_id }}"
+          fi
+          gh run download "$RUN_ID" \
+            --repo "${{ github.repository }}" \
+            --name "nfl-receiving-v0-10-results-6" \
+            --dir v010_input
+
+      - name: Run v0.12 disagreement forensics
+        shell: bash
+        run: |
+          mkdir -p nfl_receiving_v0_12_output
+          python research/nfl_receiving_v0_12/v012_forensics.py \
+            --input-dir v010_input \
+            --output-dir nfl_receiving_v0_12_output | tee nfl_receiving_v0_12_output/run.log
+
+      - name: Require outputs
+        shell: bash
+        run: |
+          test -s nfl_receiving_v0_12_output/v012_yes_disagreement_feature_slices.csv
+          test -s nfl_receiving_v0_12_output/v012_late_season_holdout_model_comparison.csv
+          test -s nfl_receiving_v0_12_output/v012_late_season_yes_disagreement_comparison.csv
+          test -s nfl_receiving_v0_12_output/v012_largest_yes_overconfidence_slices.csv
+          test -s nfl_receiving_v0_12_output/SUMMARY.md
+
+      - name: Write job summary
+        if: always()
+        shell: bash
+        run: |
+          if [ -f nfl_receiving_v0_12_output/SUMMARY.md ]; then
+            cat nfl_receiving_v0_12_output/SUMMARY.md >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo '# NFL Receiving v0.12 Disagreement Forensics' >> "$GITHUB_STEP_SUMMARY"
+            echo 'Summary not produced; inspect logs.' >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nfl-receiving-v0-12-forensics-${{ github.run_number }}
+          path: nfl_receiving_v0_12_output/
+          retention-days: 30
