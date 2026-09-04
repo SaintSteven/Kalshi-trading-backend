@@ -1,0 +1,63 @@
+name: NFL Receiving v0.10 YES + NO Backtest
+
+on:
+  workflow_dispatch:
+    inputs:
+      simulations:
+        description: Monte Carlo simulations per player-game
+        required: true
+        default: '12000'
+      validation_seasons:
+        description: Space-separated validation seasons
+        required: true
+        default: '2024 2025'
+
+permissions:
+  contents: read
+
+jobs:
+  backtest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install pandas numpy requests
+
+      - name: Run NFL receiving YES + NO historical backtest
+        shell: bash
+        run: |
+          mkdir -p nfl_receiving_backtest_v0_10_output
+          python research/nfl_receiving_v0_10/run_v010.py \
+            --validation-seasons ${{ inputs.validation_seasons }} \
+            --simulations ${{ inputs.simulations }} \
+            --output-dir nfl_receiving_backtest_v0_10_output | tee nfl_receiving_backtest_v0_10_output/run.log
+
+      - name: Write compact job summary
+        if: always()
+        shell: bash
+        run: |
+          echo '# NFL Receiving v0.10 — YES + NO Backtest' >> "$GITHUB_STEP_SUMMARY"
+          if [ -f nfl_receiving_backtest_v0_10_output/nfl_receiving_v0_10_profitability_summary.csv ]; then
+            echo '' >> "$GITHUB_STEP_SUMMARY"
+            echo '```text' >> "$GITHUB_STEP_SUMMARY"
+            cat nfl_receiving_backtest_v0_10_output/nfl_receiving_v0_10_profitability_summary.csv >> "$GITHUB_STEP_SUMMARY"
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo 'Backtest did not produce a profitability summary. Check run.log in the artifact.' >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload full research output
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nfl-receiving-v0-10-results-${{ github.run_number }}
+          path: nfl_receiving_backtest_v0_10_output/
+          retention-days: 30
