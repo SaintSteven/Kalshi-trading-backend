@@ -1,0 +1,111 @@
+name: MLB v4 Strikeout Top-Down Test
+
+on:
+  workflow_dispatch:
+    inputs:
+      start_date:
+        description: "Historical start date (YYYY-MM-DD)"
+        required: true
+        default: "2026-07-01"
+        type: string
+      end_date:
+        description: "Historical end date (YYYY-MM-DD)"
+        required: true
+        default: "2026-08-31"
+        type: string
+      max_days:
+        description: "Maximum days"
+        required: true
+        default: "62"
+        type: string
+
+jobs:
+  run-v4-strikeout-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+
+    steps:
+      - name: Check out backend
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Run frozen v4 top-down strikeout test
+        env:
+          START_DATE: ${{ inputs.start_date }}
+          END_DATE: ${{ inputs.end_date }}
+          MAX_DAYS: ${{ inputs.max_days }}
+        run: |
+          python - <<'PY'
+          import asyncio
+          import json
+          import os
+          from pathlib import Path
+
+          from v4_strikeout_lab import V4StrikeoutRequest, run_v4_strikeout_backtest
+
+          request = V4StrikeoutRequest(
+              start_date=os.environ["START_DATE"],
+              end_date=os.environ["END_DATE"],
+              max_days=int(os.environ["MAX_DAYS"]),
+              unit_size=1.0,
+              hours_before_first_pitch=2.0,
+              quote_lookback_hours=6.0,
+              maximum_quote_age_minutes=10.0,
+              maximum_spread_cents=12,
+              minimum_entry_cents=10,
+              maximum_entry_cents=90,
+              minimum_net_edge_points=5.0,
+              training_fraction=0.35,
+              fee_rate=0.07,
+              bootstrap_iterations=2000,
+          )
+
+          async def progress(payload):
+              if isinstance(payload, dict):
+                  phase = payload.get("phase", "progress")
+                  percent = payload.get("percent", "")
+                  message = payload.get("message", "")
+                  print(f"[{phase}] {percent}% {message}", flush=True)
+              else:
+                  print(payload, flush=True)
+
+          result = asyncio.run(run_v4_strikeout_backtest(request, progress_callback=progress))
+
+          out = Path("artifacts")
+          out.mkdir(exist_ok=True)
+          result_path = out / "mlb_v4_strikeout_topdown_result.json"
+          result_path.write_text(json.dumps(result, indent=2, default=str), encoding="utf-8")
+
+          summary = {
+              "version": result.get("version"),
+              "status": result.get("status"),
+              "split_date": result.get("split_date"),
+              "training_starts": result.get("training_starts"),
+              "holdout_starts": result.get("holdout_starts"),
+              "overall": result.get("overall"),
+              "calibration": result.get("calibration"),
+              "cluster_bootstrap": result.get("cluster_bootstrap"),
+              "promotion": result.get("promotion"),
+              "fit": result.get("fit"),
+          }
+          print("\n=== MLB v4 TOP-DOWN SUMMARY ===")
+          print(json.dumps(summary, indent=2, default=str))
+          PY
+
+      - name: Upload v4 result
+        uses: actions/upload-artifact@v4
+        with:
+          name: mlb-v4-strikeout-topdown-result
+          path: artifacts/mlb_v4_strikeout_topdown_result.json
+          if-no-files-found: error
+          retention-days: 30
