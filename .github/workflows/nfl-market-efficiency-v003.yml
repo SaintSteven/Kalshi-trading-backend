@@ -83,15 +83,7 @@ jobs:
       - name: Require final outputs
         run: test -s nfl_market_efficiency_v0031_output/SUMMARY.md && test -s nfl_market_efficiency_v0031_output/executable_ledger.csv && test -s nfl_market_efficiency_v0031_output/broad_summary.csv
       - name: Confirm August excluded from final ledger
-        run: python - <<'PY'
-          import pandas as pd
-          p='nfl_market_efficiency_v0031_output/executable_ledger.csv'
-          d=pd.read_csv(p)
-          m=pd.to_datetime(d['close_time'],errors='coerce',utc=True).dt.month
-          n=int((m==8).sum())
-          print('August ledger rows:',n)
-          assert n==0, f'August rows remain: {n}'
-          PY
+        run: python -c "import pandas as pd; d=pd.read_csv('nfl_market_efficiency_v0031_output/executable_ledger.csv'); n=int((pd.to_datetime(d['close_time'],errors='coerce',utc=True).dt.month==8).sum()); print('August ledger rows:',n); assert n==0, f'August rows remain: {n}'"
       - name: Write summary
         run: |
           echo '# v0.03.1 regular-season filter' >> "$GITHUB_STEP_SUMMARY"
