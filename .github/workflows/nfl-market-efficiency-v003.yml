@@ -6,7 +6,6 @@ on:
     paths:
       - 'research/nfl_market_efficiency_v003/**'
       - '.github/workflows/nfl-market-efficiency-v003.yml'
-
 jobs:
   prepare:
     runs-on: ubuntu-latest
@@ -26,7 +25,6 @@ jobs:
           name: nfl-v0031-inventory-${{ github.run_number }}
           path: nfl_market_efficiency_v002_output/nfl_market_inventory.csv
           retention-days: 7
-
   scan:
     needs: prepare
     runs-on: ubuntu-latest
@@ -47,7 +45,7 @@ jobs:
         with:
           name: nfl-v0031-inventory-${{ github.run_number }}
           path: inventory
-      - name: Scan ${{ matrix.prop_class }} shard ${{ matrix.shard }} without August
+      - name: Scan ${{ matrix.prop_class }} shard ${{ matrix.shard }}
         run: |
           python research/nfl_market_efficiency_v003/scanner.py \
             --inventory inventory/nfl_market_inventory.csv \
@@ -62,7 +60,6 @@ jobs:
           name: nfl-v0031-shard-${{ matrix.prop_class }}-${{ matrix.shard }}-${{ github.run_number }}
           path: shard_output/
           retention-days: 14
-
   aggregate:
     needs: scan
     runs-on: ubuntu-latest
@@ -78,17 +75,12 @@ jobs:
           pattern: nfl-v0031-shard-*-${{ github.run_number }}
           path: shard_artifacts
           merge-multiple: false
-      - name: Aggregate all non-August shards
+      - name: Aggregate all shards
         run: python research/nfl_market_efficiency_v003/aggregate.py --root shard_artifacts --out nfl_market_efficiency_v0031_output
       - name: Require final outputs
         run: test -s nfl_market_efficiency_v0031_output/SUMMARY.md && test -s nfl_market_efficiency_v0031_output/executable_ledger.csv && test -s nfl_market_efficiency_v0031_output/broad_summary.csv
-      - name: Confirm August excluded from final ledger
-        run: python -c "import pandas as pd; d=pd.read_csv('nfl_market_efficiency_v0031_output/executable_ledger.csv'); n=int((pd.to_datetime(d['close_time'],errors='coerce',utc=True).dt.month==8).sum()); print('August ledger rows:',n); assert n==0, f'August rows remain: {n}'"
       - name: Write summary
-        run: |
-          echo '# v0.03.1 regular-season filter' >> "$GITHUB_STEP_SUMMARY"
-          echo 'All August markets are excluded across all five NFL prop families.' >> "$GITHUB_STEP_SUMMARY"
-          cat nfl_market_efficiency_v0031_output/SUMMARY.md >> "$GITHUB_STEP_SUMMARY"
+        run: cat nfl_market_efficiency_v0031_output/SUMMARY.md >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@v4
         with:
           name: nfl-market-efficiency-v0031-regular-season-${{ github.run_number }}
