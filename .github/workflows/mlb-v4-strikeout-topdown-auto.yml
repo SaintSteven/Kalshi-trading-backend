@@ -1,0 +1,59 @@
+name: MLB v4 Strikeout Top-Down Auto Test
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/mlb-v4-strikeout-topdown-auto.yml"
+
+jobs:
+  run-v4-strikeout-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Run frozen v4 top-down strikeout test
+        run: |
+          python - <<'PY'
+          import asyncio, json
+          from pathlib import Path
+          from v4_strikeout_lab import V4StrikeoutRequest, run_v4_strikeout_backtest
+
+          req = V4StrikeoutRequest(
+              start_date="2026-07-01", end_date="2026-08-31", max_days=62,
+              unit_size=1.0, hours_before_first_pitch=2.0,
+              quote_lookback_hours=6.0, maximum_quote_age_minutes=10.0,
+              maximum_spread_cents=12, minimum_entry_cents=10,
+              maximum_entry_cents=90, minimum_net_edge_points=5.0,
+              training_fraction=0.35, fee_rate=0.07, bootstrap_iterations=2000,
+          )
+
+          async def progress(payload):
+              print(payload, flush=True)
+
+          result = asyncio.run(run_v4_strikeout_backtest(req, progress_callback=progress))
+          Path("artifacts").mkdir(exist_ok=True)
+          Path("artifacts/mlb_v4_strikeout_topdown_result.json").write_text(
+              json.dumps(result, indent=2, default=str), encoding="utf-8"
+          )
+          print(json.dumps({
+              "overall": result.get("overall"),
+              "calibration": result.get("calibration"),
+              "cluster_bootstrap": result.get("cluster_bootstrap"),
+              "promotion": result.get("promotion"),
+              "fit": result.get("fit"),
+          }, indent=2, default=str))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mlb-v4-strikeout-topdown-result
+          path: artifacts/mlb_v4_strikeout_topdown_result.json
+          retention-days: 30
