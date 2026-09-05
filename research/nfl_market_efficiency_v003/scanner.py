@@ -2,7 +2,7 @@ import argparse,time
 from pathlib import Path
 import requests,pandas as pd
 BASE='https://api.elections.kalshi.com/trade-api/v2'
-UA={'User-Agent':'kalshi-nfl-market-efficiency-v0.03-parallel'}
+UA={'User-Agent':'kalshi-nfl-market-efficiency-v0.03.1-regular-season'}
 HOURS=[6,3,1,.5]
 
 def get(path,params=None):
@@ -54,9 +54,14 @@ def main():
  ap=argparse.ArgumentParser();ap.add_argument('--inventory',required=True);ap.add_argument('--out',required=True);ap.add_argument('--prop-class',required=True);ap.add_argument('--shard-index',type=int,required=True);ap.add_argument('--shard-count',type=int,required=True);a=ap.parse_args()
  out=Path(a.out);out.mkdir(parents=True,exist_ok=True)
  inv=pd.read_csv(a.inventory)
- g=inv[(inv.prop_class==a.prop_class)&inv.result.astype(str).str.lower().isin(['yes','no'])].copy().sort_values('market_ticker').reset_index(drop=True)
+ base=inv[(inv.prop_class==a.prop_class)&inv.result.astype(str).str.lower().isin(['yes','no'])].copy()
+ base['_close_dt']=pd.to_datetime(base['close_time'],errors='coerce',utc=True)
+ august=base[base['_close_dt'].dt.month.eq(8)].copy()
+ g=base[~base['_close_dt'].dt.month.eq(8)].copy()
+ excluded_august=len(august)
+ g=g.sort_values('market_ticker').reset_index(drop=True)
  g=g.iloc[[i for i in range(len(g)) if i%a.shard_count==a.shard_index]]
- print(f'{a.prop_class} shard {a.shard_index}/{a.shard_count}: {len(g)} markets')
+ print(f'{a.prop_class} shard {a.shard_index}/{a.shard_count}: {len(g)} markets after excluding all August markets; class August excluded={excluded_august}')
  rows=[];errs=[]
  for j,m in enumerate(g.itertuples(index=False),1):
   close=ts(getattr(m,'close_time',None));sett=result_yes(m.result)
@@ -74,6 +79,6 @@ def main():
   if j%250==0:print(a.prop_class,a.shard_index,j)
  pd.DataFrame(rows).to_csv(out/'executable_ledger.csv',index=False)
  pd.DataFrame(errs).to_csv(out/'errors.csv',index=False)
- (out/'SHARD_DONE.txt').write_text(f'{a.prop_class} shard {a.shard_index}/{a.shard_count} markets={len(g)} rows={len(rows)} errors={len(errs)}\n')
+ (out/'SHARD_DONE.txt').write_text(f'{a.prop_class} shard {a.shard_index}/{a.shard_count} markets={len(g)} rows={len(rows)} errors={len(errs)} august_excluded_class={excluded_august}\n')
  if not rows:raise SystemExit('No executable rows produced')
 if __name__=='__main__':main()
