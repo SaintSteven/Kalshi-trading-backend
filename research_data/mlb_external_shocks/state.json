@@ -4,13 +4,13 @@
       "away_lineup": [
         "Yandy D\u00edaz",
         "Jonathan Aranda",
+        "Richie Palacios",
         "Junior Caminero",
         "Ryan Vilade",
+        "Liam Hicks",
         "Chandler Simpson",
         "Jonny DeLuca",
-        "Jorge Mateo",
-        "Victor Mesa Jr.",
-        "Nick Fortes"
+        "Jorge Mateo"
       ],
       "away_lineup_confirmed": true,
       "away_probable_pitcher": "Ian Seymour",
@@ -21,17 +21,17 @@
         "Ezequiel Duran",
         "Corey Seager",
         "Justin Foscue",
+        "Nicky Lopez",
         "Brandon Nimmo",
         "Wyatt Langford",
         "Jake Burger",
         "Logan O'Hoppe",
-        "Elias D\u00edaz",
-        "Cody Freeman"
+        "Joc Pederson"
       ],
       "home_lineup_confirmed": true,
       "home_probable_pitcher": "MacKenzie Gore",
       "home_team": "Texas Rangers",
-      "status": "Live"
+      "status": "Final"
     },
     "823091": {
       "away_lineup": [
@@ -58,8 +58,8 @@
         "J.P. Crawford",
         "Josh Naylor",
         "Weston Wilson",
-        "Michael Arroyo",
-        "Jhonny Pereda"
+        "Lazaro Montes",
+        "Brock Rodden"
       ],
       "home_lineup_confirmed": true,
       "home_probable_pitcher": "Bryan Woo",
@@ -71,12 +71,12 @@
         "Ben Rice",
         "Cody Bellinger",
         "Luis Garc\u00eda Jr.",
+        "Paul Goldschmidt",
         "Spencer Jones",
         "Jazz Chisholm Jr.",
+        "Amed Rosario",
         "Jasson Dom\u00ednguez",
-        "George Lombard Jr.",
-        "Ryan McMahon",
-        "Austin Wells"
+        "George Lombard Jr."
       ],
       "away_lineup_confirmed": true,
       "away_probable_pitcher": "Gerrit Cole",
@@ -91,8 +91,8 @@
         "Jackson Merrill",
         "Luis Campusano",
         "Dustin Harris",
-        "Xander Bogaerts",
-        "Ethan Salas"
+        "Jase Bowen",
+        "Xander Bogaerts"
       ],
       "home_lineup_confirmed": true,
       "home_probable_pitcher": "Michael King",
@@ -205,10 +205,10 @@
         "Michael Busch",
         "Matt Shaw",
         "Alex Bregman",
+        "BJ Murray Jr.",
         "Michael Conforto",
         "Nico Hoerner",
-        "Pedro Ram\u00edrez",
-        "Carson Kelly"
+        "Gabriel Arias"
       ],
       "away_lineup_confirmed": true,
       "away_probable_pitcher": "Clay Holmes",
@@ -218,18 +218,18 @@
       "home_lineup": [
         "Kyle Stowers",
         "Griffin Conine",
+        "Deyvison De Los Santos",
         "Owen Caissie",
         "Jakob Marsee",
         "Heriberto Hern\u00e1ndez",
         "Joe Mack",
-        "Otto Lopez",
-        "Graham Pauley",
-        "Javier Sanoja"
+        "Brian Navarreto",
+        "Otto Lopez"
       ],
       "home_lineup_confirmed": true,
       "home_probable_pitcher": "Tyler Phillips",
       "home_team": "Miami Marlins",
-      "status": "Live"
+      "status": "Final"
     },
     "823903": {
       "away_lineup": [],
@@ -238,8 +238,18 @@
       "away_team": "Washington Nationals",
       "game_date": "2026-09-07T02:10:00Z",
       "game_pk": 823903,
-      "home_lineup": [],
-      "home_lineup_confirmed": false,
+      "home_lineup": [
+        "Tommy Edman",
+        "Mookie Betts",
+        "Will Smith",
+        "Freddie Freeman",
+        "Teoscar Hern\u00e1ndez",
+        "Kyle Tucker",
+        "Miguel Rojas",
+        "Max Muncy",
+        "Enrique Hern\u00e1ndez"
+      ],
+      "home_lineup_confirmed": true,
       "home_probable_pitcher": "Justin Wrobleski",
       "home_team": "Los Angeles Dodgers",
       "status": "Preview"
@@ -275,7 +285,7 @@
       "home_lineup_confirmed": true,
       "home_probable_pitcher": "Randy Dobnak",
       "home_team": "Kansas City Royals",
-      "status": "Live"
+      "status": "Final"
     },
     "824142": {
       "away_lineup": [
@@ -286,8 +296,8 @@
         "Nolan Arenado",
         "Corbin Carroll",
         "Tommy Troy",
-        "James McCann",
-        "Ildemaro Vargas"
+        "Lars Nootbaar",
+        "Ryan Waldschmidt"
       ],
       "away_lineup_confirmed": true,
       "away_probable_pitcher": "Eduardo Rodriguez",
@@ -300,27 +310,27 @@
         "Isaac Paredes",
         "Jose Altuve",
         "Christian Walker",
+        "Nick Allen",
         "Nelson Vel\u00e1zquez",
-        "Daulton Varsho",
-        "Cam Smith",
-        "Christian V\u00e1zquez"
+        "LaMonte Wade Jr.",
+        "Jake Meyers"
       ],
       "home_lineup_confirmed": true,
       "home_probable_pitcher": "Peter Lambert",
       "home_team": "Houston Astros",
-      "status": "Live"
+      "status": "Final"
     },
     "824309": {
       "away_lineup": [
         "Bryan Torres",
+        "Jos\u00e9 Ferm\u00edn",
         "Iv\u00e1n Herrera",
         "Alec Burleson",
         "Jordan Walker",
         "Leo Bernal",
         "Joshua B\u00e1ez",
-        "Nolan Gorman",
-        "Thomas Saggese",
-        "Nathan Church"
+        "Victor Scott II",
+        "Nolan Gorman"
       ],
       "away_lineup_confirmed": true,
       "away_probable_pitcher": "Kyle Leahy",
@@ -335,8 +345,8 @@
         "Mickey Moniak",
         "Adael Amador",
         "Brett Sullivan",
-        "Vimael Mach\u00edn",
-        "Ezequiel Tovar"
+        "Hunter Goodman",
+        "Vimael Mach\u00edn"
       ],
       "home_lineup_confirmed": true,
       "home_probable_pitcher": "Tanner Gordon",
@@ -374,7 +384,7 @@
       "home_lineup_confirmed": true,
       "home_probable_pitcher": "Gavin Williams",
       "home_team": "Cleveland Guardians",
-      "status": "Live"
+      "status": "Final"
     },
     "824469": {
       "away_lineup": [
@@ -440,7 +450,7 @@
       "home_lineup_confirmed": true,
       "home_probable_pitcher": "Bryan Hudson",
       "home_team": "Chicago White Sox",
-      "status": "Preview"
+      "status": "Live"
     },
     "824794": {
       "away_lineup": [
@@ -473,8 +483,8 @@
       "home_lineup_confirmed": true,
       "home_probable_pitcher": "Kyle Bradish",
       "home_team": "Baltimore Orioles",
-      "status": "Live"
+      "status": "Final"
     }
   },
-  "last_run_at": "2026-09-06T20:18:02.055946Z"
+  "last_run_at": "2026-09-06T22:12:21.690754Z"
 }
