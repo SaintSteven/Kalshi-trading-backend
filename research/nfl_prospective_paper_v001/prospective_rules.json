@@ -1,0 +1,29 @@
+{
+  "version": "0.01",
+  "mode": "PAPER_ONLY",
+  "rules_frozen_at": "2026-09-06",
+  "quote_max_age_seconds": 60,
+  "one_thesis_per_player_game": true,
+  "primary": [
+    {
+      "rule_id": "PRIMARY_RECYDS_NO_40_49_T30",
+      "prop_family": "receiving_yards",
+      "side": "NO",
+      "price_min": 0.40,
+      "price_max": 0.49,
+      "horizon_minutes": 30,
+      "selection": "closest_to_midpoint_then_freshest_then_ticker",
+      "midpoint": 0.45,
+      "hold": "settlement"
+    }
+  ],
+  "secondary": [
+    {"rule_id":"SEC_ANYTD_NO_50_59_T360","prop_family":"player_tds","series_ticker":"KXNFLANYTD","side":"NO","price_min":0.50,"price_max":0.59,"horizon_minutes":360},
+    {"rule_id":"SEC_REC_NO_15_19_T30","prop_family":"receptions","side":"NO","price_min":0.15,"price_max":0.19,"horizon_minutes":30},
+    {"rule_id":"SEC_REC_NO_20_29_T180","prop_family":"receptions","side":"NO","price_min":0.20,"price_max":0.29,"horizon_minutes":180},
+    {"rule_id":"SEC_REC_NO_15_19_T180","prop_family":"receptions","side":"NO","price_min":0.15,"price_max":0.19,"horizon_minutes":180},
+    {"rule_id":"SEC_RSHYDS_YES_10_14_T180","prop_family":"rushing_yards","side":"YES","price_min":0.10,"price_max":0.14,"horizon_minutes":180},
+    {"rule_id":"SEC_RSHYDS_NO_15_19_T30","prop_family":"rushing_yards","side":"NO","price_min":0.15,"price_max":0.19,"horizon_minutes":30},
+    {"rule_id":"SEC_PASSYDS_NO_30_39_T360","prop_family":"passing_yards","side":"NO","price_min":0.30,"price_max":0.39,"horizon_minutes":360}
+  ]
+}
