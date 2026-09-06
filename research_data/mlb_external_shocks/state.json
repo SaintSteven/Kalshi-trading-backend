@@ -59,12 +59,12 @@
         "Josh Naylor",
         "Weston Wilson",
         "Lazaro Montes",
-        "Brock Rodden"
+        "Cole Young"
       ],
       "home_lineup_confirmed": true,
       "home_probable_pitcher": "Bryan Woo",
       "home_team": "Seattle Mariners",
-      "status": "Live"
+      "status": "Final"
     },
     "823253": {
       "away_lineup": [
@@ -75,8 +75,8 @@
         "Spencer Jones",
         "Jazz Chisholm Jr.",
         "Amed Rosario",
-        "Jasson Dom\u00ednguez",
-        "George Lombard Jr."
+        "Jos\u00e9 Caballero",
+        "Jasson Dom\u00ednguez"
       ],
       "away_lineup_confirmed": true,
       "away_probable_pitcher": "Gerrit Cole",
@@ -97,7 +97,7 @@
       "home_lineup_confirmed": true,
       "home_probable_pitcher": "Michael King",
       "home_team": "San Diego Padres",
-      "status": "Live"
+      "status": "Final"
     },
     "823336": {
       "away_lineup": [
@@ -351,7 +351,7 @@
       "home_lineup_confirmed": true,
       "home_probable_pitcher": "Tanner Gordon",
       "home_team": "Colorado Rockies",
-      "status": "Live"
+      "status": "Final"
     },
     "824385": {
       "away_lineup": [
@@ -441,11 +441,11 @@
         "Miguel Vargas",
         "Munetaka Murakami",
         "Andrew Benintendi",
+        "Randal Grichuk",
         "Colson Montgomery",
         "Braden Montgomery",
         "Tristan Peters",
-        "Chase Meidroth",
-        "Kyle Teel"
+        "Chase Meidroth"
       ],
       "home_lineup_confirmed": true,
       "home_probable_pitcher": "Bryan Hudson",
@@ -486,5 +486,5 @@
       "status": "Final"
     }
   },
-  "last_run_at": "2026-09-06T22:12:21.690754Z"
+  "last_run_at": "2026-09-06T23:54:19.112563Z"
 }
