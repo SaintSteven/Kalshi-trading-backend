@@ -1,0 +1,93 @@
+name: NFL Market Efficiency v0.04 Deep History
+on:
+  workflow_dispatch:
+  push:
+    branches: [nfl-market-efficiency-v004-deep-history]
+    paths:
+      - 'research/nfl_market_efficiency_v004/**'
+      - '.github/workflows/nfl-market-efficiency-v004.yml'
+      - 'research/nfl_market_efficiency_v004/TRIGGER'
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install pandas requests tabulate
+      - name: Build fresh archive inventory
+        run: python research/nfl_market_efficiency_v002/scanner.py --out nfl_market_efficiency_v002_output
+      - name: Require inventory
+        run: test -s nfl_market_efficiency_v002_output/nfl_market_inventory.csv
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nfl-v004-inventory-${{ github.run_number }}
+          path: nfl_market_efficiency_v002_output/nfl_market_inventory.csv
+          retention-days: 7
+  scan:
+    needs: prepare
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      max-parallel: 10
+      matrix:
+        prop_class: [player_tds, receiving_yards, receptions, rushing_yards, passing_yards]
+        shard: [0,1,2,3,4,5,6,7]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install pandas requests
+      - uses: actions/download-artifact@v4
+        with:
+          name: nfl-v004-inventory-${{ github.run_number }}
+          path: inventory
+      - name: Scan ${{ matrix.prop_class }} shard ${{ matrix.shard }}
+        run: |
+          python research/nfl_market_efficiency_v0032/scanner.py \
+            --inventory inventory/nfl_market_inventory.csv \
+            --out shard_output \
+            --prop-class '${{ matrix.prop_class }}' \
+            --shard-index '${{ matrix.shard }}' \
+            --shard-count 8
+      - name: Require shard output
+        run: test -s shard_output/executable_ledger.csv && test -s shard_output/SHARD_DONE.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nfl-v004-shard-${{ matrix.prop_class }}-${{ matrix.shard }}-${{ github.run_number }}
+          path: shard_output/
+          retention-days: 14
+  aggregate_audit:
+    needs: scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install pandas tabulate
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: nfl-v004-shard-*-${{ github.run_number }}
+          path: shard_artifacts
+          merge-multiple: false
+      - name: Aggregate executable ledger
+        run: python research/nfl_market_efficiency_v0032/aggregate.py --root shard_artifacts --out aggregate_output
+      - name: Run deep historical frozen-rule audit
+        run: python research/nfl_market_efficiency_v004/deep_history.py --ledger aggregate_output/executable_ledger.csv --out deep_history --max-quote-age-sec 60
+      - name: Require final outputs
+        run: test -s deep_history/SUMMARY.md && test -s deep_history/season_coverage.csv && test -s deep_history/rule_season_summary.csv && test -s deep_history/robustness_summary.csv
+      - name: Write summary
+        run: cat deep_history/SUMMARY.md >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nfl-market-efficiency-v004-deep-history-${{ github.run_number }}
+          path: |
+            deep_history/
+            aggregate_output/SUMMARY.md
+          retention-days: 30
