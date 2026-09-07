@@ -1,0 +1,117 @@
+name: MLB Market Efficiency Scanner v0.01 Recovery
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [mlb-market-efficiency-v001]
+    paths:
+      - '.github/workflows/mlb-market-efficiency-v001-recovery.yml'
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  recover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    strategy:
+      fail-fast: false
+      max-parallel: 3
+      matrix:
+        shard: [4,5,6]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install httpx
+      - name: Download original inventory
+        uses: actions/download-artifact@v4
+        with:
+          name: mlb-v001-inventory-1
+          path: inventory
+          github-token: ${{ github.token }}
+          run-id: 34034905253
+      - name: Recover shard ${{ matrix.shard }}
+        run: |
+          python research/mlb_market_efficiency_v001/scanner.py \
+            --mode scan \
+            --inventory inventory/mlb_series_inventory.csv \
+            --out shard_output \
+            --start 2026-07-01 \
+            --end 2026-08-31 \
+            --shard-index '${{ matrix.shard }}' \
+            --shard-count 8
+      - name: Require shard completion
+        run: test -s shard_output/market_ledger.csv && test -s shard_output/SHARD_DONE.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mlb-v001-recovery-shard-${{ matrix.shard }}-${{ github.run_number }}
+          path: shard_output/
+          retention-days: 14
+
+  aggregate:
+    needs: recover
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Download original shard 0
+        uses: actions/download-artifact@v4
+        with:
+          name: mlb-v001-shard-0-1
+          path: shard_artifacts/shard-0
+          github-token: ${{ github.token }}
+          run-id: 34034905253
+      - name: Download original shard 1
+        uses: actions/download-artifact@v4
+        with:
+          name: mlb-v001-shard-1-1
+          path: shard_artifacts/shard-1
+          github-token: ${{ github.token }}
+          run-id: 34034905253
+      - name: Download original shard 2
+        uses: actions/download-artifact@v4
+        with:
+          name: mlb-v001-shard-2-1
+          path: shard_artifacts/shard-2
+          github-token: ${{ github.token }}
+          run-id: 34034905253
+      - name: Download original shard 3
+        uses: actions/download-artifact@v4
+        with:
+          name: mlb-v001-shard-3-1
+          path: shard_artifacts/shard-3
+          github-token: ${{ github.token }}
+          run-id: 34034905253
+      - name: Download original shard 7
+        uses: actions/download-artifact@v4
+        with:
+          name: mlb-v001-shard-7-1
+          path: shard_artifacts/shard-7
+          github-token: ${{ github.token }}
+          run-id: 34034905253
+
+      - name: Download recovered shards
+        uses: actions/download-artifact@v4
+        with:
+          pattern: mlb-v001-recovery-shard-*-${{ github.run_number }}
+          path: shard_artifacts
+          merge-multiple: false
+
+      - name: Aggregate complete discovery map
+        run: python research/mlb_market_efficiency_v001/aggregate.py --root shard_artifacts --out aggregate_output
+      - name: Require complete output
+        run: test -s aggregate_output/SUMMARY.md && test -s aggregate_output/summary.json && test -s aggregate_output/market_ledger.csv
+      - name: Write summary
+        run: cat aggregate_output/SUMMARY.md >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mlb-market-efficiency-v001-recovered-${{ github.run_number }}
+          path: aggregate_output/
+          retention-days: 30
