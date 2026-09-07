@@ -17,12 +17,14 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Inspect preserved model
+      - name: Recover and inspect validated model
         run: python research/nfl_receiving_v0_10/inspect_model.py > model_audit.txt
       - uses: actions/upload-artifact@v4
         with:
           name: nfl-receiving-inference-audit
-          path: model_audit.txt
+          path: |
+            model_audit.txt
+            recovered_model.py
           retention-days: 30
       - name: Publish model interface
         run: cat model_audit.txt >> "$GITHUB_STEP_SUMMARY"
