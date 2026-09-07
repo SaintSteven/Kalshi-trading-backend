@@ -1,0 +1,1 @@
+run_timestamp,season,week,game_id,kickoff_utc,market_ticker,series_ticker,prop_family,rule_id,player_key,player_name,side,target_horizon_minutes,target_time_utc,quote_time_utc,quote_age_seconds,yes_bid,yes_ask,entry_price,contracts,gross_cost,modeled_fee,net_cost,settlement_result,gross_pnl,net_pnl,status,exclusion_reason,thesis_key
