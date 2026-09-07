@@ -1,0 +1,28 @@
+name: NFL Receiving Inference Audit
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'research/nfl_receiving_v0_10/inspect_model.py'
+      - '.github/workflows/nfl-receiving-inference.yml'
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Inspect preserved model
+        run: python research/nfl_receiving_v0_10/inspect_model.py > model_audit.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nfl-receiving-inference-audit
+          path: model_audit.txt
+          retention-days: 30
+      - name: Publish model interface
+        run: cat model_audit.txt >> "$GITHUB_STEP_SUMMARY"
