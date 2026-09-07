@@ -4,6 +4,13 @@ on:
   workflow_dispatch:
   schedule:
     - cron: '*/10 * * * *'
+  push:
+    branches: [main]
+    paths:
+      - 'research/nfl_prospective_paper_v001/runner.py'
+      - 'research/nfl_prospective_paper_v001/prospective_rules.json'
+      - 'research/nfl_prospective_paper_v001/TRIGGER'
+      - '.github/workflows/nfl-prospective-paper-v001.yml'
 
 permissions:
   contents: write
