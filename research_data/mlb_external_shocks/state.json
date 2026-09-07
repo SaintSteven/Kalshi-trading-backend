@@ -31,7 +31,7 @@
       "home_lineup_confirmed": true,
       "home_probable_pitcher": "Logan Webb",
       "home_team": "San Francisco Giants",
-      "status": "Preview"
+      "status": "Live"
     },
     "823254": {
       "away_lineup": [
@@ -43,7 +43,7 @@
         "Daylen Lile",
         "Keibert Ruiz",
         "Jorbit Vivas",
-        "Jacob Young"
+        "Yohandy Morales"
       ],
       "away_lineup_confirmed": true,
       "away_probable_pitcher": "Jake Irvin",
@@ -58,13 +58,13 @@
         "Jackson Merrill",
         "Luis Campusano",
         "Dustin Harris",
-        "Xander Bogaerts",
-        "Ethan Salas"
+        "Jase Bowen",
+        "Xander Bogaerts"
       ],
       "home_lineup_confirmed": true,
       "home_probable_pitcher": "Nick Pivetta",
       "home_team": "San Diego Padres",
-      "status": "Live"
+      "status": "Final"
     },
     "823415": {
       "away_lineup": [
@@ -182,9 +182,19 @@
       "away_team": "Cincinnati Reds",
       "game_date": "2026-09-08T01:10:00Z",
       "game_pk": 823902,
-      "home_lineup": [],
-      "home_lineup_confirmed": false,
-      "home_probable_pitcher": null,
+      "home_lineup": [
+        "Shohei Ohtani",
+        "Freddie Freeman",
+        "Tommy Edman",
+        "Max Muncy",
+        "Teoscar Hern\u00e1ndez",
+        "Kyle Tucker",
+        "Hunter Feduccia",
+        "Alex Call",
+        "Alex Freeland"
+      ],
+      "home_lineup_confirmed": true,
+      "home_probable_pitcher": "Emmet Sheehan",
       "home_team": "Los Angeles Dodgers",
       "status": "Preview"
     },
@@ -252,7 +262,7 @@
       "home_lineup_confirmed": true,
       "home_probable_pitcher": "Troy Melton",
       "home_team": "Detroit Tigers",
-      "status": "Live"
+      "status": "Final"
     },
     "824715": {
       "away_lineup": [
@@ -321,18 +331,38 @@
       "status": "Final"
     },
     "824958": {
-      "away_lineup": [],
-      "away_lineup_confirmed": false,
+      "away_lineup": [
+        "Brett Bateman",
+        "George Springer",
+        "Vladimir Guerrero Jr.",
+        "Alejandro Kirk",
+        "Kazuma Okamoto",
+        "Nathan Lukes",
+        "Ernie Clement",
+        "Andr\u00e9s Gim\u00e9nez",
+        "Myles Straw"
+      ],
+      "away_lineup_confirmed": true,
       "away_probable_pitcher": "Dylan Cease",
       "away_team": "Toronto Blue Jays",
       "game_date": "2026-09-08T02:05:00Z",
       "game_pk": 824958,
-      "home_lineup": [],
-      "home_lineup_confirmed": false,
+      "home_lineup": [
+        "Henry Bolte",
+        "Jeff McNeil",
+        "Zack Gelof",
+        "Lawrence Butler",
+        "Carlos Cortes",
+        "Max Muncy",
+        "Donovan Walton",
+        "Alika Williams",
+        "Jonah Heim"
+      ],
+      "home_lineup_confirmed": true,
       "home_probable_pitcher": "Jacob Lopez",
       "home_team": "Athletics",
       "status": "Preview"
     }
   },
-  "last_run_at": "2026-09-07T21:39:08.357107Z"
+  "last_run_at": "2026-09-07T23:45:27.451963Z"
 }
