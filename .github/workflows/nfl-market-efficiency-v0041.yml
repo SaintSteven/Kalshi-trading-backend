@@ -1,0 +1,29 @@
+name: NFL Market Efficiency v0.04.1 Coverage Audit
+on:
+  workflow_dispatch:
+  push:
+    branches: [nfl-market-efficiency-v0041-coverage-audit]
+    paths:
+      - 'research/nfl_market_efficiency_v0041/**'
+      - '.github/workflows/nfl-market-efficiency-v0041.yml'
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install pandas requests tabulate
+      - name: Audit archive and official season mapping
+        run: python research/nfl_market_efficiency_v0041/audit.py --out coverage_audit
+      - name: Require complete outputs
+        run: test -s coverage_audit/SUMMARY.md && test -s coverage_audit/market_inventory_audit.csv && test -s coverage_audit/archive_coverage.csv
+      - name: Write summary
+        run: cat coverage_audit/SUMMARY.md >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nfl-v0041-coverage-audit-${{ github.run_number }}
+          path: coverage_audit/
+          retention-days: 30
