@@ -6,6 +6,7 @@ on:
     branches: [mlb-market-efficiency-v001]
     paths:
       - '.github/workflows/mlb-market-efficiency-v001-recovery.yml'
+      - 'research/mlb_market_efficiency_v001/RECOVERY_TRIGGER'
 
 permissions:
   contents: read
