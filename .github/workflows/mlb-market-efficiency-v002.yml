@@ -1,0 +1,103 @@
+name: MLB Market Efficiency Scanner v0.02 Corrected
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [mlb-market-efficiency-v001]
+    paths:
+      - 'research/mlb_market_efficiency_v002/**'
+      - '.github/workflows/mlb-market-efficiency-v002.yml'
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    strategy:
+      fail-fast: false
+      max-parallel: 12
+      matrix:
+        series:
+          - KXMLBGAME
+          - KXMLBTOTAL
+          - KXMLBSPREAD
+          - KXMLBRFI
+          - KXMLBF5TOTAL
+          - KXMLBF5
+          - KXMLBF5SPREAD
+          - KXMLBKS
+          - KXMLBTEAMTOTAL
+          - KXMLBHIT
+          - KXMLBHR
+          - KXMLBHRR
+          - KXMLBTB
+          - KXMLBOUTS
+          - KXMLBRBI
+          - KXMLBHA
+          - KXMLBF3
+          - KXMLBF7
+          - KXMLBEXTRAS
+        period: [jul, aug]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install httpx
+      - name: Resolve date period
+        id: dates
+        shell: bash
+        run: |
+          if [ '${{ matrix.period }}' = 'jul' ]; then
+            echo 'start=2026-07-01' >> "$GITHUB_OUTPUT"
+            echo 'end=2026-07-31' >> "$GITHUB_OUTPUT"
+          else
+            echo 'start=2026-08-01' >> "$GITHUB_OUTPUT"
+            echo 'end=2026-08-31' >> "$GITHUB_OUTPUT"
+          fi
+      - name: Scan ${{ matrix.series }} ${{ matrix.period }}
+        run: |
+          python research/mlb_market_efficiency_v002/scanner.py \
+            --series '${{ matrix.series }}' \
+            --start '${{ steps.dates.outputs.start }}' \
+            --end '${{ steps.dates.outputs.end }}' \
+            --out output
+      - name: Require diagnostics
+        run: test -s output/coverage.json && test -s output/SHARD_DONE.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mlb-v002-${{ matrix.series }}-${{ matrix.period }}-${{ github.run_number }}
+          path: output/
+          retention-days: 14
+
+  aggregate:
+    needs: scan
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Download all successful scan artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: mlb-v002-*-${{ github.run_number }}
+          path: shard_artifacts
+          merge-multiple: false
+      - name: Aggregate and enforce coverage gate
+        run: python research/mlb_market_efficiency_v002/aggregate.py --root shard_artifacts --out aggregate_output
+      - name: Write summary
+        if: always()
+        run: |
+          if [ -s aggregate_output/SUMMARY.md ]; then cat aggregate_output/SUMMARY.md >> "$GITHUB_STEP_SUMMARY"; fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: mlb-market-efficiency-v002-audit-${{ github.run_number }}
+          path: aggregate_output/
+          retention-days: 30
