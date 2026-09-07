@@ -1,0 +1,6 @@
+updated_at,series_ticker,prop_family,fetch_ok,open_markets,mapped_markets,missing_game_map,missing_participant_key,error
+2026-09-07T12:03:37.314325+00:00,KXNFLRECYDS,receiving_yards,True,663,607,56,0,
+2026-09-07T12:03:37.314325+00:00,KXNFLREC,receptions,True,563,517,46,0,
+2026-09-07T12:03:37.314325+00:00,KXNFLRSHYDS,rushing_yards,True,445,416,29,0,
+2026-09-07T12:03:37.314325+00:00,KXNFLPASSYDS,passing_yards,True,252,244,8,0,
+2026-09-07T12:03:37.314325+00:00,KXNFLANYTD,player_tds,True,0,0,0,0,

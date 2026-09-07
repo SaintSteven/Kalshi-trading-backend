@@ -1,6 +1,6 @@
 # NFL Prospective Paper Scorecard v0.01
 
-Updated: 2026-09-07T07:34:18.045167+00:00
+Updated: 2026-09-07T12:03:59.324639+00:00
 
 **PAPER ONLY. Real-money execution is OFF. Rules remain frozen.**
 
