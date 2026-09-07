@@ -79,9 +79,19 @@
       "status": "Preview"
     },
     "824062": {
-      "away_lineup": [],
-      "away_lineup_confirmed": false,
-      "away_probable_pitcher": null,
+      "away_lineup": [
+        "Geraldo Perdomo",
+        "Ketel Marte",
+        "Gabriel Moreno",
+        "Nolan Arenado",
+        "Lourdes Gurriel Jr.",
+        "Ildemaro Vargas",
+        "Tim Tawa",
+        "Jordan Lawlar",
+        "Ryan Waldschmidt"
+      ],
+      "away_lineup_confirmed": true,
+      "away_probable_pitcher": "Derek Law",
       "away_team": "Arizona Diamondbacks",
       "game_date": "2026-09-07T18:10:00Z",
       "game_pk": 824062,
@@ -144,5 +154,5 @@
       "status": "Preview"
     }
   },
-  "last_run_at": "2026-09-07T07:26:52.794169Z"
+  "last_run_at": "2026-09-07T13:37:17.290006Z"
 }
