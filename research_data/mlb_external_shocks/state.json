@@ -46,8 +46,18 @@
       "away_team": "Houston Astros",
       "game_date": "2026-09-08T22:40:00Z",
       "game_pk": 823414,
-      "home_lineup": [],
-      "home_lineup_confirmed": false,
+      "home_lineup": [
+        "Kyle Schwarber",
+        "Trea Turner",
+        "Bryce Harper",
+        "Luis Arraez",
+        "Alec Bohm",
+        "Bryson Stott",
+        "Brandon Marsh",
+        "J.T. Realmuto",
+        "Justin Crawford"
+      ],
+      "home_lineup_confirmed": true,
       "home_probable_pitcher": "Andrew Painter",
       "home_team": "Philadelphia Phillies",
       "status": "Preview"
@@ -59,8 +69,18 @@
       "away_team": "Colorado Rockies",
       "game_date": "2026-09-08T23:05:00Z",
       "game_pk": 823500,
-      "home_lineup": [],
-      "home_lineup_confirmed": false,
+      "home_lineup": [
+        "Ben Rice",
+        "Cody Bellinger",
+        "Aaron Judge",
+        "Luis Garc\u00eda Jr.",
+        "Spencer Jones",
+        "Jazz Chisholm Jr.",
+        "George Lombard Jr.",
+        "Ryan McMahon",
+        "Austin Wells"
+      ],
+      "home_lineup_confirmed": true,
       "home_probable_pitcher": "Cam Schlittler",
       "home_team": "New York Yankees",
       "status": "Preview"
@@ -85,8 +105,18 @@
       "away_team": "New York Mets",
       "game_date": "2026-09-08T22:40:00Z",
       "game_pk": 823821,
-      "home_lineup": [],
-      "home_lineup_confirmed": false,
+      "home_lineup": [
+        "Heriberto Hern\u00e1ndez",
+        "Otto Lopez",
+        "Agust\u00edn Ram\u00edrez",
+        "Javier Sanoja",
+        "Esteury Ruiz",
+        "Deyvison De Los Santos",
+        "Jakob Marsee",
+        "Jared Serna",
+        "Brian Navarreto"
+      ],
+      "home_lineup_confirmed": true,
       "home_probable_pitcher": "Sandy Alcantara",
       "home_team": "Miami Marlins",
       "status": "Preview"
@@ -111,21 +141,51 @@
       "away_team": "Arizona Diamondbacks",
       "game_date": "2026-09-08T23:40:00Z",
       "game_pk": 824063,
-      "home_lineup": [],
-      "home_lineup_confirmed": false,
+      "home_lineup": [
+        "Carter Jensen",
+        "Bobby Witt Jr.",
+        "Vinnie Pasquantino",
+        "Salvador Perez",
+        "Michael Massey",
+        "Nick Loftin",
+        "Isaac Collins",
+        "Matthew Lugo",
+        "Kyle Isbel"
+      ],
+      "home_lineup_confirmed": true,
       "home_probable_pitcher": "Michael Wacha",
       "home_team": "Kansas City Royals",
       "status": "Preview"
     },
     "824228": {
-      "away_lineup": [],
-      "away_lineup_confirmed": false,
+      "away_lineup": [
+        "Luke Keaschall",
+        "Brooks Lee",
+        "Kody Clemens",
+        "Ryan Jeffers",
+        "Josh Bell",
+        "Royce Lewis",
+        "Trevor Larnach",
+        "Kaelen Culpepper",
+        "Walker Jenkins"
+      ],
+      "away_lineup_confirmed": true,
       "away_probable_pitcher": "Dean Kremer",
       "away_team": "Minnesota Twins",
       "game_date": "2026-09-08T22:40:00Z",
       "game_pk": 824228,
-      "home_lineup": [],
-      "home_lineup_confirmed": false,
+      "home_lineup": [
+        "Kevin McGonigle",
+        "Gleyber Torres",
+        "Colt Keith",
+        "Riley Greene",
+        "Eduardo Valencia",
+        "Brett Callahan",
+        "Max Clark",
+        "Hao-Yu Lee",
+        "Zach McKinstry"
+      ],
+      "home_lineup_confirmed": true,
       "home_probable_pitcher": "Drew Anderson",
       "home_team": "Detroit Tigers",
       "status": "Preview"
@@ -144,27 +204,67 @@
       "status": "Preview"
     },
     "824714": {
-      "away_lineup": [],
-      "away_lineup_confirmed": false,
+      "away_lineup": [
+        "Zach Neto",
+        "Mike Trout",
+        "Jose Siri",
+        "Vaughn Grissom",
+        "Mois\u00e9s Ballesteros",
+        "Christian Moore",
+        "Kyren Paris",
+        "Denzer Guzman",
+        "Travis d'Arnaud"
+      ],
+      "away_lineup_confirmed": true,
       "away_probable_pitcher": "Reid Detmers",
       "away_team": "Los Angeles Angels",
       "game_date": "2026-09-08T22:45:00Z",
       "game_pk": 824714,
-      "home_lineup": [],
-      "home_lineup_confirmed": false,
+      "home_lineup": [
+        "Roman Anthony",
+        "Jahmai Jones",
+        "Wilyer Abreu",
+        "Trevor Story",
+        "Nick Sogard",
+        "Caleb Durbin",
+        "Andruw Monasterio",
+        "Eli White",
+        "Connor Wong"
+      ],
+      "home_lineup_confirmed": true,
       "home_probable_pitcher": "Patrick Sandoval",
       "home_team": "Boston Red Sox",
       "status": "Preview"
     },
     "824792": {
-      "away_lineup": [],
-      "away_lineup_confirmed": false,
+      "away_lineup": [
+        "Steven Kwan",
+        "Travis Bazzana",
+        "Jos\u00e9 Ram\u00edrez",
+        "Jo Adell",
+        "Nathaniel Lowe",
+        "Angel Mart\u00ednez",
+        "Patrick Bailey",
+        "Petey Halpin",
+        "Brayan Rocchio"
+      ],
+      "away_lineup_confirmed": true,
       "away_probable_pitcher": "Tanner Bibee",
       "away_team": "Cleveland Guardians",
       "game_date": "2026-09-08T22:35:00Z",
       "game_pk": 824792,
-      "home_lineup": [],
-      "home_lineup_confirmed": false,
+      "home_lineup": [
+        "Jackson Holliday",
+        "Pete Alonso",
+        "Gunnar Henderson",
+        "Coby Mayo",
+        "Samuel Basallo",
+        "Dylan Beavers",
+        "Blaze Alexander",
+        "Colton Cowser",
+        "Leody Taveras"
+      ],
+      "home_lineup_confirmed": true,
       "home_probable_pitcher": "Brandon Young",
       "home_team": "Baltimore Orioles",
       "status": "Preview"
@@ -176,8 +276,18 @@
       "away_team": "Tampa Bay Rays",
       "game_date": "2026-09-08T23:15:00Z",
       "game_pk": 824875,
-      "home_lineup": [],
-      "home_lineup_confirmed": false,
+      "home_lineup": [
+        "Michael Harris II",
+        "Ronald Acu\u00f1a Jr.",
+        "Matt Olson",
+        "Drake Baldwin",
+        "Mauricio Dub\u00f3n",
+        "Ozzie Albies",
+        "Austin Riley",
+        "Mike Yastrzemski",
+        "Sean Murphy"
+      ],
+      "home_lineup_confirmed": true,
       "home_probable_pitcher": "AJ Smith-Shawver",
       "home_team": "Atlanta Braves",
       "status": "Preview"
@@ -196,5 +306,5 @@
       "status": "Preview"
     }
   },
-  "last_run_at": "2026-09-08T16:39:58.489399Z"
+  "last_run_at": "2026-09-08T19:35:17.999898Z"
 }
