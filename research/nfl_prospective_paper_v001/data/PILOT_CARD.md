@@ -1,6 +1,6 @@
 # NFL Week 1 Pilot Card
 
-Generated: 2026-09-08T11:25:01.383074+00:00
+Generated: 2026-09-08T15:14:53.318171+00:00
 
 **Mode: PAPER ONLY / manual pilot. No real-money orders are generated.**
 
@@ -15,20 +15,20 @@ No receiving-yards entries are READY at this moment. The frozen protocol require
 
 ## Current watchlist (not entries)
 
-| game    | player_name                             |   threshold |   no_ask |   fair_no |     no_edge | kickoff_utc               | action       |
-|:--------|:----------------------------------------|------------:|---------:|----------:|------------:|:--------------------------|:-------------|
-| MIA@LV  | Brock Bowers: 60+ receiving yards       |          60 |     0.44 |  0.702833 |  0.262833   | 2026-09-13T20:25:00+00:00 | WAIT_FOR_T30 |
-| GB@MIN  | Justin Jefferson: 50+ receiving yards   |          50 |     0.41 |  0.583836 |  0.173836   | 2026-09-13T20:25:00+00:00 | WAIT_FOR_T30 |
-| WAS@PHI | DeVonta Smith: 50+ receiving yards      |          50 |     0.47 |  0.616239 |  0.146239   | 2026-09-13T20:25:00+00:00 | WAIT_FOR_T30 |
-| DAL@NYG | CeeDee Lamb: 60+ receiving yards        |          60 |     0.48 |  0.546322 |  0.0663225  | 2026-09-14T00:20:00+00:00 | WAIT_FOR_T30 |
-| ARI@LAC | Ladd McConkey: 40+ receiving yards      |          40 |     0.48 |  0.538033 |  0.0580332  | 2026-09-13T20:25:00+00:00 | WAIT_FOR_T30 |
-| BUF@HOU | Nico Collins: 50+ receiving yards       |          50 |     0.44 |  0.479382 |  0.0393824  | 2026-09-13T17:00:00+00:00 | WAIT_FOR_T30 |
-| SF@LAR  | Davante Adams: 40+ receiving yards      |          40 |     0.42 |  0.414478 | -0.00552202 | 2026-09-11T00:35:00+00:00 | WAIT_FOR_T30 |
-| GB@MIN  | Christian Watson: 40+ receiving yards   |          40 |     0.48 |  0.462242 | -0.0177582  | 2026-09-13T20:25:00+00:00 | WAIT_FOR_T30 |
-| DAL@NYG | George Pickens: 50+ receiving yards     |          50 |     0.45 |  0.412842 | -0.0371579  | 2026-09-14T00:20:00+00:00 | WAIT_FOR_T30 |
-| NE@SEA  | Jaxon Smith-Njigba: 70+ receiving yards |          70 |     0.44 |  0.348696 | -0.0913036  | 2026-09-10T00:20:00+00:00 | WAIT_FOR_T30 |
-| NYJ@TEN | Garrett Wilson: 40+ receiving yards     |          40 |     0.41 |  0.282272 | -0.127728   | 2026-09-13T17:00:00+00:00 | WAIT_FOR_T30 |
-| ATL@PIT | Drake London: 50+ receiving yards       |          50 |     0.49 |  0.353184 | -0.136816   | 2026-09-13T17:00:00+00:00 | WAIT_FOR_T30 |
+| game    | player_name                             |   threshold |   no_ask |   fair_no |    no_edge | kickoff_utc               | action       |
+|:--------|:----------------------------------------|------------:|---------:|----------:|-----------:|:--------------------------|:-------------|
+| MIA@LV  | Brock Bowers: 60+ receiving yards       |          60 |     0.44 |  0.697974 |  0.257974  | 2026-09-13T20:25:00+00:00 | WAIT_FOR_T30 |
+| GB@MIN  | Justin Jefferson: 50+ receiving yards   |          50 |     0.41 |  0.586828 |  0.176828  | 2026-09-13T20:25:00+00:00 | WAIT_FOR_T30 |
+| WAS@PHI | DeVonta Smith: 50+ receiving yards      |          50 |     0.47 |  0.613771 |  0.143771  | 2026-09-13T20:25:00+00:00 | WAIT_FOR_T30 |
+| ARI@LAC | Ladd McConkey: 40+ receiving yards      |          40 |     0.48 |  0.542443 |  0.0624432 | 2026-09-13T20:25:00+00:00 | WAIT_FOR_T30 |
+| DAL@NYG | CeeDee Lamb: 60+ receiving yards        |          60 |     0.48 |  0.539445 |  0.0594446 | 2026-09-14T00:20:00+00:00 | WAIT_FOR_T30 |
+| BUF@HOU | Nico Collins: 50+ receiving yards       |          50 |     0.44 |  0.476174 |  0.036174  | 2026-09-13T17:00:00+00:00 | WAIT_FOR_T30 |
+| SF@LAR  | Davante Adams: 40+ receiving yards      |          40 |     0.42 |  0.406835 | -0.0131649 | 2026-09-11T00:35:00+00:00 | WAIT_FOR_T30 |
+| GB@MIN  | Christian Watson: 40+ receiving yards   |          40 |     0.48 |  0.459019 | -0.0209805 | 2026-09-13T20:25:00+00:00 | WAIT_FOR_T30 |
+| DAL@NYG | George Pickens: 50+ receiving yards     |          50 |     0.45 |  0.417021 | -0.0329793 | 2026-09-14T00:20:00+00:00 | WAIT_FOR_T30 |
+| NE@SEA  | Jaxon Smith-Njigba: 70+ receiving yards |          70 |     0.41 |  0.355237 | -0.0547633 | 2026-09-10T00:20:00+00:00 | WAIT_FOR_T30 |
+| NE@SEA  | Jaxon Smith-Njigba: 80+ receiving yards |          80 |     0.49 |  0.430783 | -0.0592166 | 2026-09-10T00:20:00+00:00 | WAIT_FOR_T30 |
+| CHI@CAR | Colston Loveland: 50+ receiving yards   |          50 |     0.49 |  0.421414 | -0.0685863 | 2026-09-13T17:00:00+00:00 | WAIT_FOR_T30 |
 
 ## Guardrail
 
