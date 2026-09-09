@@ -118,8 +118,18 @@
       "status": "Preview"
     },
     "824226": {
-      "away_lineup": [],
-      "away_lineup_confirmed": false,
+      "away_lineup": [
+        "Luke Keaschall",
+        "Brooks Lee",
+        "Kody Clemens",
+        "Josh Bell",
+        "Kaelen Culpepper",
+        "Trevor Larnach",
+        "Royce Lewis",
+        "Victor Caratini",
+        "Walker Jenkins"
+      ],
+      "away_lineup_confirmed": true,
       "away_probable_pitcher": "Zebby Matthews",
       "away_team": "Minnesota Twins",
       "game_date": "2026-09-09T17:10:00Z",
@@ -196,5 +206,5 @@
       "status": "Preview"
     }
   },
-  "last_run_at": "2026-09-09T09:12:07.930711Z"
+  "last_run_at": "2026-09-09T13:42:58.013827Z"
 }
