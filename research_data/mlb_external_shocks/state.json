@@ -185,7 +185,7 @@
     "824956": {
       "away_lineup": [],
       "away_lineup_confirmed": false,
-      "away_probable_pitcher": null,
+      "away_probable_pitcher": "Braydon Fisher",
       "away_team": "Toronto Blue Jays",
       "game_date": "2026-09-09T19:05:00Z",
       "game_pk": 824956,
@@ -196,5 +196,5 @@
       "status": "Preview"
     }
   },
-  "last_run_at": "2026-09-09T04:41:55.851597Z"
+  "last_run_at": "2026-09-09T09:12:07.930711Z"
 }
