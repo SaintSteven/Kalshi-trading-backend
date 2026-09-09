@@ -107,7 +107,7 @@
     "824064": {
       "away_lineup": [],
       "away_lineup_confirmed": false,
-      "away_probable_pitcher": null,
+      "away_probable_pitcher": "Zac Gallen",
       "away_team": "Arizona Diamondbacks",
       "game_date": "2026-09-09T23:40:00Z",
       "game_pk": 824064,
@@ -133,7 +133,7 @@
     "824549": {
       "away_lineup": [],
       "away_lineup_confirmed": false,
-      "away_probable_pitcher": null,
+      "away_probable_pitcher": "Lake Bachar",
       "away_team": "Pittsburgh Pirates",
       "game_date": "2026-09-09T23:40:00Z",
       "game_pk": 824549,
@@ -191,10 +191,10 @@
       "game_pk": 824956,
       "home_lineup": [],
       "home_lineup_confirmed": false,
-      "home_probable_pitcher": null,
+      "home_probable_pitcher": "Brady Basso",
       "home_team": "Athletics",
       "status": "Preview"
     }
   },
-  "last_run_at": "2026-09-09T00:12:04.280337Z"
+  "last_run_at": "2026-09-09T04:41:55.851597Z"
 }
