@@ -59,12 +59,22 @@
       "away_team": "Tampa Bay Rays",
       "game_date": "2026-09-10T16:15:00Z",
       "game_pk": 824872,
-      "home_lineup": [],
-      "home_lineup_confirmed": false,
+      "home_lineup": [
+        "Drake Baldwin",
+        "Ronald Acu\u00f1a Jr.",
+        "Matt Olson",
+        "Michael Harris II",
+        "Mauricio Dub\u00f3n",
+        "Lane Thomas",
+        "Austin Riley",
+        "Brewer Hicklen",
+        "Ha-Seong Kim"
+      ],
+      "home_lineup_confirmed": true,
       "home_probable_pitcher": "Mart\u00edn P\u00e9rez",
       "home_team": "Atlanta Braves",
       "status": "Preview"
     }
   },
-  "last_run_at": "2026-09-10T09:20:13.054698Z"
+  "last_run_at": "2026-09-10T13:44:15.756130Z"
 }
