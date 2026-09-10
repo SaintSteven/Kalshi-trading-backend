@@ -14,17 +14,37 @@
       "status": "Preview"
     },
     "823413": {
-      "away_lineup": [],
-      "away_lineup_confirmed": false,
+      "away_lineup": [
+        "Jeremy Pe\u00f1a",
+        "Yordan Alvarez",
+        "Isaac Paredes",
+        "Jose Altuve",
+        "Daulton Varsho",
+        "Christian Walker",
+        "Cam Smith",
+        "Taylor Trammell",
+        "Christian V\u00e1zquez"
+      ],
+      "away_lineup_confirmed": true,
       "away_probable_pitcher": "Cristian Javier",
       "away_team": "Houston Astros",
       "game_date": "2026-09-10T17:05:00Z",
       "game_pk": 823413,
-      "home_lineup": [],
-      "home_lineup_confirmed": false,
+      "home_lineup": [
+        "Kyle Schwarber",
+        "Trea Turner",
+        "Bryce Harper",
+        "Luis Arraez",
+        "Alec Bohm",
+        "Bryson Stott",
+        "Brandon Marsh",
+        "Justin Crawford",
+        "Rafael March\u00e1n"
+      ],
+      "home_lineup_confirmed": true,
       "home_probable_pitcher": "Zack Wheeler",
       "home_team": "Philadelphia Phillies",
-      "status": "Preview"
+      "status": "Live"
     },
     "823499": {
       "away_lineup": [],
@@ -53,8 +73,18 @@
       "status": "Preview"
     },
     "824872": {
-      "away_lineup": [],
-      "away_lineup_confirmed": false,
+      "away_lineup": [
+        "Yandy D\u00edaz",
+        "Ryan Vilade",
+        "Junior Caminero",
+        "Jonny DeLuca",
+        "Chandler Simpson",
+        "Nick Madrigal",
+        "Jorge Mateo",
+        "Nick Fortes",
+        "Cedric Mullins"
+      ],
+      "away_lineup_confirmed": true,
       "away_probable_pitcher": "Nick Martinez",
       "away_team": "Tampa Bay Rays",
       "game_date": "2026-09-10T16:15:00Z",
@@ -65,7 +95,7 @@
         "Matt Olson",
         "Michael Harris II",
         "Mauricio Dub\u00f3n",
-        "Lane Thomas",
+        "Dominic Smith",
         "Austin Riley",
         "Brewer Hicklen",
         "Ha-Seong Kim"
@@ -73,8 +103,8 @@
       "home_lineup_confirmed": true,
       "home_probable_pitcher": "Mart\u00edn P\u00e9rez",
       "home_team": "Atlanta Braves",
-      "status": "Preview"
+      "status": "Live"
     }
   },
-  "last_run_at": "2026-09-10T13:44:15.756130Z"
+  "last_run_at": "2026-09-10T17:15:01.660933Z"
 }
