@@ -3,14 +3,14 @@
     "823088": {
       "away_lineup": [
         "Joc Pederson",
+        "Justin Foscue",
         "Corey Seager",
         "Ezequiel Duran",
         "Brandon Nimmo",
         "Wyatt Langford",
         "Evan Carter",
         "Jake Burger",
-        "Nicky Lopez",
-        "Danny Jansen"
+        "Nicky Lopez"
       ],
       "away_lineup_confirmed": true,
       "away_probable_pitcher": "Jacob deGrom",
@@ -31,7 +31,7 @@
       "home_lineup_confirmed": true,
       "home_probable_pitcher": "Logan Gilbert",
       "home_team": "Seattle Mariners",
-      "status": "Live"
+      "status": "Final"
     },
     "823413": {
       "away_lineup": [
@@ -97,7 +97,7 @@
       "home_lineup_confirmed": true,
       "home_probable_pitcher": "Max Fried",
       "home_team": "New York Yankees",
-      "status": "Preview"
+      "status": "Live"
     },
     "824550": {
       "away_lineup": [
@@ -130,7 +130,7 @@
       "home_lineup_confirmed": true,
       "home_probable_pitcher": "Hagen Smith",
       "home_team": "Chicago White Sox",
-      "status": "Preview"
+      "status": "Live"
     },
     "824872": {
       "away_lineup": [
@@ -166,5 +166,5 @@
       "status": "Final"
     }
   },
-  "last_run_at": "2026-09-10T21:55:49.871394Z"
+  "last_run_at": "2026-09-10T23:39:47.333640Z"
 }
