@@ -48,7 +48,7 @@
       "game_pk": 824550,
       "home_lineup": [],
       "home_lineup_confirmed": false,
-      "home_probable_pitcher": null,
+      "home_probable_pitcher": "Hagen Smith",
       "home_team": "Chicago White Sox",
       "status": "Preview"
     },
@@ -66,5 +66,5 @@
       "status": "Preview"
     }
   },
-  "last_run_at": "2026-09-10T00:14:35.318106Z"
+  "last_run_at": "2026-09-10T04:47:07.305406Z"
 }
