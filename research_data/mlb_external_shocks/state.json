@@ -67,8 +67,18 @@
       "status": "Final"
     },
     "823499": {
-      "away_lineup": [],
-      "away_lineup_confirmed": false,
+      "away_lineup": [
+        "Jake McCarthy",
+        "Connor Norby",
+        "Hunter Goodman",
+        "TJ Rumfield",
+        "Cole Carrigg",
+        "Kyle Karros",
+        "Adael Amador",
+        "Jordan Beck",
+        "Ezequiel Tovar"
+      ],
+      "away_lineup_confirmed": true,
       "away_probable_pitcher": "Ryan Feltner",
       "away_team": "Colorado Rockies",
       "game_date": "2026-09-10T23:05:00Z",
@@ -90,14 +100,34 @@
       "status": "Preview"
     },
     "824550": {
-      "away_lineup": [],
-      "away_lineup_confirmed": false,
+      "away_lineup": [
+        "Konnor Griffin",
+        "Oneil Cruz",
+        "Bryan Reynolds",
+        "Nick Gonzales",
+        "Brandon Lowe",
+        "Rafael Flores Jr.",
+        "Jake Mangum",
+        "Spencer Horwitz",
+        "Jared Triolo"
+      ],
+      "away_lineup_confirmed": true,
       "away_probable_pitcher": "Jared Jones",
       "away_team": "Pittsburgh Pirates",
       "game_date": "2026-09-10T23:40:00Z",
       "game_pk": 824550,
-      "home_lineup": [],
-      "home_lineup_confirmed": false,
+      "home_lineup": [
+        "Sam Antonacci",
+        "Miguel Vargas",
+        "Munetaka Murakami",
+        "Andrew Benintendi",
+        "Colson Montgomery",
+        "Braden Montgomery",
+        "Chase Meidroth",
+        "Tristan Peters",
+        "Jake Rogers"
+      ],
+      "home_lineup_confirmed": true,
       "home_probable_pitcher": "Hagen Smith",
       "home_team": "Chicago White Sox",
       "status": "Preview"
@@ -136,5 +166,5 @@
       "status": "Final"
     }
   },
-  "last_run_at": "2026-09-10T19:44:32.402274Z"
+  "last_run_at": "2026-09-10T21:55:49.871394Z"
 }
