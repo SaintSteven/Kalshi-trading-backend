@@ -1,6 +1,6 @@
 # NFL Week 1 Pilot Card
 
-Generated: 2026-09-08T22:28:31.814145+00:00
+Generated: 2026-09-10T00:28:25.225090+00:00
 
 **Mode: PAPER ONLY / manual pilot. No real-money orders are generated.**
 
@@ -17,18 +17,18 @@ No receiving-yards entries are READY at this moment. The frozen protocol require
 
 | game    | player_name                              |   threshold |   no_ask |   fair_no |   no_edge | kickoff_utc               | action       |
 |:--------|:-----------------------------------------|------------:|---------:|----------:|----------:|:--------------------------|:-------------|
-| MIA@LV  | Brock Bowers: 60+ receiving yards        |          60 |     0.44 |  0.694476 | 0.254476  | 2026-09-13T20:25:00+00:00 | WAIT_FOR_T30 |
-| GB@MIN  | Justin Jefferson: 60+ receiving yards    |          60 |     0.49 |  0.682632 | 0.192632  | 2026-09-13T20:25:00+00:00 | WAIT_FOR_T30 |
-| GB@MIN  | Justin Jefferson: 50+ receiving yards    |          50 |     0.4  |  0.577146 | 0.177146  | 2026-09-13T20:25:00+00:00 | WAIT_FOR_T30 |
+| GB@MIN  | Jordan Addison: 40+ receiving yards      |          40 |     0.49 |  0.759889 | 0.269889  | 2026-09-13T20:25:00+00:00 | WAIT_FOR_T30 |
+| MIA@LV  | Brock Bowers: 60+ receiving yards        |          60 |     0.47 |  0.69914  | 0.22914   | 2026-09-13T20:25:00+00:00 | WAIT_FOR_T30 |
+| GB@MIN  | Justin Jefferson: 60+ receiving yards    |          60 |     0.48 |  0.68923  | 0.20923   | 2026-09-13T20:25:00+00:00 | WAIT_FOR_T30 |
+| ARI@LAC | Ladd McConkey: 50+ receiving yards       |          50 |     0.46 |  0.646603 | 0.186603  | 2026-09-13T20:25:00+00:00 | WAIT_FOR_T30 |
+| MIA@LV  | Brock Bowers: 50+ receiving yards        |          50 |     0.41 |  0.581943 | 0.171943  | 2026-09-13T20:25:00+00:00 | WAIT_FOR_T30 |
 | WAS@PHI | DeVonta Smith: 50+ receiving yards       |          50 |     0.47 |  0.617825 | 0.147825  | 2026-09-13T20:25:00+00:00 | WAIT_FOR_T30 |
-| CHI@CAR | Tetairoa McMillan: 50+ receiving yards   |          50 |     0.44 |  0.55901  | 0.11901   | 2026-09-13T17:00:00+00:00 | WAIT_FOR_T30 |
-| BUF@HOU | Nico Collins: 60+ receiving yards        |          60 |     0.45 |  0.568872 | 0.118872  | 2026-09-13T17:00:00+00:00 | WAIT_FOR_T30 |
-| ARI@LAC | Marvin Harrison Jr.: 40+ receiving yards |          40 |     0.42 |  0.538562 | 0.118562  | 2026-09-13T20:25:00+00:00 | WAIT_FOR_T30 |
-| MIA@LV  | Brock Bowers: 50+ receiving yards        |          50 |     0.47 |  0.585434 | 0.115434  | 2026-09-13T20:25:00+00:00 | WAIT_FOR_T30 |
-| DAL@NYG | CeeDee Lamb: 60+ receiving yards         |          60 |     0.47 |  0.546322 | 0.0763225 | 2026-09-14T00:20:00+00:00 | WAIT_FOR_T30 |
-| ARI@LAC | Ladd McConkey: 40+ receiving yards       |          40 |     0.47 |  0.544736 | 0.0747356 | 2026-09-13T20:25:00+00:00 | WAIT_FOR_T30 |
-| BUF@HOU | Nico Collins: 50+ receiving yards        |          50 |     0.44 |  0.483478 | 0.0434785 | 2026-09-13T17:00:00+00:00 | WAIT_FOR_T30 |
-| CHI@CAR | Tetairoa McMillan: 40+ receiving yards   |          40 |     0.43 |  0.452387 | 0.0223867 | 2026-09-13T17:00:00+00:00 | WAIT_FOR_T30 |
+| TB@CIN  | Chris Godwin Jr.: 40+ receiving yards    |          40 |     0.47 |  0.603554 | 0.133554  | 2026-09-13T17:00:00+00:00 | WAIT_FOR_T30 |
+| CHI@CAR | Tetairoa McMillan: 50+ receiving yards   |          50 |     0.44 |  0.549319 | 0.109319  | 2026-09-13T17:00:00+00:00 | WAIT_FOR_T30 |
+| ARI@LAC | Marvin Harrison Jr.: 40+ receiving yards |          40 |     0.42 |  0.525144 | 0.105144  | 2026-09-13T20:25:00+00:00 | WAIT_FOR_T30 |
+| DAL@NYG | CeeDee Lamb: 60+ receiving yards         |          60 |     0.44 |  0.543854 | 0.103854  | 2026-09-14T00:20:00+00:00 | WAIT_FOR_T30 |
+| ARI@LAC | Ladd McConkey: 40+ receiving yards       |          40 |     0.46 |  0.544736 | 0.0847356 | 2026-09-13T20:25:00+00:00 | WAIT_FOR_T30 |
+| BUF@HOU | Nico Collins: 50+ receiving yards        |          50 |     0.42 |  0.484724 | 0.0647244 | 2026-09-13T17:00:00+00:00 | WAIT_FOR_T30 |
 
 ## Guardrail
 
