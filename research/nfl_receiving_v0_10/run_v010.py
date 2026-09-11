@@ -2,11 +2,11 @@ from pathlib import Path
 import base64, zlib, runpy, sys, tempfile
 
 HERE = Path(__file__).resolve().parent
-parts = sorted((HERE / "payload").glob("v010_*.part"))
+parts = sorted((HERE / "payload").glob("b64_*.part"))
 if not parts:
-    raise SystemExit("NFL v0.10 payload parts are missing")
-blob = "".join(p.read_text() for p in parts)
-source = zlib.decompress(base64.b85decode(blob.encode()))
+    raise SystemExit("NFL v0.10 base64 payload parts are missing")
+blob = "".join(p.read_text().strip() for p in parts)
+source = zlib.decompress(base64.b64decode(blob.encode("ascii")))
 with tempfile.TemporaryDirectory() as td:
     script = Path(td) / "nfl_receiving_backtest_v0_10.py"
     script.write_bytes(source)
