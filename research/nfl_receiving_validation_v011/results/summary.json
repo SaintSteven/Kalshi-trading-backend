@@ -1,0 +1,6 @@
+{
+  "status": "RAW_ROW_DATA_NOT_FOUND",
+  "source": null,
+  "mapping": {},
+  "note": "No discoverable row-level probability+outcome CSV; see csv_inventory.csv."
+}
