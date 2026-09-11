@@ -19,7 +19,9 @@ jobs:
           python-version: '3.12'
       - run: pip install pandas numpy requests
       - name: Run frozen v0.10 historical backtest
+        shell: bash
         run: |
+          set -o pipefail
           rm -rf nfl_receiving_backtest_v0_10_output
           mkdir -p nfl_receiving_backtest_v0_10_output
           python research/nfl_receiving_v0_10/run_v010.py \
