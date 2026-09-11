@@ -1,6 +1,24 @@
 {
-  "status": "RAW_ROW_DATA_NOT_FOUND",
-  "source": null,
-  "mapping": {},
-  "note": "No discoverable row-level probability+outcome CSV; see csv_inventory.csv."
+  "status": "OK",
+  "source": "nfl_receiving_v0_10_market_level_backtest.csv",
+  "mapping": {
+    "prob": "fair_probability",
+    "threshold": "threshold",
+    "actual": "actual_receiving_yards",
+    "outcome": null,
+    "yes_price": null,
+    "no_price": null,
+    "player": "player",
+    "game": null,
+    "team": "team",
+    "season": "season",
+    "week": "week",
+    "position": "position"
+  },
+  "rows": 1887,
+  "brier": 0.2889898239072914,
+  "log_loss": 0.8013396474413037,
+  "mean_pred": 0.5407036989396432,
+  "actual_rate": 0.3820879703232644,
+  "strategy_comparison_available": false
 }
