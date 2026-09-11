@@ -133,7 +133,7 @@
     "824631": {
       "away_lineup": [],
       "away_lineup_confirmed": false,
-      "away_probable_pitcher": null,
+      "away_probable_pitcher": "Wilber Dotel",
       "away_team": "Pittsburgh Pirates",
       "game_date": "2026-09-11T18:20:00Z",
       "game_pk": 824631,
@@ -196,5 +196,5 @@
       "status": "Preview"
     }
   },
-  "last_run_at": "2026-09-11T01:28:25.427130Z"
+  "last_run_at": "2026-09-11T06:29:21.296004Z"
 }
