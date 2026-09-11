@@ -131,17 +131,37 @@
       "status": "Preview"
     },
     "824631": {
-      "away_lineup": [],
-      "away_lineup_confirmed": false,
+      "away_lineup": [
+        "Konnor Griffin",
+        "Oneil Cruz",
+        "Bryan Reynolds",
+        "Rafael Flores Jr.",
+        "Esmerlyn Valdez",
+        "Nick Gonzales",
+        "Jake Mangum",
+        "Jared Triolo",
+        "Henry Davis"
+      ],
+      "away_lineup_confirmed": true,
       "away_probable_pitcher": "Wilber Dotel",
       "away_team": "Pittsburgh Pirates",
       "game_date": "2026-09-11T18:20:00Z",
       "game_pk": 824631,
-      "home_lineup": [],
-      "home_lineup_confirmed": false,
+      "home_lineup": [
+        "Pete Crow-Armstrong",
+        "Seiya Suzuki",
+        "Michael Busch",
+        "Alex Bregman",
+        "Ian Happ",
+        "Nico Hoerner",
+        "Michael Conforto",
+        "Pedro Ram\u00edrez",
+        "Carson Kelly"
+      ],
+      "home_lineup_confirmed": true,
       "home_probable_pitcher": "Shota Imanaga",
       "home_team": "Chicago Cubs",
-      "status": "Preview"
+      "status": "Live"
     },
     "824711": {
       "away_lineup": [],
@@ -185,7 +205,7 @@
     "825036": {
       "away_lineup": [],
       "away_lineup_confirmed": false,
-      "away_probable_pitcher": null,
+      "away_probable_pitcher": "MacKenzie Gore",
       "away_team": "Texas Rangers",
       "game_date": "2026-09-12T01:40:00Z",
       "game_pk": 825036,
@@ -196,5 +216,5 @@
       "status": "Preview"
     }
   },
-  "last_run_at": "2026-09-11T15:13:22.410585Z"
+  "last_run_at": "2026-09-11T18:34:39.699894Z"
 }
