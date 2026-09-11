@@ -1,0 +1,42 @@
+name: NFL Receiving v0.11 Validation Audit
+on:
+  push:
+    paths:
+      - research/nfl_receiving_validation_v011/TRIGGER
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install pandas numpy requests
+      - name: Run frozen v0.10 historical backtest
+        run: |
+          rm -rf nfl_receiving_backtest_v0_10_output
+          mkdir -p nfl_receiving_backtest_v0_10_output
+          python research/nfl_receiving_v0_10/run_v010.py \
+            --validation-seasons 2024 2025 \
+            --simulations 12000 \
+            --output-dir nfl_receiving_backtest_v0_10_output | tee nfl_receiving_backtest_v0_10_output/run.log
+      - name: Run v0.11 audit
+        run: |
+          rm -rf research/nfl_receiving_validation_v011/results
+          python research/nfl_receiving_validation_v011/analyze_validation.py \
+            nfl_receiving_backtest_v0_10_output \
+            research/nfl_receiving_validation_v011/results
+      - name: Commit audit results
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add research/nfl_receiving_validation_v011/results
+          git diff --cached --quiet || git commit -m "NFL v0.11 historical validation results"
+          git push
