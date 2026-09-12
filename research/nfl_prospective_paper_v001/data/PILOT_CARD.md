@@ -1,6 +1,6 @@
 # NFL Week 1 Pilot Card
 
-Generated: 2026-09-12T01:16:53.515006+00:00
+Generated: 2026-09-12T05:56:23.987069+00:00
 
 **Mode: PAPER ONLY / manual pilot. No real-money orders are generated.**
 
@@ -15,20 +15,20 @@ No receiving-yards entries are READY at this moment. The frozen protocol require
 
 ## Current watchlist (not entries)
 
-| game    | player_name                            |   threshold |   no_ask |   fair_no |   no_edge | kickoff_utc               | action       |
-|:--------|:---------------------------------------|------------:|---------:|----------:|----------:|:--------------------------|:-------------|
-| TB@CIN  | Emeka Egbuka: 50+ receiving yards      |          50 |     0.41 |  0.737262 |  0.327262 | 2026-09-13T17:00:00+00:00 | WAIT_FOR_T30 |
-| MIA@LV  | Michael Mayer: 40+ receiving yards     |          40 |     0.48 |  0.74546  |  0.26546  | 2026-09-13T20:25:00+00:00 | WAIT_FOR_T30 |
-| WAS@PHI | DeVonta Smith: 60+ receiving yards     |          60 |     0.45 |  0.705513 |  0.255513 | 2026-09-13T20:25:00+00:00 | WAIT_FOR_T30 |
-| GB@MIN  | Justin Jefferson: 60+ receiving yards  |          60 |     0.44 |  0.692088 |  0.252088 | 2026-09-13T20:25:00+00:00 | WAIT_FOR_T30 |
-| GB@MIN  | Jayden Reed: 40+ receiving yards       |          40 |     0.44 |  0.679247 |  0.239247 | 2026-09-13T20:25:00+00:00 | WAIT_FOR_T30 |
-| TB@CIN  | Emeka Egbuka: 40+ receiving yards      |          40 |     0.4  |  0.638824 |  0.238824 | 2026-09-13T17:00:00+00:00 | WAIT_FOR_T30 |
-| ARI@LAC | Ladd McConkey: 50+ receiving yards     |          50 |     0.42 |  0.641298 |  0.221298 | 2026-09-13T20:25:00+00:00 | WAIT_FOR_T30 |
-| MIA@LV  | Tre Tucker: 40+ receiving yards        |          40 |     0.46 |  0.666625 |  0.206625 | 2026-09-13T20:25:00+00:00 | WAIT_FOR_T30 |
-| MIA@LV  | Brock Bowers: 60+ receiving yards      |          60 |     0.49 |  0.696031 |  0.206031 | 2026-09-13T20:25:00+00:00 | WAIT_FOR_T30 |
-| BUF@HOU | Nico Collins: 60+ receiving yards      |          60 |     0.41 |  0.573626 |  0.163626 | 2026-09-13T17:00:00+00:00 | WAIT_FOR_T30 |
-| WAS@PHI | DeVonta Smith: 50+ receiving yards     |          50 |     0.46 |  0.619059 |  0.159059 | 2026-09-13T20:25:00+00:00 | WAIT_FOR_T30 |
-| CHI@CAR | Tetairoa McMillan: 60+ receiving yards |          60 |     0.49 |  0.647664 |  0.157664 | 2026-09-13T17:00:00+00:00 | WAIT_FOR_T30 |
+| game    | player_name                           |   threshold |   no_ask |   fair_no |   no_edge | kickoff_utc               | action       |
+|:--------|:--------------------------------------|------------:|---------:|----------:|----------:|:--------------------------|:-------------|
+| TB@CIN  | Emeka Egbuka: 50+ receiving yards     |          50 |     0.41 |  0.733272 |  0.323272 | 2026-09-13T17:00:00+00:00 | WAIT_FOR_T30 |
+| MIA@LV  | Michael Mayer: 40+ receiving yards    |          40 |     0.48 |  0.74312  |  0.26312  | 2026-09-13T20:25:00+00:00 | WAIT_FOR_T30 |
+| WAS@PHI | DeVonta Smith: 60+ receiving yards    |          60 |     0.47 |  0.707486 |  0.237486 | 2026-09-13T20:25:00+00:00 | WAIT_FOR_T30 |
+| GB@MIN  | Jayden Reed: 40+ receiving yards      |          40 |     0.44 |  0.674621 |  0.234621 | 2026-09-13T20:25:00+00:00 | WAIT_FOR_T30 |
+| ARI@LAC | Ladd McConkey: 50+ receiving yards    |          50 |     0.42 |  0.652088 |  0.232088 | 2026-09-13T20:25:00+00:00 | WAIT_FOR_T30 |
+| MIA@LV  | Brock Bowers: 60+ receiving yards     |          60 |     0.49 |  0.697974 |  0.207974 | 2026-09-13T20:25:00+00:00 | WAIT_FOR_T30 |
+| GB@MIN  | Justin Jefferson: 60+ receiving yards |          60 |     0.49 |  0.692266 |  0.202266 | 2026-09-13T20:25:00+00:00 | WAIT_FOR_T30 |
+| GB@MIN  | Justin Jefferson: 50+ receiving yards |          50 |     0.4  |  0.582779 |  0.182779 | 2026-09-13T20:25:00+00:00 | WAIT_FOR_T30 |
+| WAS@PHI | DeVonta Smith: 50+ receiving yards    |          50 |     0.44 |  0.619235 |  0.179235 | 2026-09-13T20:25:00+00:00 | WAIT_FOR_T30 |
+| TB@CIN  | Emeka Egbuka: 40+ receiving yards     |          40 |     0.46 |  0.637588 |  0.177588 | 2026-09-13T17:00:00+00:00 | WAIT_FOR_T30 |
+| MIA@LV  | Brock Bowers: 50+ receiving yards     |          50 |     0.41 |  0.585241 |  0.175241 | 2026-09-13T20:25:00+00:00 | WAIT_FOR_T30 |
+| BUF@HOU | Nico Collins: 60+ receiving yards     |          60 |     0.4  |  0.566935 |  0.166935 | 2026-09-13T17:00:00+00:00 | WAIT_FOR_T30 |
 
 ## Guardrail
 
