@@ -22,7 +22,7 @@
       "game_pk": 822768,
       "home_lineup": [],
       "home_lineup_confirmed": false,
-      "home_probable_pitcher": null,
+      "home_probable_pitcher": "Spencer Miles",
       "home_team": "Toronto Blue Jays",
       "status": "Preview"
     },
@@ -42,7 +42,7 @@
     "823009": {
       "away_lineup": [],
       "away_lineup_confirmed": false,
-      "away_probable_pitcher": "Luis Castillo",
+      "away_probable_pitcher": "Sean Newcomb",
       "away_team": "Chicago White Sox",
       "game_date": "2026-09-12T23:15:00Z",
       "game_pk": 823009,
@@ -81,7 +81,7 @@
     "823657": {
       "away_lineup": [],
       "away_lineup_confirmed": false,
-      "away_probable_pitcher": null,
+      "away_probable_pitcher": "Daniel Espino",
       "away_team": "Cleveland Guardians",
       "game_date": "2026-09-12T20:10:00Z",
       "game_pk": 823657,
@@ -126,7 +126,7 @@
       "game_pk": 824224,
       "home_lineup": [],
       "home_lineup_confirmed": false,
-      "home_probable_pitcher": null,
+      "home_probable_pitcher": "Andrew Sears",
       "home_team": "Detroit Tigers",
       "status": "Preview"
     },
@@ -159,7 +159,7 @@
     "824870": {
       "away_lineup": [],
       "away_lineup_confirmed": false,
-      "away_probable_pitcher": "Jes\u00fas Luzardo",
+      "away_probable_pitcher": null,
       "away_team": "Philadelphia Phillies",
       "game_date": "2026-09-12T23:15:00Z",
       "game_pk": 824870,
@@ -196,5 +196,5 @@
       "status": "Preview"
     }
   },
-  "last_run_at": "2026-09-12T01:19:47.544227Z"
+  "last_run_at": "2026-09-12T06:05:48.877395Z"
 }
