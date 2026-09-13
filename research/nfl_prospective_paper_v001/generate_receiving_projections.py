@@ -172,7 +172,7 @@ def main():
                 blocking=[];flags=[]
                 if pos not in VALID_POS:blocking.append('POSITION_QC')
                 if career_games<2:blocking.append('INSUFFICIENT_CAREER_HISTORY')
-                if season_games<1:blocking.append('CURRENT_SEASON_HISTORY_UNVALIDATED')
+                if season_games<1:flags.append('WEEK1_NO_CURRENT_SEASON_HISTORY_UNVALIDATED')
                 if latest_team and latest_team!=team:blocking.append('TEAM_CHANGE_UNVERIFIED')
                 if pos=='WR' and math.isfinite(prior_targets) and prior_targets>=7:
                     flags.append('HIGH_VOLUME_WR_MODEL_HISTORICALLY_CONSERVATIVE')
