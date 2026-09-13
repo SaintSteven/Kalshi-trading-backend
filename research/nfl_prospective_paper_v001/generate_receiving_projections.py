@@ -49,7 +49,11 @@ def recover_identity_helpers():
     return mod,mod.load_projection_namespace()
 
 def load_calibration():
-    raw=zlib.decompress(base64.b64decode(_CAL_B64.encode('ascii'))).decode('utf-8')
+    path=Path(__file__).with_name('validated_isotonic_map.zlib')
+    raw=zlib.decompress(path.read_bytes()).decode('utf-8')
+    import hashlib
+    if hashlib.sha256(raw.encode()).hexdigest()!=CALIBRATION_SHA256:
+        raise RuntimeError('calibration artifact checksum mismatch')
     df=pd.read_csv(io.StringIO(raw))
     return df.raw_prob.to_numpy(float),df.calibrated_prob.to_numpy(float)
 
