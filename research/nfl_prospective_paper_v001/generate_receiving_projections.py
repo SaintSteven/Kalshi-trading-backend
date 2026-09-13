@@ -49,8 +49,8 @@ def recover_identity_helpers():
     return mod,mod.load_projection_namespace()
 
 def load_calibration():
-    path=Path(__file__).with_name('validated_isotonic_map.zlib')
-    raw=zlib.decompress(path.read_bytes()).decode('utf-8')
+    path=Path(__file__).with_name('validated_isotonic_map.csv')
+    raw=path.read_text()
     import hashlib
     if hashlib.sha256(raw.encode()).hexdigest()!=CALIBRATION_SHA256:
         raise RuntimeError('calibration artifact checksum mismatch')
