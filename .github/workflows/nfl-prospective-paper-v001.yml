@@ -30,13 +30,11 @@ jobs:
       - run: pip install pandas numpy scikit-learn requests tabulate
       - name: Regression tests
         run: python research/nfl_prospective_paper_v001/test_v002.py
-      - name: Collect verified NFL market snapshots
+      - name: Collect current NFL markets
         run: |
-          python research/nfl_prospective_paper_v001/snapshot_v002.py \
-            --snapshots research/nfl_prospective_paper_v001/data/market_snapshots.csv \
+          python research/nfl_prospective_paper_v001/current_collector.py \
             --current research/nfl_prospective_paper_v001/data/current_markets.csv \
-            --health research/nfl_prospective_paper_v001/data/collector_health.csv \
-            --history research/nfl_prospective_paper_v001/data/quote_history.csv
+            --health research/nfl_prospective_paper_v001/data/collector_health.csv
       - name: Generate independent 2026 receiving projections
         run: |
           python research/nfl_prospective_paper_v001/generate_receiving_projections.py \
