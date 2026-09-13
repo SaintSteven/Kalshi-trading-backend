@@ -14,3 +14,5 @@ print({
  'pass_upstream':int((p.qc_status=='PASS').sum()),
  'model_versions':sorted(p.model_version.unique().tolist())
 })
+
+# trigger smoke
