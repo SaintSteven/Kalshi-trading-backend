@@ -31,7 +31,7 @@
       "home_lineup_confirmed": true,
       "home_probable_pitcher": "Riley Cornelio",
       "home_team": "Washington Nationals",
-      "status": "Live"
+      "status": "Final"
     },
     "822764": {
       "away_lineup": [
@@ -53,18 +53,18 @@
       "home_lineup": [
         "Brett Bateman",
         "George Springer",
+        "Sean Keys",
         "Vladimir Guerrero Jr.",
         "Kazuma Okamoto",
         "Charles McAdoo",
         "Nathan Lukes",
         "Ernie Clement",
-        "Andr\u00e9s Gim\u00e9nez",
-        "Brandon Valenzuela"
+        "Andr\u00e9s Gim\u00e9nez"
       ],
       "home_lineup_confirmed": true,
       "home_probable_pitcher": "Dylan Cease",
       "home_team": "Toronto Blue Jays",
-      "status": "Live"
+      "status": "Final"
     },
     "822928": {
       "away_lineup": [
@@ -97,7 +97,7 @@
       "home_lineup_confirmed": true,
       "home_probable_pitcher": "Freddy Peralta",
       "home_team": "Tampa Bay Rays",
-      "status": "Live"
+      "status": "Final"
     },
     "823008": {
       "away_lineup": [
@@ -105,11 +105,11 @@
         "Kyle Teel",
         "Miguel Vargas",
         "Munetaka Murakami",
+        "Luisangel Acu\u00f1a",
         "Andrew Benintendi",
         "Tristan Peters",
         "Chase Meidroth",
-        "Colson Montgomery",
-        "Brenton Doyle"
+        "Colson Montgomery"
       ],
       "away_lineup_confirmed": true,
       "away_probable_pitcher": "David Sandlin",
@@ -120,21 +120,31 @@
         "Bryan Torres",
         "Victor Scott II",
         "Iv\u00e1n Herrera",
+        "Pedro Pag\u00e9s",
         "Alec Burleson",
         "Jordan Walker",
         "Leo Bernal",
         "Nolan Gorman",
-        "Ram\u00f3n Ur\u00edas",
-        "Thomas Saggese"
+        "Ram\u00f3n Ur\u00edas"
       ],
       "home_lineup_confirmed": true,
       "home_probable_pitcher": "Michael McGreevy",
       "home_team": "St. Louis Cardinals",
-      "status": "Live"
+      "status": "Final"
     },
     "823171": {
-      "away_lineup": [],
-      "away_lineup_confirmed": false,
+      "away_lineup": [
+        "Fernando Tatis Jr.",
+        "Dustin Harris",
+        "Manny Machado",
+        "Luis Campusano",
+        "Jackson Merrill",
+        "Xander Bogaerts",
+        "Jake Cronenworth",
+        "Samad Taylor",
+        "Ethan Salas"
+      ],
+      "away_lineup_confirmed": true,
       "away_probable_pitcher": "Nick Pivetta",
       "away_team": "San Diego Padres",
       "game_date": "2026-09-13T23:20:00Z",
@@ -186,19 +196,19 @@
       "home_lineup_confirmed": true,
       "home_probable_pitcher": "Cam Schlittler",
       "home_team": "New York Yankees",
-      "status": "Live"
+      "status": "Final"
     },
     "823658": {
       "away_lineup": [
         "Steven Kwan",
         "Chase DeLauter",
+        "Petey Halpin",
         "Travis Bazzana",
         "Jo Adell",
         "Nathaniel Lowe",
         "Angel Mart\u00ednez",
         "Angel Genao",
-        "Patrick Bailey",
-        "Brayan Rocchio"
+        "Patrick Bailey"
       ],
       "away_lineup_confirmed": true,
       "away_probable_pitcher": "Tanner Bibee",
@@ -219,7 +229,7 @@
       "home_lineup_confirmed": true,
       "home_probable_pitcher": "Joe Ryan",
       "home_team": "Minnesota Twins",
-      "status": "Live"
+      "status": "Final"
     },
     "823734": {
       "away_lineup": [
@@ -227,11 +237,11 @@
         "Elly De La Cruz",
         "Sal Stewart",
         "Eugenio Su\u00e1rez",
+        "Ke'Bryan Hayes",
         "Tyler Stephenson",
         "JJ Bleday",
         "Juan Brito",
-        "Jose Trevino",
-        "H\u00e9ctor Rodr\u00edguez"
+        "Jose Trevino"
       ],
       "away_lineup_confirmed": true,
       "away_probable_pitcher": "Chase Burns",
@@ -245,14 +255,14 @@
         "Brice Turang",
         "Gary S\u00e1nchez",
         "Jake Bauers",
+        "David Hamilton",
         "Christian Yelich",
-        "Joey Ortiz",
-        "Luis Lara"
+        "Joey Ortiz"
       ],
       "home_lineup_confirmed": true,
       "home_probable_pitcher": "Robert Gasser",
       "home_team": "Milwaukee Brewers",
-      "status": "Live"
+      "status": "Final"
     },
     "823815": {
       "away_lineup": [
@@ -280,12 +290,12 @@
         "Jakob Marsee",
         "Javier Sanoja",
         "Joe Mack",
-        "Esteury Ruiz"
+        "Agust\u00edn Ram\u00edrez"
       ],
       "home_lineup_confirmed": true,
       "home_probable_pitcher": "Eury P\u00e9rez",
       "home_team": "Miami Marlins",
-      "status": "Live"
+      "status": "Final"
     },
     "824225": {
       "away_lineup": [
@@ -325,12 +335,12 @@
         "Konnor Griffin",
         "Oneil Cruz",
         "Bryan Reynolds",
+        "Billy Cook",
         "Rafael Flores Jr.",
         "Nick Gonzales",
+        "Jacob Gonzalez",
         "Ryan O'Hearn",
-        "Jake Mangum",
-        "Jared Triolo",
-        "Brandon Lowe"
+        "Jake Mangum"
       ],
       "away_lineup_confirmed": true,
       "away_probable_pitcher": "Bubba Chandler",
@@ -345,13 +355,13 @@
         "Ian Happ",
         "Nico Hoerner",
         "Michael Conforto",
-        "Pedro Ram\u00edrez",
-        "Miguel Amaya"
+        "Matt Shaw",
+        "Pedro Ram\u00edrez"
       ],
       "home_lineup_confirmed": true,
       "home_probable_pitcher": "Matthew Boyd",
       "home_team": "Chicago Cubs",
-      "status": "Live"
+      "status": "Final"
     },
     "824708": {
       "away_lineup": [
@@ -384,19 +394,19 @@
       "home_lineup_confirmed": true,
       "home_probable_pitcher": "Payton Tolle",
       "home_team": "Boston Red Sox",
-      "status": "Preview"
+      "status": "Live"
     },
     "824869": {
       "away_lineup": [
         "Kyle Schwarber",
         "Trea Turner",
         "Bryce Harper",
+        "Derek Hill",
         "Luis Arraez",
         "Alec Bohm",
         "Bryson Stott",
         "Brandon Marsh",
-        "Bryan De La Cruz",
-        "J.T. Realmuto"
+        "Bryan De La Cruz"
       ],
       "away_lineup_confirmed": true,
       "away_probable_pitcher": "Andrew Painter",
@@ -417,7 +427,7 @@
       "home_lineup_confirmed": true,
       "home_probable_pitcher": "Grant Holmes",
       "home_team": "Atlanta Braves",
-      "status": "Live"
+      "status": "Final"
     },
     "824952": {
       "away_lineup": [
@@ -429,7 +439,7 @@
         "Josh Naylor",
         "Michael Arroyo",
         "Weston Wilson",
-        "Jhonny Pereda"
+        "Lazaro Montes"
       ],
       "away_lineup_confirmed": true,
       "away_probable_pitcher": "Bryce Miller",
@@ -455,14 +465,14 @@
     "825033": {
       "away_lineup": [
         "Justin Foscue",
+        "Evan Carter",
         "Corey Seager",
         "Josh Jung",
+        "Nicky Lopez",
         "Jake Burger",
         "Brandon Nimmo",
         "Wyatt Langford",
-        "Ezequiel Duran",
-        "Elias D\u00edaz",
-        "Danny Jansen"
+        "Ezequiel Duran"
       ],
       "away_lineup_confirmed": true,
       "away_probable_pitcher": "Cal Quantrill",
@@ -471,14 +481,14 @@
       "game_pk": 825033,
       "home_lineup": [
         "Lars Nootbaar",
+        "Tommy Troy",
         "Ketel Marte",
         "Gabriel Moreno",
         "Geraldo Perdomo",
         "Corbin Carroll",
         "Nolan Arenado",
         "Tim Tawa",
-        "James McCann",
-        "Jordan Lawlar"
+        "James McCann"
       ],
       "home_lineup_confirmed": true,
       "home_probable_pitcher": "Eduardo Rodriguez",
@@ -486,5 +496,5 @@
       "status": "Live"
     }
   },
-  "last_run_at": "2026-09-13T20:08:18.148524Z"
+  "last_run_at": "2026-09-13T22:23:18.534975Z"
 }
