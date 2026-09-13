@@ -18,7 +18,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: pip install pandas numpy scikit-learn
+      - run: pip install pandas numpy scikit-learn requests tabulate
       - name: Compile
         run: |
           python -m py_compile research/nfl_prospective_paper_v001/generate_receiving_projections.py
