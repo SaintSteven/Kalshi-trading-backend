@@ -100,7 +100,7 @@
       "game_pk": 823734,
       "home_lineup": [],
       "home_lineup_confirmed": false,
-      "home_probable_pitcher": null,
+      "home_probable_pitcher": "Robert Gasser",
       "home_team": "Milwaukee Brewers",
       "status": "Preview"
     },
@@ -185,7 +185,7 @@
     "825033": {
       "away_lineup": [],
       "away_lineup_confirmed": false,
-      "away_probable_pitcher": null,
+      "away_probable_pitcher": "Cal Quantrill",
       "away_team": "Texas Rangers",
       "game_date": "2026-09-13T20:10:00Z",
       "game_pk": 825033,
@@ -196,5 +196,5 @@
       "status": "Preview"
     }
   },
-  "last_run_at": "2026-09-13T00:58:42.462519Z"
+  "last_run_at": "2026-09-13T05:45:42.972301Z"
 }
