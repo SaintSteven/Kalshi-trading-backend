@@ -1,0 +1,25 @@
+name: NFL Week1 Smoke 2
+on:
+  push:
+    branches: [ "nfl-week1-review" ]
+    paths:
+      - ".github/workflows/nfl-week1-smoke2.yml"
+      - "research/nfl_prospective_paper_v001/week1_smoke_check.py"
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pandas numpy scikit-learn requests
+      - run: mkdir -p /tmp/nfl-smoke
+      - run: python research/nfl_prospective_paper_v001/generate_receiving_projections.py --markets research/nfl_prospective_paper_v001/data/current_markets.csv --projections /tmp/nfl-smoke/projections.csv --mapping /tmp/nfl-smoke/mapping.csv
+      - run: python research/nfl_prospective_paper_v001/receiving_feed.py --markets research/nfl_prospective_paper_v001/data/current_markets.csv --projections /tmp/nfl-smoke/projections.csv --mapping /tmp/nfl-smoke/mapping.csv --output /tmp/nfl-smoke/receiving_fair_values.csv
+      - run: python research/nfl_prospective_paper_v001/week1_smoke_check.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nfl-week1-smoke-output-2
+          path: /tmp/nfl-smoke/
