@@ -1,6 +1,6 @@
 # NFL Week 1 Pilot Card
 
-Generated: 2026-09-13T03:09:08.730797+00:00
+Generated: 2026-09-13T05:24:19.655734+00:00
 
 **Mode: PAPER ONLY / manual pilot. No real-money orders are generated.**
 
@@ -23,12 +23,12 @@ No receiving-yards entries are READY at this moment. The frozen protocol require
 | TB@CIN  | Emeka Egbuka: 50+ receiving yards      |          50 |     0.41 |  0.710843 |  0.300843 | 2026-09-13T17:00:00+00:00 | WAIT_FOR_T30 |
 | BUF@HOU | Nico Collins: 60+ receiving yards      |          60 |     0.41 |  0.706667 |  0.296667 | 2026-09-13T17:00:00+00:00 | WAIT_FOR_T30 |
 | ARI@LAC | Ladd McConkey: 50+ receiving yards     |          50 |     0.42 |  0.710843 |  0.290843 | 2026-09-13T20:25:00+00:00 | WAIT_FOR_T30 |
-| CHI@CAR | Luther Burden III: 50+ receiving yards |          50 |     0.44 |  0.716176 |  0.276176 | 2026-09-13T17:00:00+00:00 | WAIT_FOR_T30 |
+| CHI@CAR | Luther Burden III: 50+ receiving yards |          50 |     0.45 |  0.716176 |  0.266176 | 2026-09-13T17:00:00+00:00 | WAIT_FOR_T30 |
 | MIA@LV  | Michael Mayer: 40+ receiving yards     |          40 |     0.47 |  0.716176 |  0.246176 | 2026-09-13T20:25:00+00:00 | WAIT_FOR_T30 |
 | NO@DET  | Chris Olave: 70+ receiving yards       |          70 |     0.44 |  0.666667 |  0.226667 | 2026-09-13T17:00:00+00:00 | WAIT_FOR_T30 |
-| BAL@IND | Josh Downs: 45+ receiving yards        |          45 |     0.48 |  0.706667 |  0.226667 | 2026-09-13T17:00:00+00:00 | WAIT_FOR_T30 |
-| GB@MIN  | Christian Watson: 50+ receiving yards  |          50 |     0.46 |  0.666667 |  0.206667 | 2026-09-13T20:25:00+00:00 | WAIT_FOR_T30 |
-| BAL@IND | Josh Downs: 40+ receiving yards        |          40 |     0.44 |  0.639742 |  0.199742 | 2026-09-13T17:00:00+00:00 | WAIT_FOR_T30 |
+| GB@MIN  | Christian Watson: 50+ receiving yards  |          50 |     0.45 |  0.666667 |  0.216667 | 2026-09-13T20:25:00+00:00 | WAIT_FOR_T30 |
+| BAL@IND | Josh Downs: 40+ receiving yards        |          40 |     0.45 |  0.639742 |  0.189742 | 2026-09-13T17:00:00+00:00 | WAIT_FOR_T30 |
+| NO@DET  | Jameson Williams: 50+ receiving yards  |          50 |     0.45 |  0.639742 |  0.189742 | 2026-09-13T17:00:00+00:00 | WAIT_FOR_T30 |
 
 ## Guardrail
 
