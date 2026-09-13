@@ -1,6 +1,6 @@
 # NFL Week 1 Pilot Card
 
-Generated: 2026-09-13T14:37:46.441085+00:00
+Generated: 2026-09-13T17:40:13.068226+00:00
 
 **Mode: PAPER ONLY / manual pilot. No real-money orders are generated.**
 
@@ -15,20 +15,20 @@ No receiving-yards entries are READY at this moment. The frozen protocol require
 
 ## Current watchlist (not entries)
 
-| game    | player_name                            |   threshold |   no_ask |   fair_no |   no_edge | kickoff_utc               | action       |
-|:--------|:---------------------------------------|------------:|---------:|----------:|----------:|:--------------------------|:-------------|
-| DAL@NYG | CeeDee Lamb: 70+ receiving yards       |          70 |     0.47 |  0.838604 |  0.368604 | 2026-09-14T00:20:00+00:00 | WAIT_FOR_T30 |
-| DAL@NYG | George Pickens: 60+ receiving yards    |          60 |     0.46 |  0.801325 |  0.341325 | 2026-09-14T00:20:00+00:00 | WAIT_FOR_T30 |
-| ARI@LAC | Ladd McConkey: 55+ receiving yards     |          55 |     0.45 |  0.776522 |  0.326522 | 2026-09-13T20:25:00+00:00 | WAIT_FOR_T30 |
-| WAS@PHI | DeVonta Smith: 60+ receiving yards     |          60 |     0.47 |  0.787582 |  0.317582 | 2026-09-13T20:25:00+00:00 | WAIT_FOR_T30 |
-| ARI@LAC | Ladd McConkey: 50+ receiving yards     |          50 |     0.41 |  0.710843 |  0.300843 | 2026-09-13T20:25:00+00:00 | WAIT_FOR_T30 |
-| TB@CIN  | Emeka Egbuka: 50+ receiving yards      |          50 |     0.42 |  0.710843 |  0.290843 | 2026-09-13T17:00:00+00:00 | WAIT_FOR_T30 |
-| BUF@HOU | Nico Collins: 60+ receiving yards      |          60 |     0.42 |  0.706667 |  0.286667 | 2026-09-13T17:00:00+00:00 | WAIT_FOR_T30 |
-| CHI@CAR | Luther Burden III: 50+ receiving yards |          50 |     0.44 |  0.716176 |  0.276176 | 2026-09-13T17:00:00+00:00 | WAIT_FOR_T30 |
-| MIA@LV  | Michael Mayer: 40+ receiving yards     |          40 |     0.47 |  0.716176 |  0.246176 | 2026-09-13T20:25:00+00:00 | WAIT_FOR_T30 |
-| NO@DET  | Chris Olave: 70+ receiving yards       |          70 |     0.44 |  0.666667 |  0.226667 | 2026-09-13T17:00:00+00:00 | WAIT_FOR_T30 |
-| GB@MIN  | Christian Watson: 50+ receiving yards  |          50 |     0.47 |  0.666667 |  0.196667 | 2026-09-13T20:25:00+00:00 | WAIT_FOR_T30 |
-| BAL@IND | Josh Downs: 40+ receiving yards        |          40 |     0.45 |  0.639742 |  0.189742 | 2026-09-13T17:00:00+00:00 | WAIT_FOR_T30 |
+| game    | player_name                              |   threshold |   no_ask |   fair_no |   no_edge | kickoff_utc               | action       |
+|:--------|:-----------------------------------------|------------:|---------:|----------:|----------:|:--------------------------|:-------------|
+| DAL@NYG | CeeDee Lamb: 70+ receiving yards         |          70 |     0.47 |  0.838604 |  0.368604 | 2026-09-14T00:20:00+00:00 | WAIT_FOR_T30 |
+| WAS@PHI | DeVonta Smith: 60+ receiving yards       |          60 |     0.45 |  0.787582 |  0.337582 | 2026-09-13T20:25:00+00:00 | WAIT_FOR_T30 |
+| DAL@NYG | CeeDee Lamb: 60+ receiving yards         |          60 |     0.42 |  0.716176 |  0.296176 | 2026-09-14T00:20:00+00:00 | WAIT_FOR_T30 |
+| ARI@LAC | Ladd McConkey: 50+ receiving yards       |          50 |     0.44 |  0.710843 |  0.270843 | 2026-09-13T20:25:00+00:00 | WAIT_FOR_T30 |
+| MIA@LV  | Michael Mayer: 40+ receiving yards       |          40 |     0.48 |  0.716176 |  0.236176 | 2026-09-13T20:25:00+00:00 | WAIT_FOR_T30 |
+| GB@MIN  | Christian Watson: 50+ receiving yards    |          50 |     0.46 |  0.666667 |  0.206667 | 2026-09-13T20:25:00+00:00 | WAIT_FOR_T30 |
+| DAL@NYG | George Pickens: 50+ receiving yards      |          50 |     0.46 |  0.64     |  0.18     | 2026-09-14T00:20:00+00:00 | WAIT_FOR_T30 |
+| GB@MIN  | Tucker Kraft: 40+ receiving yards        |          40 |     0.47 |  0.639742 |  0.169742 | 2026-09-13T20:25:00+00:00 | WAIT_FOR_T30 |
+| GB@MIN  | Jayden Reed: 40+ receiving yards         |          40 |     0.44 |  0.608142 |  0.168142 | 2026-09-13T20:25:00+00:00 | WAIT_FOR_T30 |
+| MIA@LV  | Tre Tucker: 40+ receiving yards          |          40 |     0.41 |  0.577827 |  0.167827 | 2026-09-13T20:25:00+00:00 | WAIT_FOR_T30 |
+| ARI@LAC | Marvin Harrison Jr.: 40+ receiving yards |          40 |     0.42 |  0.577827 |  0.157827 | 2026-09-13T20:25:00+00:00 | WAIT_FOR_T30 |
+| ARI@LAC | Trey McBride: 50+ receiving yards        |          50 |     0.4  |  0.535262 |  0.135262 | 2026-09-13T20:25:00+00:00 | WAIT_FOR_T30 |
 
 ## Guardrail
 
