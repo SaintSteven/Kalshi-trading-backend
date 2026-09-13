@@ -27,7 +27,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - run: pip install pandas numpy requests tabulate
+      - run: pip install pandas numpy scikit-learn requests tabulate
       - name: Regression tests
         run: python research/nfl_prospective_paper_v001/test_v002.py
       - name: Collect verified NFL market snapshots
