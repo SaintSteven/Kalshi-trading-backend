@@ -6,7 +6,7 @@ from pathlib import Path
 from datetime import datetime, timezone
 import pandas as pd
 
-COLUMNS=['market_ticker','game_id','player_id','threshold','model_version','generated_at','fair_yes','fair_no','projection','qc_status','qc_reason']
+COLUMNS=['market_ticker','game_id','player_id','threshold','model_version','calibration_version','generated_at','fair_yes','fair_no','raw_fair_yes','projection','residual_sd','position','season_games_before','prior_targets_r3','context_flags','qc_status','qc_reason']
 
 def build(markets, projections, mapping):
     out=[]
@@ -32,7 +32,7 @@ def build(markets, projections, mapping):
             if generated>pd.Timestamp.now(tz='UTC'):raise ValueError('future timestamp')
             if not str(p.model_version).strip():raise ValueError('missing model version')
             if str(p.get('qc_status',''))!='PASS':raise ValueError('upstream model QC not PASS')
-            row.update(model_version=p.model_version,generated_at=generated.isoformat(),fair_yes=fair,fair_no=1-fair,projection=p.get('projection',''),qc_status='MODEL_AVAILABLE',qc_reason='INDEPENDENT_MODEL_RESEARCH_ONLY')
+            row.update(model_version=p.model_version,calibration_version=p.get('calibration_version',''),generated_at=generated.isoformat(),fair_yes=fair,fair_no=1-fair,raw_fair_yes=p.get('raw_fair_yes',''),projection=p.get('projection',''),residual_sd=p.get('residual_sd',''),position=p.get('position',''),season_games_before=p.get('season_games_before',''),prior_targets_r3=p.get('prior_targets_r3',''),context_flags=p.get('context_flags',''),qc_status='MODEL_AVAILABLE',qc_reason='INDEPENDENT_MODEL_RESEARCH_ONLY')
         except Exception as e:row['qc_reason']='INVALID_MODEL_INPUT: '+str(e)
         out.append(row)
     return pd.DataFrame(out,columns=COLUMNS)
