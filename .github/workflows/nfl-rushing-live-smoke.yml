@@ -1,0 +1,51 @@
+name: NFL Rushing Live Smoke
+on:
+  push:
+    branches: [ "research/nfl-rushing-live-v1" ]
+    paths:
+      - ".github/workflows/nfl-rushing-live-smoke.yml"
+      - "research/nfl_prospective_paper_v001/generate_rushing_projections.py"
+      - "research/nfl_prospective_paper_v001/rushing_feed.py"
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pandas numpy scikit-learn requests
+      - name: Refresh current markets
+        run: python research/nfl_prospective_paper_v001/current_collector.py --current /tmp/current_markets.csv --health /tmp/collector_health.csv
+      - name: Generate rushing probabilities
+        run: python research/nfl_prospective_paper_v001/generate_rushing_projections.py --markets /tmp/current_markets.csv --projections /tmp/rushing_projections.csv --mapping /tmp/rushing_mapping.csv
+      - name: Build rushing fair-value feed
+        run: python research/nfl_prospective_paper_v001/rushing_feed.py --markets /tmp/current_markets.csv --projections /tmp/rushing_projections.csv --mapping /tmp/rushing_mapping.csv --output /tmp/rushing_fair_values.csv
+      - name: Verify rushing model/QC
+        run: |
+          python - <<'PY'
+          import pandas as pd
+          p=pd.read_csv('/tmp/rushing_projections.csv').fillna('')
+          f=pd.read_csv('/tmp/rushing_fair_values.csv').fillna('')
+          assert len(p)>0, 'no rushing projections'
+          assert set(p.model_version)=={'NFL-RUSH-RIDGE-NORMALSD-ISO-v1'}
+          assert (f.qc_status=='MODEL_AVAILABLE').any(), 'no model-available rushing rows'
+          print({
+            'projection_rows':len(p),
+            'model_available':int((f.qc_status=='MODEL_AVAILABLE').sum()),
+            'warn_rows':int((p.qc_status=='WARN').sum()),
+            'week1_qb_review':int(p.context_flags.astype(str).str.contains('WEEK1_QB_RUSHING_REVIEW').sum()),
+            'week1_changed_team_review':int(p.context_flags.astype(str).str.contains('WEEK1_CHANGED_TEAM_REVIEW').sum()),
+            'week1_established_rb':int(p.context_flags.astype(str).str.contains('WEEK1_ESTABLISHED_RETURNING_RB').sum()),
+            'low_threshold_caution':int(p.context_flags.astype(str).str.contains('LOW_THRESHOLD_10_30_CALIBRATION_CAUTION').sum())
+          })
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nfl-rushing-live-smoke
+          path: |
+            /tmp/current_markets.csv
+            /tmp/rushing_projections.csv
+            /tmp/rushing_mapping.csv
+            /tmp/rushing_fair_values.csv
