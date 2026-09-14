@@ -1,6 +1,6 @@
 # NFL Week 1 Pilot Card
 
-Generated: 2026-09-14T21:13:07.745680+00:00
+Generated: 2026-09-14T22:28:37.690936+00:00
 
 **Mode: PAPER ONLY / manual pilot. No real-money orders are generated.**
 
@@ -18,7 +18,7 @@ No receiving-yards entries are READY at this moment. The frozen protocol require
 | game   | player_name                           |   threshold |   no_ask |   fair_no |    no_edge | kickoff_utc               | action       |
 |:-------|:--------------------------------------|------------:|---------:|----------:|-----------:|:--------------------------|:-------------|
 | DEN@KC | Xavier Worthy: 35+ receiving yards    |          35 |     0.46 |  0.577827 |  0.117827  | 2026-09-15T00:15:00+00:00 | WAIT_FOR_T30 |
-| DEN@KC | Rashee Rice: 50+ receiving yards      |          50 |     0.47 |  0.493488 |  0.0234877 | 2026-09-15T00:15:00+00:00 | WAIT_FOR_T30 |
+| DEN@KC | Rashee Rice: 50+ receiving yards      |          50 |     0.49 |  0.493488 |  0.0034877 | 2026-09-15T00:15:00+00:00 | WAIT_FOR_T30 |
 | DEN@KC | Courtland Sutton: 40+ receiving yards |          40 |     0.48 |  0.43459  | -0.0454102 | 2026-09-15T00:15:00+00:00 | WAIT_FOR_T30 |
 
 ## Guardrail
