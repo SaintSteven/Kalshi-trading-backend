@@ -153,3 +153,5 @@ def main():
       'week1_flagged':int(pp.context_flags.astype(str).str.contains('WEEK1_').sum()) if len(pp) else 0,'residual_sd':RESIDUAL_SD})
 
 if __name__=='__main__':main()
+
+# trigger rushing smoke
