@@ -49,6 +49,19 @@ jobs:
             --projections research/nfl_prospective_paper_v001/data/independent_receiving_projections.csv \
             --mapping research/nfl_prospective_paper_v001/data/receiving_market_mapping.csv \
             --output research/nfl_prospective_paper_v001/data/receiving_fair_values.csv
+      - name: Generate independent 2026 rushing projections
+        run: |
+          python research/nfl_prospective_paper_v001/generate_rushing_projections.py \
+            --markets research/nfl_prospective_paper_v001/data/current_markets.csv \
+            --projections research/nfl_prospective_paper_v001/data/independent_rushing_projections.csv \
+            --mapping research/nfl_prospective_paper_v001/data/rushing_market_mapping.csv
+      - name: Build independent rushing feed
+        run: |
+          python research/nfl_prospective_paper_v001/rushing_feed.py \
+            --markets research/nfl_prospective_paper_v001/data/current_markets.csv \
+            --projections research/nfl_prospective_paper_v001/data/independent_rushing_projections.csv \
+            --mapping research/nfl_prospective_paper_v001/data/rushing_market_mapping.csv \
+            --output research/nfl_prospective_paper_v001/data/rushing_fair_values.csv
       - name: Build Week 1 pilot card
         run: python research/nfl_prospective_paper_v001/build_pilot_card.py
       - name: Run frozen prospective paper collector
