@@ -21,7 +21,7 @@ jobs:
         run: python research/nfl_fantasy_points_validation/01_threshold_probability_calibration.py
       - name: Test 02 - walk-forward probability recalibration
         run: python research/nfl_fantasy_points_validation/02_probability_recalibration.py
-      - uses: actions/upload-artifact@v4
+      - name: Test 03 - Kalshi NFL fantasy-points market research scan\n        run: python research/nfl_fantasy_points_validation/03_kalshi_market_scan.py\n      - uses: actions/upload-artifact@v4
         with:
           name: nfl-fantasy-points-validation
           path: research/nfl_fantasy_points_validation/results/
