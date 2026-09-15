@@ -35,7 +35,7 @@
       "game_pk": 822849,
       "home_lineup": [],
       "home_lineup_confirmed": false,
-      "home_probable_pitcher": null,
+      "home_probable_pitcher": "Jacob deGrom",
       "home_team": "Texas Rangers",
       "status": "Preview"
     },
@@ -146,7 +146,7 @@
     "824384": {
       "away_lineup": [],
       "away_lineup_confirmed": false,
-      "away_probable_pitcher": "Davis Martin",
+      "away_probable_pitcher": "Chris Murphy",
       "away_team": "Chicago White Sox",
       "game_date": "2026-09-15T22:40:00Z",
       "game_pk": 824384,
@@ -196,5 +196,5 @@
       "status": "Preview"
     }
   },
-  "last_run_at": "2026-09-15T12:39:35.278237Z"
+  "last_run_at": "2026-09-15T17:16:14.172726Z"
 }
