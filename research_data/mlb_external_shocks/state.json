@@ -22,7 +22,7 @@
       "game_pk": 822762,
       "home_lineup": [],
       "home_lineup_confirmed": false,
-      "home_probable_pitcher": null,
+      "home_probable_pitcher": "Braydon Fisher",
       "home_team": "Toronto Blue Jays",
       "status": "Preview"
     },
@@ -196,5 +196,5 @@
       "status": "Preview"
     }
   },
-  "last_run_at": "2026-09-15T01:45:57.615856Z"
+  "last_run_at": "2026-09-15T07:04:07.823445Z"
 }
