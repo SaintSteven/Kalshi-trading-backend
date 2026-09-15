@@ -1,0 +1,23 @@
+name: NFL Fantasy Points Validation
+on:
+  push:
+    branches: [ "research/nfl-fantasy-points-validation-v1" ]
+    paths:
+      - ".github/workflows/nfl-fantasy-points-validation.yml"
+      - "research/nfl_fantasy_points_validation/**"
+jobs:
+  baseline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pandas numpy scikit-learn
+      - name: Run independent fantasy-points walk-forward baseline
+        run: python research/nfl_fantasy_points_validation/00_walk_forward_baseline.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nfl-fantasy-points-baseline
+          path: research/nfl_fantasy_points_validation/results/
