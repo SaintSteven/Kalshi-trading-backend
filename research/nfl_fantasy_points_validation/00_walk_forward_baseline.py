@@ -27,11 +27,11 @@ for c in ["passing_yards","passing_tds","interceptions","rushing_yards","rushing
     if c not in d: d[c]=0
     d[c]=pd.to_numeric(d[c],errors="coerce").fillna(0)
 
-# Sleeper PPR commonly uses: pass yds .04, pass TD 4, INT -2, rush/rec yds .1,
+# Sleeper PPR commonly uses: pass yds .04, pass TD 4, INT -1, rush/rec yds .1,
 # rush/rec TD 6, reception 1, fumble lost -2. We record this as a scoring
 # assumption to verify against Kalshi's formal rules before deployment.
 fumbles=d[["rushing_fumbles_lost","receiving_fumbles_lost","sack_fumbles_lost"]].max(axis=1)
-d["fantasy_points"]=(.04*d.passing_yards+4*d.passing_tds-2*d.interceptions+
+d["fantasy_points"]=(.04*d.passing_yards+4*d.passing_tds-d.interceptions+
                      .1*d.rushing_yards+6*d.rushing_tds+d.receptions+
                      .1*d.receiving_yards+6*d.receiving_tds-2*fumbles)
 
@@ -68,7 +68,7 @@ e=o.pred_fp-o.actual_fp
 summary={"test":"00_fantasy_points_walk_forward_baseline","validation_seasons":[2024,2025],
  "market_prices_used":False,"player_games":int(len(o)),"mae":float(abs(e).mean()),
  "bias":float(e.mean()),"rmse":float(np.sqrt(np.mean(e*e))),
- "by_position":{},"scoring_status":"ASSUMPTION_PENDING_FORMAL_KALSHI_RULE_AUDIT"}
+ "by_position":{},"scoring_status":"LOCKED_CORE_SLEEPER_PPR_RARE_COMPONENT_AUDIT_PENDING"}
 for k,z in o.groupby("position"):
  q=z.pred_fp-z.actual_fp
  summary["by_position"][k]={"n":int(len(z)),"mae":float(abs(q).mean()),"bias":float(q.mean()),"rmse":float(np.sqrt(np.mean(q*q)))}
