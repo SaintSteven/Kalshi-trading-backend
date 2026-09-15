@@ -14,14 +14,16 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: pip install pandas numpy scikit-learn
+      - run: pip install pandas numpy scipy scikit-learn
       - name: Test 00 - independent fantasy-points walk-forward baseline
         run: python research/nfl_fantasy_points_validation/00_walk_forward_baseline.py
       - name: Test 01 - threshold-probability calibration
         run: python research/nfl_fantasy_points_validation/01_threshold_probability_calibration.py
       - name: Test 02 - walk-forward probability recalibration
         run: python research/nfl_fantasy_points_validation/02_probability_recalibration.py
-      - name: Test 03 - Kalshi NFL fantasy-points market research scan\n        run: python research/nfl_fantasy_points_validation/03_kalshi_market_scan.py\n      - uses: actions/upload-artifact@v4
+      - name: Test 04 - distribution and walk-forward recalibration comparison
+        run: python research/nfl_fantasy_points_validation/04_distribution_recalibration.py
+      - uses: actions/upload-artifact@v4
         with:
           name: nfl-fantasy-points-validation
           path: research/nfl_fantasy_points_validation/results/
