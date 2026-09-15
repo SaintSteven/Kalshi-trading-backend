@@ -15,9 +15,11 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install pandas numpy scikit-learn
-      - name: Run independent fantasy-points walk-forward baseline
+      - name: Test 00 - independent fantasy-points walk-forward baseline
         run: python research/nfl_fantasy_points_validation/00_walk_forward_baseline.py
+      - name: Test 01 - threshold-probability calibration
+        run: python research/nfl_fantasy_points_validation/01_threshold_probability_calibration.py
       - uses: actions/upload-artifact@v4
         with:
-          name: nfl-fantasy-points-baseline
+          name: nfl-fantasy-points-validation
           path: research/nfl_fantasy_points_validation/results/
