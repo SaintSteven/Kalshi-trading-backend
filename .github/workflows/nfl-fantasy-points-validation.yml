@@ -19,6 +19,8 @@ jobs:
         run: python research/nfl_fantasy_points_validation/00_walk_forward_baseline.py
       - name: Test 01 - threshold-probability calibration
         run: python research/nfl_fantasy_points_validation/01_threshold_probability_calibration.py
+      - name: Test 02 - walk-forward probability recalibration
+        run: python research/nfl_fantasy_points_validation/02_probability_recalibration.py
       - uses: actions/upload-artifact@v4
         with:
           name: nfl-fantasy-points-validation
