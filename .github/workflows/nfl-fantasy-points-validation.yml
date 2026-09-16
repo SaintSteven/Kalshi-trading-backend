@@ -25,6 +25,8 @@ jobs:
         run: python research/nfl_fantasy_points_validation/04_distribution_recalibration.py
       - name: Test 05 - core-tail and position calibration
         run: python research/nfl_fantasy_points_validation/05_core_tail_position.py
+      - name: Test 06 - Week 1 and role-context diagnostics
+        run: python research/nfl_fantasy_points_validation/06_week1_role_context.py
       - uses: actions/upload-artifact@v4
         with:
           name: nfl-fantasy-points-validation
