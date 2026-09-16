@@ -9,7 +9,7 @@
       "game_pk": 822680,
       "home_lineup": [],
       "home_lineup_confirmed": false,
-      "home_probable_pitcher": "Cade Cavalli",
+      "home_probable_pitcher": "Jared Simpson",
       "home_team": "Washington Nationals",
       "status": "Preview"
     },
@@ -146,7 +146,7 @@
     "824382": {
       "away_lineup": [],
       "away_lineup_confirmed": false,
-      "away_probable_pitcher": null,
+      "away_probable_pitcher": "Anthony Kay",
       "away_team": "Chicago White Sox",
       "game_date": "2026-09-16T17:10:00Z",
       "game_pk": 824382,
@@ -196,5 +196,5 @@
       "status": "Preview"
     }
   },
-  "last_run_at": "2026-09-16T01:23:31.858206Z"
+  "last_run_at": "2026-09-16T06:20:31.115417Z"
 }
