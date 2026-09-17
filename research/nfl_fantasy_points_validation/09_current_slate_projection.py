@@ -32,7 +32,6 @@ fumbles=d[['rushing_fumbles_lost','receiving_fumbles_lost','sack_fumbles_lost']]
 d['fantasy_points']=(.04*d.passing_yards+4*d.passing_tds-d.interceptions+.1*d.rushing_yards+6*d.rushing_tds+d.receptions+.1*d.receiving_yards+6*d.receiving_tds-2*fumbles)
 d['week']=pd.to_numeric(d.week,errors='coerce'); d=d[d.week.notna()].copy(); d.week=d.week.astype(int)
 d=d.sort_values(['player_id','season','week']).reset_index(drop=True)
-# Training features exactly mirror Test 00.
 g=d.groupby('player_id',group_keys=False); gs=d.groupby(['player_id','season'],group_keys=False)
 d['career_games_before']=g.cumcount(); d['season_games_before']=gs.cumcount(); features=[]
 base=['fantasy_points','passing_yards','passing_tds','rushing_yards','rushing_tds','receptions','receiving_yards','receiving_tds']
@@ -45,10 +44,8 @@ d['fp_season_mean']=gs.fantasy_points.transform(lambda q:q.shift(1).expanding(mi
 features += ['fp_career_mean','fp_season_mean','season_games_before','career_games_before','week']
 for p in POSITIONS:
  n='pos_'+p; d[n]=(d.position==p).astype(int); features.append(n)
-# Fit on every observed historical game that meets the frozen model's history gate.
 tr=d[(d.career_games_before>=2)].copy()
 m=make_pipeline(SimpleImputer(strategy='median'),StandardScaler(),Ridge(alpha=25.0)); m.fit(tr[features],tr.fantasy_points)
-# Build next-game rows from each player's latest observed game. These features contain no market information.
 latest=d.sort_values(['season','week']).groupby('player_id',as_index=False).tail(1).copy()
 rows=[]
 for r in latest.itertuples():
@@ -64,8 +61,10 @@ for r in latest.itertuples():
  vals['season_games_before']=int(len(sh)); vals['career_games_before']=int(len(hist)); vals['week']=next_week
  for p in POSITIONS: vals['pos_'+p]=int(r.position==p)
  X=pd.DataFrame([vals],columns=features); proj=float(np.clip(m.predict(X)[0],0,None))
- rows.append({'player_id':r.player_id,'player_name':r.player_name,'position':r.position,'team':getattr(r,'recent_team',getattr(r,'team',None)),'projection_fp':proj,'projection_season':season,'projection_week':next_week,'history_games':len(hist),'market_prices_used':False})
+ full_name=getattr(r,'player_display_name',None)
+ if full_name is None or pd.isna(full_name): full_name=getattr(r,'player_name',None)
+ rows.append({'player_id':r.player_id,'player_name':r.player_name,'full_name':full_name,'position':r.position,'team':getattr(r,'recent_team',getattr(r,'team',None)),'projection_fp':proj,'projection_season':season,'projection_week':next_week,'history_games':len(hist),'market_prices_used':False})
 o=pd.DataFrame(rows); o.to_csv(O/'09_current_slate_projections.csv',index=False)
-summary={'test':'09_current_slate_projection','model':'NFL-FFPTS-RIDGE-EMPIRICAL-v1','market_prices_used':False,'training_rows':int(len(tr)),'projection_rows':int(len(o)),'latest_observed_season':int(d.season.max()),'latest_observed_week':int(d.loc[d.season.eq(d.season.max()),'week'].max()),'method':'Frozen Ridge architecture fit only to observed player history; next-game features use only prior observed stats.'}
+summary={'test':'09_current_slate_projection','model':'NFL-FFPTS-RIDGE-EMPIRICAL-v1','market_prices_used':False,'training_rows':int(len(tr)),'projection_rows':int(len(o)),'latest_observed_season':int(d.season.max()),'latest_observed_week':int(d.loc[d.season.eq(d.season.max()),'week'].max()),'full_identity_rows':int(o.full_name.notna().sum()),'method':'Frozen Ridge architecture fit only to observed player history; next-game features use only prior observed stats. Full player identity is carried only for collision-safe market mapping.'}
 (O/'09_current_slate_projection_summary.json').write_text(json.dumps(summary,indent=2)); print(json.dumps(summary,indent=2))
 if o.empty: raise SystemExit('No current projections generated')
