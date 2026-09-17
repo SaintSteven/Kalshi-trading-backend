@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Test 03: direct current Kalshi KXNFLFFPTS market discovery smoke test.
 Research-only; no orders are placed. Discovers markets, enriches per ticker,
-normalizes legacy-cent and current fixed-point dollar quote fields, and maps
-supported offensive players only.
+normalizes quote fields, and maps supported offensive players with collision-safe
+name+position identity for the current slate.
 """
 import json,re,urllib.parse,urllib.request
 from pathlib import Path
@@ -12,10 +12,12 @@ pred=OUT/'00_walk_forward_predictions.csv'
 if not pred.exists(): raise SystemExit('Test 00 predictions missing')
 d=pd.read_csv(pred); d['resid']=d.actual_fp-d.pred_fp
 BASE='https://api.elections.kalshi.com/trade-api/v2'; SERIES='KXNFLFFPTS'; SUPPORTED={'QB','RB','WR','TE'}
+# Full-name identity is authoritative when abbreviated nflverse display labels collide.
+POSITION_OVERRIDES={'jameson williams':'WR'}
 def get(path,params=None):
  url=BASE+path
  if params:url+='?'+urllib.parse.urlencode(params)
- req=urllib.request.Request(url,headers={'User-Agent':'nfl-fantasy-points-research/1.4'})
+ req=urllib.request.Request(url,headers={'User-Agent':'nfl-fantasy-points-research/1.5'})
  with urllib.request.urlopen(req,timeout=30) as r:return json.load(r)
 def dollars(m,key):
  v=m.get(key)
@@ -46,7 +48,9 @@ for m in markets:
   full=get('/markets/'+urllib.parse.quote(t,safe='')); fm=full.get('market',full); x=dict(m); x.update(fm); enriched.append(x)
  except Exception as e:errors.append('market_detail_%s: %s'%(t,e)); enriched.append(m)
 markets=enriched
-latest=d.sort_values(['season','week']).groupby('player_name',as_index=False).tail(1); proj={str(r.player_name).lower():r for r in latest.itertuples()}
+latest=d.sort_values(['season','week']).groupby(['player_name','position'],as_index=False).tail(1)
+proj={}
+for r in latest.itertuples():proj.setdefault(str(r.player_name).lower(),[]).append(r)
 def pname(m):
  for k in ['title','yes_sub_title','subtitle']:
   hit=re.match(r'^(.+?):\s*Over\s+\d',str(m.get(k,'')).strip(),re.I)
@@ -61,20 +65,24 @@ def dst(n):return bool(n and re.search(r'\b(?:D/ST|DST|Defense)\b',n,re.I))
 def kicker(n):return str(n or '').lower() in {'tyler bass','jake bates'}
 rows=[]
 for m in markets:
- n=pname(m); key=hkey(n); matched=None; exclusion=None
+ n=pname(m); key=hkey(n); matched=None; exclusion=None; collision=False
  if dst(n):exclusion='DST_UNSUPPORTED'
  elif kicker(n):exclusion='K_UNSUPPORTED'
  elif key and key.lower() in proj:
-  r=proj[key.lower()]
-  if str(r.position).upper() in SUPPORTED:matched=r
-  else:exclusion='POSITION_UNSUPPORTED_'+str(r.position).upper()
+  candidates=[r for r in proj[key.lower()] if str(r.position).upper() in SUPPORTED]
+  want=POSITION_OVERRIDES.get(str(n or '').lower())
+  if want:candidates=[r for r in candidates if str(r.position).upper()==want]
+  if len(candidates)==1:matched=candidates[0]
+  elif len(candidates)>1:exclusion='AMBIGUOUS_NAME_POSITION'; collision=True
+  else:exclusion='NO_SUPPORTED_POSITION_MATCH'
  nums=[float(x) for x in re.findall(r'(?<![A-Za-z])\d+(?:\.\d+)?',' '.join(str(m.get(k,'')) for k in ['title','subtitle','yes_sub_title']))]; th=nums[-1] if nums else None
  fair=None
  if matched is not None and th is not None:
   hist=d.loc[d.position==matched.position,'resid'].dropna(); off=th-float(matched.pred_fp)
   fair=float(((hist>off).sum()+.5)/(len(hist)+1)) if len(hist)>=100 else None
  ya=dollars(m,'yes_ask'); yb=dollars(m,'yes_bid'); na=dollars(m,'no_ask'); nb=dollars(m,'no_bid')
- rows.append({'ticker':m.get('ticker'),'event_ticker':m.get('event_ticker'),'title':m.get('title'),'kalshi_player_name':n,'historical_name_key':key,'matched_player':getattr(matched,'player_name',None) if matched is not None else None,'position':getattr(matched,'position',None) if matched is not None else None,'exclusion_reason':exclusion,'threshold':th,'yes_bid_probability':yb,'yes_ask_probability':ya,'no_bid_probability':nb,'no_ask_probability':na,'volume':m.get('volume'),'open_interest':m.get('open_interest'),'smoke_test_fair_probability':fair,'smoke_test_yes_edge':fair-ya if fair is not None and ya is not None else None})
+ rows.append({'ticker':m.get('ticker'),'event_ticker':m.get('event_ticker'),'title':m.get('title'),'kalshi_player_name':n,'historical_name_key':key,'matched_player':getattr(matched,'player_name',None) if matched is not None else None,'position':getattr(matched,'position',None) if matched is not None else None,'identity_collision':collision,'exclusion_reason':exclusion,'threshold':th,'yes_bid_probability':yb,'yes_ask_probability':ya,'no_bid_probability':nb,'no_ask_probability':na,'volume':m.get('volume'),'open_interest':m.get('open_interest'),'smoke_test_fair_probability':fair,'smoke_test_yes_edge':fair-ya if fair is not None and ya is not None else None})
 o=pd.DataFrame(rows); o.to_csv(OUT/'03_kalshi_fantasy_markets.csv',index=False)
-summary={'test':'03_kalshi_fantasy_market_scan','series':SERIES,'research_only':True,'orders_placed':False,'fantasy_point_markets':len(markets),'supported_player_markets':int(o.exclusion_reason.isna().sum()),'player_names_matched':int(o.matched_player.notna().sum()),'markets_with_executable_yes_ask':int(o.yes_ask_probability.notna().sum()),'mapped_smoke_test_markets':int(o.smoke_test_fair_probability.notna().sum()),'api_errors':errors,'next_gate':'Require supported player mapping plus executable quotes, then current-slate frozen-model projections and decision QC.'}
+summary={'test':'03_kalshi_fantasy_market_scan','series':SERIES,'research_only':True,'orders_placed':False,'fantasy_point_markets':len(markets),'supported_player_markets':int(o.exclusion_reason.isna().sum()),'player_names_matched':int(o.matched_player.notna().sum()),'markets_with_executable_yes_ask':int(o.yes_ask_probability.notna().sum()),'identity_collisions_unresolved':int((o.exclusion_reason=='AMBIGUOUS_NAME_POSITION').sum()),'mapped_smoke_test_markets':int(o.smoke_test_fair_probability.notna().sum()),'api_errors':errors}
 (OUT/'03_kalshi_scan_summary.json').write_text(json.dumps(summary,indent=2));print(json.dumps(summary,indent=2));print(o.to_json(orient='records',indent=2))
+if summary['identity_collisions_unresolved']>0: raise SystemExit('Unresolved current-slate player identity collision')
