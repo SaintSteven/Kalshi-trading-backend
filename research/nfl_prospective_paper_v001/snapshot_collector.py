@@ -12,7 +12,7 @@ UA={'User-Agent':'kalshi-nfl-week1-snapshot-collector-v0.01'}
 TEAM_ALIAS={'LA':'LAR','STL':'LAR','OAK':'LV','SD':'LAC','JAC':'JAX','WSH':'WAS'}
 SERIES={
  'receiving_yards':'KXNFLRECYDS','receptions':'KXNFLREC','rushing_yards':'KXNFLRSHYDS',
- 'passing_yards':'KXNFLPASSYDS','player_tds':'KXNFLANYTD'}
+ 'passing_yards':'KXNFLPASSYDS','player_tds':'KXNFLANYTD','fantasy_points':'KXNFLFFPTS'}
 SNAP_COLS=['captured_at','season','week','game_id','game','kickoff_utc','market_ticker','event_ticker','series_ticker','prop_family','player_key','player_name','snapshot_label','target_time_utc','quote_time_utc','quote_age_seconds','yes_bid','yes_ask','no_bid','no_ask','source','qc_status','qc_reason']
 CURRENT_COLS=['updated_at','season','week','game_id','game','kickoff_utc','market_ticker','event_ticker','series_ticker','prop_family','player_key','player_name','yes_bid','yes_ask','no_bid','no_ask','qc_status','qc_reason']
 
