@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Test 03: current Kalshi NFL fantasy-points market discovery and research edge scan.
+"""Test 03: direct current Kalshi KXNFLFFPTS market discovery smoke test.
 
-Uses the promoted walk-forward empirical residual distribution from Test 02.
-This is research-only: it discovers open Kalshi markets whose metadata indicates
-NFL fantasy points, records executable quotes, and emits candidates when a
-market can be conservatively mapped to a player/threshold. No orders are placed.
+Research-only. Queries the known NFL single-game fantasy-points series directly
+instead of relying on a generic open-market scan. Records executable quotes and
+basic contract metadata. Historical projections are used only for optional
+mapping/plumbing diagnostics; no output is trade-ready and no orders are placed.
 """
 import json, re, urllib.parse, urllib.request
 from pathlib import Path
@@ -16,39 +16,58 @@ if not pred.exists(): raise SystemExit("Test 00 predictions missing")
 d=pd.read_csv(pred); d["resid"]=d.actual_fp-d.pred_fp
 
 BASE="https://api.elections.kalshi.com/trade-api/v2"
+SERIES="KXNFLFFPTS"
 def get(path, params=None):
     url=BASE+path
     if params: url+="?"+urllib.parse.urlencode(params)
-    req=urllib.request.Request(url,headers={"User-Agent":"nfl-fantasy-points-research/1.0"})
+    req=urllib.request.Request(url,headers={"User-Agent":"nfl-fantasy-points-research/1.1"})
     with urllib.request.urlopen(req,timeout=30) as r: return json.load(r)
 
-markets=[]; cursor=None
-for _ in range(20):
-    q={"status":"open","limit":1000}
-    if cursor: q["cursor"]=cursor
-    try: payload=get("/markets",q)
+# Query the known series directly. First try the event endpoint because markets
+# inherit the series through event_ticker; then fall back to series_ticker on
+# /markets for API versions that support that filter.
+events=[]; markets=[]; errors=[]
+try:
+    cursor=None
+    for _ in range(20):
+        q={"series_ticker":SERIES,"status":"open","limit":200,"with_nested_markets":"true"}
+        if cursor: q["cursor"]=cursor
+        p=get("/events",q)
+        batch=p.get("events",[]); events.extend(batch)
+        for e in batch: markets.extend(e.get("markets",[]) or [])
+        cursor=p.get("cursor")
+        if not cursor: break
+except Exception as e:
+    errors.append("events_query: "+str(e))
+
+if not markets:
+    try:
+        cursor=None
+        for _ in range(20):
+            q={"series_ticker":SERIES,"status":"open","limit":1000}
+            if cursor: q["cursor"]=cursor
+            p=get("/markets",q); markets.extend(p.get("markets",[]))
+            cursor=p.get("cursor")
+            if not cursor: break
     except Exception as e:
-        (OUT/"03_kalshi_scan_summary.json").write_text(json.dumps({"test":"03_kalshi_fantasy_market_scan","status":"API_ERROR","error":str(e)},indent=2))
-        raise
-    batch=payload.get("markets",[]); markets.extend(batch)
-    cursor=payload.get("cursor")
-    if not cursor: break
+        errors.append("markets_query: "+str(e))
 
-def text(m):
-    return " ".join(str(m.get(k,"")) for k in ["ticker","event_ticker","title","subtitle","yes_sub_title","no_sub_title"]).lower()
-nfl=[m for m in markets if "nfl" in text(m) or "football" in text(m)]
-fantasy=[m for m in nfl if "fantasy" in text(m) and ("point" in text(m) or "pts" in text(m))]
+# De-duplicate and enforce exact series/event family rather than text heuristics.
+uniq={}
+for m in markets:
+    ticker=str(m.get("ticker","")).upper(); ev=str(m.get("event_ticker","")).upper()
+    if ticker.startswith(SERIES) or ev.startswith(SERIES): uniq[ticker or ev]=m
+markets=list(uniq.values())
 
-# Latest validated projection per player is used only as a plumbing smoke test.
-# Historical/current-slate projection integration is the next gate if markets exist.
 latest=d.sort_values(["season","week"]).groupby("player_name",as_index=False).tail(1)
 proj={str(r.player_name).lower():r for r in latest.itertuples()}
+def text(m): return " ".join(str(m.get(k,"")) for k in ["ticker","event_ticker","title","subtitle","yes_sub_title","no_sub_title"])
 rows=[]
-for m in fantasy:
-    t=text(m)
-    matched=None
+for m in markets:
+    raw=text(m); low=raw.lower(); matched=None
     for name,r in proj.items():
-        if name and name in t: matched=r; break
+        if name and name in low: matched=r; break
+    # Threshold parsing remains diagnostic only; exact settlement-rule parsing is a later gate.
     nums=[float(x) for x in re.findall(r"(?<![A-Za-z])\d+(?:\.\d+)?", " ".join(str(m.get(k,"")) for k in ["title","subtitle","yes_sub_title"]))]
     threshold=nums[-1] if nums else None
     fair=None
@@ -58,19 +77,21 @@ for m in fantasy:
         fair=float(((hist>off).sum()+.5)/(len(hist)+1)) if len(hist)>=100 else None
     yes_ask=m.get("yes_ask")
     edge=(fair-yes_ask/100) if fair is not None and isinstance(yes_ask,(int,float)) else None
-    rows.append({"ticker":m.get("ticker"),"title":m.get("title"),"subtitle":m.get("subtitle"),
-                 "yes_bid":m.get("yes_bid"),"yes_ask":yes_ask,"volume":m.get("volume"),
+    rows.append({"ticker":m.get("ticker"),"event_ticker":m.get("event_ticker"),"title":m.get("title"),"subtitle":m.get("subtitle"),
+                 "yes_sub_title":m.get("yes_sub_title"),"no_sub_title":m.get("no_sub_title"),"yes_bid":m.get("yes_bid"),"yes_ask":yes_ask,
+                 "no_bid":m.get("no_bid"),"no_ask":m.get("no_ask"),"volume":m.get("volume"),"open_interest":m.get("open_interest"),
                  "matched_player":getattr(matched,"player_name",None) if matched is not None else None,
-                 "position":getattr(matched,"position",None) if matched is not None else None,
-                 "threshold":threshold,"smoke_test_fair_probability":fair,"smoke_test_yes_edge":edge})
+                 "position":getattr(matched,"position",None) if matched is not None else None,"threshold":threshold,
+                 "smoke_test_fair_probability":fair,"smoke_test_yes_edge":edge})
 
 o=pd.DataFrame(rows)
 if len(o): o.to_csv(OUT/"03_kalshi_fantasy_markets.csv",index=False)
-summary={"test":"03_kalshi_fantasy_market_scan","research_only":True,"orders_placed":False,
-         "open_markets_scanned":len(markets),"nfl_like_markets":len(nfl),"fantasy_point_markets":len(fantasy),
+summary={"test":"03_kalshi_fantasy_market_scan","series":SERIES,"research_only":True,"orders_placed":False,
+         "open_events_found":len(events),"fantasy_point_markets":len(markets),
          "mapped_smoke_test_markets":int(o.smoke_test_fair_probability.notna().sum()) if len(o) else 0,
-         "note":"Any fair values here use latest historical validation projections only as a mapping/plumbing smoke test; they are NOT trade-ready current-slate forecasts.",
-         "next_gate":"If fantasy-point markets are discovered, wire current-slate projections and exact Kalshi rule/threshold parsing before paper-trading evaluation."}
+         "api_errors":errors,
+         "note":"Direct KXNFLFFPTS discovery. Any fair values use latest historical validation projections only as a mapping/plumbing smoke test; they are NOT trade-ready current-slate forecasts.",
+         "next_gate":"If contracts are discovered, verify exact settlement/threshold parsing and wire frozen current-slate projections before paper-trading evaluation."}
 (OUT/"03_kalshi_scan_summary.json").write_text(json.dumps(summary,indent=2))
 print(json.dumps(summary,indent=2))
 if len(o): print(o.to_json(orient="records",indent=2))
