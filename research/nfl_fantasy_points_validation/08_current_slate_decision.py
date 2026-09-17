@@ -1,29 +1,25 @@
 #!/usr/bin/env python3
-"""FFPTS v1 current-slate decision pipeline.
-Uses independent current-slate point projections + frozen empirical position residuals.
-Kalshi prices are comparison-only and never model inputs. Research/paper only.
-"""
+"""FFPTS v1 current-slate decision pipeline. Research/paper only."""
 import json
 from pathlib import Path
 import pandas as pd
 R=Path('research/nfl_fantasy_points_validation'); O=R/'results'
 model=json.loads((R/'FROZEN_MODEL_V1.json').read_text())
 hist=pd.read_csv(O/'00_walk_forward_predictions.csv'); hist['resid']=hist.actual_fp-hist.pred_fp
-p=pd.read_csv(O/'09_current_slate_projections.csv')
-m=pd.read_csv(O/'03_kalshi_fantasy_markets.csv')
-P={str(r.player_name).lower():r for r in p.itertuples()}
+p=pd.read_csv(O/'09_current_slate_projections.csv'); m=pd.read_csv(O/'03_kalshi_fantasy_markets.csv')
+# Keep all same-display-name candidates; select by the position already resolved from Kalshi full-name identity.
+P={}
+for r in p.itertuples():P.setdefault(str(r.player_name).lower(),[]).append(r)
 rows=[]
 for x in m.itertuples():
  if pd.notna(getattr(x,'exclusion_reason',None)): continue
- name=str(x.matched_player).lower(); r=P.get(name)
- if r is None: continue
- proj=float(r.projection_fp); th=float(x.threshold); residuals=hist.loc[hist.position==r.position,'resid'].dropna().to_numpy()
+ name=str(x.matched_player).lower(); pos=str(x.position).upper()
+ candidates=[r for r in P.get(name,[]) if str(r.position).upper()==pos]
+ if len(candidates)!=1: raise SystemExit(f'Current projection identity gate failed: {x.kalshi_player_name} {name} {pos} candidates={len(candidates)}')
+ r=candidates[0]; proj=float(r.projection_fp); th=float(x.threshold); residuals=hist.loc[hist.position==r.position,'resid'].dropna().to_numpy()
  fair=float(((residuals>(th-proj)).sum()+.5)/(len(residuals)+1))
- ask=float(x.yes_ask_probability) if pd.notna(x.yes_ask_probability) else None
- bid=float(x.yes_bid_probability) if pd.notna(x.yes_bid_probability) else None
- edge=fair-ask if ask is not None else None
- tail=fair<.15 or fair>.85
- qc_flags=[]
+ ask=float(x.yes_ask_probability) if pd.notna(x.yes_ask_probability) else None; bid=float(x.yes_bid_probability) if pd.notna(x.yes_bid_probability) else None; edge=fair-ask if ask is not None else None
+ tail=fair<.15 or fair>.85; qc_flags=[]
  if int(getattr(r,'projection_week',99))==1 and r.position=='QB': qc_flags.append('WEEK1_QB_REVIEW')
  if int(getattr(r,'projection_week',99))==1 and proj<8: qc_flags.append('WEEK1_LOW_ROLE_REVIEW')
  if ask is None: decision='PASS'; qc_flags.append('NO_EXECUTABLE_QUOTE')
@@ -34,8 +30,8 @@ for x in m.itertuples():
  else: decision='PASS'; qc_flags.append('NO_EDGE')
  rows.append({'ticker':x.ticker,'player':x.kalshi_player_name,'position':r.position,'projection_fp':proj,'projection_season':int(r.projection_season),'projection_week':int(r.projection_week),'threshold':th,'fair_yes':fair,'yes_bid':bid,'yes_ask':ask,'edge_vs_ask':edge,'decision':decision,'qc':'|'.join(qc_flags) if qc_flags else 'PASS','model':model.get('model_name','NFL-FFPTS-RIDGE-EMPIRICAL-v1')})
 o=pd.DataFrame(rows)
-if not o.empty: o=o.sort_values(['decision','edge_vs_ask'],ascending=[True,False])
+if not o.empty:o=o.sort_values(['decision','edge_vs_ask'],ascending=[True,False])
 o.to_csv(O/'08_current_slate_decisions.csv',index=False)
-summary={'pipeline':'NFL FFPTS v1','research_only':True,'orders_placed':False,'frozen_model':model.get('model_name','NFL-FFPTS-RIDGE-EMPIRICAL-v1'),'supported_markets':len(o),'quotes_present':int(o.yes_ask.notna().sum()) if len(o) else 0,'PAPER':int((o.decision=='PAPER').sum()) if len(o) else 0,'WATCH':int((o.decision=='WATCH').sum()) if len(o) else 0,'PASS':int((o.decision=='PASS').sum()) if len(o) else 0,'method':'Independent current-slate Ridge point projection plus frozen empirical position residual threshold probability; Kalshi executable ask used only after fair probability is produced.','projection_source':'09_current_slate_projections.csv','warning':'Research/paper only. Market prices do not alter model projections or fair probabilities.'}
-(O/'08_current_slate_summary.json').write_text(json.dumps(summary,indent=2)); print(json.dumps(summary,indent=2)); print(o.to_json(orient='records',indent=2))
-if len(o)==0 or summary['quotes_present']!=len(o): raise SystemExit('Current-slate gate failed')
+summary={'pipeline':'NFL FFPTS v1','research_only':True,'orders_placed':False,'frozen_model':model.get('model_name','NFL-FFPTS-RIDGE-EMPIRICAL-v1'),'supported_markets':len(o),'quotes_present':int(o.yes_ask.notna().sum()) if len(o) else 0,'PAPER':int((o.decision=='PAPER').sum()) if len(o) else 0,'WATCH':int((o.decision=='WATCH').sum()) if len(o) else 0,'PASS':int((o.decision=='PASS').sum()) if len(o) else 0,'method':'Independent current-slate Ridge point projection plus frozen empirical position residual threshold probability; Kalshi executable ask used only after fair probability is produced.','projection_source':'09_current_slate_projections.csv','identity_gate':'full Kalshi name -> historical abbreviation+position -> unique current projection','warning':'Research/paper only. Market prices do not alter model projections or fair probabilities.'}
+(O/'08_current_slate_summary.json').write_text(json.dumps(summary,indent=2));print(json.dumps(summary,indent=2));print(o.to_json(orient='records',indent=2))
+if len(o)==0 or summary['quotes_present']!=len(o):raise SystemExit('Current-slate gate failed')
