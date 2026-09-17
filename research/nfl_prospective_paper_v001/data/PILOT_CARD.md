@@ -1,6 +1,6 @@
 # NFL Week 1 Pilot Card
 
-Generated: 2026-09-17T12:16:05.149542+00:00
+Generated: 2026-09-17T17:04:08.522460+00:00
 
 **Mode: PAPER ONLY / manual pilot. No real-money orders are generated.**
 
@@ -22,13 +22,13 @@ No receiving-yards entries are READY at this moment. The frozen protocol require
 | CIN@HOU | Ja'Marr Chase: 70+ receiving yards    |          70 |     0.42 |  0.717252 | 0.297252  | 2026-09-20T17:00:00+00:00 | WAIT_FOR_T30 |
 | WAS@DAL | George Pickens: 50+ receiving yards   |          50 |     0.42 |  0.639742 | 0.219742  | 2026-09-20T20:25:00+00:00 | WAIT_FOR_T30 |
 | WAS@DAL | Terry McLaurin: 50+ receiving yards   |          50 |     0.46 |  0.639742 | 0.179742  | 2026-09-20T20:25:00+00:00 | WAIT_FOR_T30 |
+| CIN@HOU | Ja'Marr Chase: 60+ receiving yards    |          60 |     0.4  |  0.577827 | 0.177827  | 2026-09-20T17:00:00+00:00 | WAIT_FOR_T30 |
 | DET@BUF | DJ Moore: 60+ receiving yards         |          60 |     0.47 |  0.639742 | 0.169742  | 2026-09-18T00:15:00+00:00 | WAIT_FOR_T30 |
 | MIN@CHI | Colston Loveland: 40+ receiving yards |          40 |     0.49 |  0.639742 | 0.149742  | 2026-09-20T17:00:00+00:00 | WAIT_FOR_T30 |
-| CIN@HOU | Ja'Marr Chase: 60+ receiving yards    |          60 |     0.44 |  0.577827 | 0.137827  | 2026-09-20T17:00:00+00:00 | WAIT_FOR_T30 |
 | DET@BUF | Jameson Williams: 50+ receiving yards |          50 |     0.4  |  0.535262 | 0.135262  | 2026-09-18T00:15:00+00:00 | WAIT_FOR_T30 |
-| WAS@DAL | CeeDee Lamb: 60+ receiving yards      |          60 |     0.46 |  0.577827 | 0.117827  | 2026-09-20T20:25:00+00:00 | WAIT_FOR_T30 |
-| DET@BUF | Dalton Kincaid: 50+ receiving yards   |          50 |     0.47 |  0.577827 | 0.107827  | 2026-09-18T00:15:00+00:00 | WAIT_FOR_T30 |
-| DET@BUF | Jahmyr Gibbs: 30+ receiving yards     |          30 |     0.49 |  0.577827 | 0.0878267 | 2026-09-18T00:15:00+00:00 | WAIT_FOR_T30 |
+| DET@BUF | Dalton Kincaid: 50+ receiving yards   |          50 |     0.48 |  0.577827 | 0.0978267 | 2026-09-18T00:15:00+00:00 | WAIT_FOR_T30 |
+| DET@BUF | Jahmyr Gibbs: 30+ receiving yards     |          30 |     0.48 |  0.577827 | 0.0978267 | 2026-09-18T00:15:00+00:00 | WAIT_FOR_T30 |
+| WAS@DAL | CeeDee Lamb: 60+ receiving yards      |          60 |     0.49 |  0.577827 | 0.0878267 | 2026-09-20T20:25:00+00:00 | WAIT_FOR_T30 |
 
 ## Guardrail
 
