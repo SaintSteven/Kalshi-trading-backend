@@ -1,6 +1,6 @@
 # NFL Week 1 Pilot Card
 
-Generated: 2026-09-16T23:47:02.754471+00:00
+Generated: 2026-09-17T01:50:01.134808+00:00
 
 **Mode: PAPER ONLY / manual pilot. No real-money orders are generated.**
 
@@ -15,20 +15,20 @@ No receiving-yards entries are READY at this moment. The frozen protocol require
 
 ## Current watchlist (not entries)
 
-| game    | player_name                         |   threshold |   no_ask |   fair_no |   no_edge | kickoff_utc               | action       |
-|:--------|:------------------------------------|------------:|---------:|----------:|----------:|:--------------------------|:-------------|
-| CIN@HOU | Ja'Marr Chase: 75+ receiving yards  |          75 |     0.48 |  0.807692 | 0.327692  | 2026-09-20T17:00:00+00:00 | WAIT_FOR_T30 |
-| WAS@DAL | George Pickens: 60+ receiving yards |          60 |     0.46 |  0.776522 | 0.316522  | 2026-09-20T20:25:00+00:00 | WAIT_FOR_T30 |
-| WAS@DAL | George Pickens: 50+ receiving yards |          50 |     0.42 |  0.639742 | 0.219742  | 2026-09-20T20:25:00+00:00 | WAIT_FOR_T30 |
-| PHI@TEN | DeVonta Smith: 60+ receiving yards  |          60 |     0.46 |  0.670295 | 0.210295  | 2026-09-20T17:00:00+00:00 | WAIT_FOR_T30 |
-| WAS@DAL | Terry McLaurin: 50+ receiving yards |          50 |     0.46 |  0.639742 | 0.179742  | 2026-09-20T20:25:00+00:00 | WAIT_FOR_T30 |
-| DET@BUF | DJ Moore: 60+ receiving yards       |          60 |     0.48 |  0.639742 | 0.159742  | 2026-09-18T00:15:00+00:00 | WAIT_FOR_T30 |
-| CIN@HOU | Ja'Marr Chase: 60+ receiving yards  |          60 |     0.42 |  0.577827 | 0.157827  | 2026-09-20T17:00:00+00:00 | WAIT_FOR_T30 |
-| WAS@DAL | CeeDee Lamb: 60+ receiving yards    |          60 |     0.46 |  0.577827 | 0.117827  | 2026-09-20T20:25:00+00:00 | WAIT_FOR_T30 |
-| DET@BUF | Dalton Kincaid: 50+ receiving yards |          50 |     0.49 |  0.577827 | 0.0878267 | 2026-09-18T00:15:00+00:00 | WAIT_FOR_T30 |
-| IND@KC  | Rashee Rice: 40+ receiving yards    |          40 |     0.43 |  0.493488 | 0.0634877 | 2026-09-21T00:20:00+00:00 | WAIT_FOR_T30 |
-| PHI@TEN | DeVonta Smith: 50+ receiving yards  |          50 |     0.49 |  0.535262 | 0.0452622 | 2026-09-20T17:00:00+00:00 | WAIT_FOR_T30 |
-| WAS@DAL | Terry McLaurin: 40+ receiving yards |          40 |     0.46 |  0.497835 | 0.0378355 | 2026-09-20T20:25:00+00:00 | WAIT_FOR_T30 |
+| game    | player_name                           |   threshold |   no_ask |   fair_no |   no_edge | kickoff_utc               | action       |
+|:--------|:--------------------------------------|------------:|---------:|----------:|----------:|:--------------------------|:-------------|
+| CIN@HOU | Ja'Marr Chase: 75+ receiving yards    |          75 |     0.48 |  0.807692 | 0.327692  | 2026-09-20T17:00:00+00:00 | WAIT_FOR_T30 |
+| WAS@DAL | George Pickens: 60+ receiving yards   |          60 |     0.45 |  0.776522 | 0.326522  | 2026-09-20T20:25:00+00:00 | WAIT_FOR_T30 |
+| CIN@HOU | Ja'Marr Chase: 70+ receiving yards    |          70 |     0.43 |  0.717252 | 0.287252  | 2026-09-20T17:00:00+00:00 | WAIT_FOR_T30 |
+| WAS@DAL | George Pickens: 50+ receiving yards   |          50 |     0.42 |  0.639742 | 0.219742  | 2026-09-20T20:25:00+00:00 | WAIT_FOR_T30 |
+| PHI@TEN | DeVonta Smith: 60+ receiving yards    |          60 |     0.46 |  0.670295 | 0.210295  | 2026-09-20T17:00:00+00:00 | WAIT_FOR_T30 |
+| WAS@DAL | Terry McLaurin: 50+ receiving yards   |          50 |     0.46 |  0.639742 | 0.179742  | 2026-09-20T20:25:00+00:00 | WAIT_FOR_T30 |
+| DET@BUF | DJ Moore: 60+ receiving yards         |          60 |     0.48 |  0.639742 | 0.159742  | 2026-09-18T00:15:00+00:00 | WAIT_FOR_T30 |
+| MIN@CHI | Colston Loveland: 40+ receiving yards |          40 |     0.49 |  0.639742 | 0.149742  | 2026-09-20T17:00:00+00:00 | WAIT_FOR_T30 |
+| CIN@HOU | Ja'Marr Chase: 60+ receiving yards    |          60 |     0.44 |  0.577827 | 0.137827  | 2026-09-20T17:00:00+00:00 | WAIT_FOR_T30 |
+| WAS@DAL | CeeDee Lamb: 60+ receiving yards      |          60 |     0.46 |  0.577827 | 0.117827  | 2026-09-20T20:25:00+00:00 | WAIT_FOR_T30 |
+| DET@BUF | Dalton Kincaid: 50+ receiving yards   |          50 |     0.49 |  0.577827 | 0.0878267 | 2026-09-18T00:15:00+00:00 | WAIT_FOR_T30 |
+| IND@KC  | Rashee Rice: 40+ receiving yards      |          40 |     0.43 |  0.493488 | 0.0634877 | 2026-09-21T00:20:00+00:00 | WAIT_FOR_T30 |
 
 ## Guardrail
 
