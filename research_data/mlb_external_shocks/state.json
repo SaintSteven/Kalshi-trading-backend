@@ -9,7 +9,7 @@
       "game_pk": 822845,
       "home_lineup": [],
       "home_lineup_confirmed": false,
-      "home_probable_pitcher": null,
+      "home_probable_pitcher": "Tyler Alexander",
       "home_team": "Texas Rangers",
       "status": "Preview"
     },
@@ -35,7 +35,7 @@
       "game_pk": 823334,
       "home_lineup": [],
       "home_lineup_confirmed": false,
-      "home_probable_pitcher": null,
+      "home_probable_pitcher": "Wilber Dotel",
       "home_team": "Pittsburgh Pirates",
       "status": "Preview"
     },
@@ -94,7 +94,7 @@
     "824464": {
       "away_lineup": [],
       "away_lineup_confirmed": false,
-      "away_probable_pitcher": null,
+      "away_probable_pitcher": "Justin Wrobleski",
       "away_team": "Los Angeles Dodgers",
       "game_date": "2026-09-17T16:40:00Z",
       "game_pk": 824464,
@@ -118,5 +118,5 @@
       "status": "Preview"
     }
   },
-  "last_run_at": "2026-09-17T00:34:53.546469Z"
+  "last_run_at": "2026-09-17T05:23:14.762395Z"
 }
