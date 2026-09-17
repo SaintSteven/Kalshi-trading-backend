@@ -27,6 +27,8 @@ jobs:
         run: python research/nfl_fantasy_points_validation/05_core_tail_position.py
       - name: Test 06 - Week 1 and role-context diagnostics
         run: python research/nfl_fantasy_points_validation/06_week1_role_context.py
+      - name: Test 07 - team-change context diagnostic
+        run: python research/nfl_fantasy_points_validation/07_team_change_context.py
       - uses: actions/upload-artifact@v4
         with:
           name: nfl-fantasy-points-validation
