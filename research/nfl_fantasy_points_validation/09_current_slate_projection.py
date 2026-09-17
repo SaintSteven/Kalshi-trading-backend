@@ -63,8 +63,13 @@ for r in latest.itertuples():
  X=pd.DataFrame([vals],columns=features); proj=float(np.clip(m.predict(X)[0],0,None))
  full_name=getattr(r,'player_display_name',None)
  if full_name is None or pd.isna(full_name): full_name=getattr(r,'player_name',None)
- rows.append({'player_id':r.player_id,'player_name':r.player_name,'full_name':full_name,'position':r.position,'team':getattr(r,'recent_team',getattr(r,'team',None)),'projection_fp':proj,'projection_season':season,'projection_week':next_week,'history_games':len(hist),'market_prices_used':False})
+ team=getattr(r,'recent_team',getattr(r,'team',None))
+ prev_team=None
+ if len(hist)>=2:
+  pr=hist.iloc[-2]; prev_team=pr.get('recent_team',pr.get('team',None))
+ team_changed=bool(pd.notna(team) and pd.notna(prev_team) and str(team)!=str(prev_team))
+ rows.append({'player_id':r.player_id,'player_name':r.player_name,'full_name':full_name,'position':r.position,'team':team,'previous_observed_team':prev_team,'team_changed':team_changed,'projection_fp':proj,'projection_season':season,'projection_week':next_week,'history_games':len(hist),'market_prices_used':False})
 o=pd.DataFrame(rows); o.to_csv(O/'09_current_slate_projections.csv',index=False)
-summary={'test':'09_current_slate_projection','model':'NFL-FFPTS-RIDGE-EMPIRICAL-v1','market_prices_used':False,'training_rows':int(len(tr)),'projection_rows':int(len(o)),'latest_observed_season':int(d.season.max()),'latest_observed_week':int(d.loc[d.season.eq(d.season.max()),'week'].max()),'full_identity_rows':int(o.full_name.notna().sum()),'method':'Frozen Ridge architecture fit only to observed player history; next-game features use only prior observed stats. Full player identity is carried only for collision-safe market mapping.'}
+summary={'test':'09_current_slate_projection','model':'NFL-FFPTS-RIDGE-EMPIRICAL-v1','market_prices_used':False,'training_rows':int(len(tr)),'projection_rows':int(len(o)),'latest_observed_season':int(d.season.max()),'latest_observed_week':int(d.loc[d.season.eq(d.season.max()),'week'].max()),'full_identity_rows':int(o.full_name.notna().sum()),'team_change_rows':int(o.team_changed.sum()),'method':'Frozen Ridge architecture fit only to observed player history; next-game features use only prior observed stats. Full player identity and observed team-change context are carried only for collision-safe mapping and frozen QC.'}
 (O/'09_current_slate_projection_summary.json').write_text(json.dumps(summary,indent=2)); print(json.dumps(summary,indent=2))
 if o.empty: raise SystemExit('No current projections generated')
