@@ -14,27 +14,67 @@
       "status": "Preview"
     },
     "822924": {
-      "away_lineup": [],
-      "away_lineup_confirmed": false,
+      "away_lineup": [
+        "Henry Bolte",
+        "Jeff McNeil",
+        "Lawrence Butler",
+        "Zack Gelof",
+        "Donovan Walton",
+        "Tommy White",
+        "Alika Williams",
+        "Jonah Heim",
+        "Denzel Clarke"
+      ],
+      "away_lineup_confirmed": true,
       "away_probable_pitcher": "Jeffrey Springs",
       "away_team": "Athletics",
       "game_date": "2026-09-17T17:10:00Z",
       "game_pk": 822924,
-      "home_lineup": [],
-      "home_lineup_confirmed": false,
+      "home_lineup": [
+        "Yandy D\u00edaz",
+        "Jonathan Aranda",
+        "Junior Caminero",
+        "Liam Hicks",
+        "Jonny DeLuca",
+        "Chandler Simpson",
+        "Ryan Vilade",
+        "Richie Palacios",
+        "Taylor Walls"
+      ],
+      "home_lineup_confirmed": true,
       "home_probable_pitcher": "Drew Rasmussen",
       "home_team": "Tampa Bay Rays",
       "status": "Preview"
     },
     "823334": {
-      "away_lineup": [],
-      "away_lineup_confirmed": false,
+      "away_lineup": [
+        "Brice Turang",
+        "Luis Lara",
+        "Jackson Chourio",
+        "Andrew Vaughn",
+        "Gary S\u00e1nchez",
+        "Joey Ortiz",
+        "Sal Frelick",
+        "Bo Naylor",
+        "David Hamilton"
+      ],
+      "away_lineup_confirmed": true,
       "away_probable_pitcher": "Kyle Harrison",
       "away_team": "Milwaukee Brewers",
       "game_date": "2026-09-17T16:35:00Z",
       "game_pk": 823334,
-      "home_lineup": [],
-      "home_lineup_confirmed": false,
+      "home_lineup": [
+        "Konnor Griffin",
+        "Oneil Cruz",
+        "Bryan Reynolds",
+        "Rafael Flores Jr.",
+        "Brandon Lowe",
+        "Nick Gonzales",
+        "Ronny Simon",
+        "Jared Triolo",
+        "Henry Davis"
+      ],
+      "home_lineup_confirmed": true,
       "home_probable_pitcher": "Wilber Dotel",
       "home_team": "Pittsburgh Pirates",
       "status": "Preview"
@@ -92,14 +132,34 @@
       "status": "Preview"
     },
     "824464": {
-      "away_lineup": [],
-      "away_lineup_confirmed": false,
+      "away_lineup": [
+        "Tommy Edman",
+        "Freddie Freeman",
+        "Kyle Tucker",
+        "Teoscar Hern\u00e1ndez",
+        "Max Muncy",
+        "Josue De Paula",
+        "Hunter Feduccia",
+        "Alex Freeland",
+        "Miguel Rojas"
+      ],
+      "away_lineup_confirmed": true,
       "away_probable_pitcher": "Justin Wrobleski",
       "away_team": "Los Angeles Dodgers",
       "game_date": "2026-09-17T16:40:00Z",
       "game_pk": 824464,
-      "home_lineup": [],
-      "home_lineup_confirmed": false,
+      "home_lineup": [
+        "Dane Myers",
+        "Elly De La Cruz",
+        "Sal Stewart",
+        "Tyler Stephenson",
+        "Juan Brito",
+        "Matt McLain",
+        "H\u00e9ctor Rodr\u00edguez",
+        "Ke'Bryan Hayes",
+        "TJ Friedl"
+      ],
+      "home_lineup_confirmed": true,
       "home_probable_pitcher": "Brady Singer",
       "home_team": "Cincinnati Reds",
       "status": "Preview"
@@ -118,5 +178,5 @@
       "status": "Preview"
     }
   },
-  "last_run_at": "2026-09-17T10:12:39.708407Z"
+  "last_run_at": "2026-09-17T15:00:11.661694Z"
 }
