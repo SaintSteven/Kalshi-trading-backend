@@ -1,35 +1,46 @@
-# NFL Week 1 Pilot Card
+# NFL One-Check Receiving Decision Card
 
-Generated: 2026-09-18T09:55:09.486003+00:00
+Generated: 2026-09-18T11:59:30.217348+00:00
 
 **Mode: PAPER ONLY / manual pilot. No real-money orders are generated.**
 
-Frozen primary rule: receiving-yards **NO 40-49c at T-30**, one thesis per player/game. Unit cap $1.00; weekly cap $5.00.
+Prospective one-check hypotheses: core 35-65c needs >=2pp edge (1.0u); middle 20-40c needs >=4pp (0.5u); tail <20c needs >=8pp (0.25u). No T-30/T-60 revisit required. Unit cap $1.00; weekly cap $5.00.
 
-READY now: **0**
+READY now: **160**
 Current in-band model-qualified watchlist: **12**
 
-## Entry status
+## BET NOW — PAPER research entries
 
-No receiving-yards entries are READY at this moment. The frozen protocol requires the T-30 window; early entry is not allowed by this card.
+| updated_at                       | game    | kickoff_utc               | market_ticker                               | player_name                           | player_id   |   threshold |   yes_bid |   yes_ask |   no_bid |   no_ask |   projection |   fair_yes |   fair_no |   yes_edge |   no_edge |   minutes_to_kickoff |   entry_price |   edge_required |   size_units | market_qc_pass   | model_available   | action        |   max_contracts_at_1_unit |
+|:---------------------------------|:--------|:--------------------------|:--------------------------------------------|:--------------------------------------|:------------|------------:|----------:|----------:|---------:|---------:|-------------:|-----------:|----------:|-----------:|----------:|---------------------:|--------------:|----------------:|-------------:|:-----------------|:------------------|:--------------|--------------------------:|
+| 2026-09-18T11:56:37.960435+00:00 | WAS@DAL | 2026-09-20T20:25:00+00:00 | KXNFLRECYDS-26SEP20WASDAL-DALGPICKENS3-60   | George Pickens: 60+ receiving yards   | 00-0037247  |          60 |      0.56 |      0.57 |     0.43 |     0.44 |      44.8847 |  0.223478  |  0.776522 |  -0.346522 |  0.336522 |               3385.5 |          0.44 |            0.02 |            1 | True             | True              | BET_NOW_PAPER |                         2 |
+| 2026-09-18T11:56:37.960435+00:00 | CIN@HOU | 2026-09-20T17:00:00+00:00 | KXNFLRECYDS-26SEP20CINHOU-CINJCHASE1-80     | Ja'Marr Chase: 80+ receiving yards    | 00-0036900  |          80 |      0.46 |      0.48 |     0.52 |     0.54 |      58.3909 |  0.161396  |  0.838604 |  -0.318604 |  0.298604 |               3180.5 |          0.54 |            0.02 |            1 | True             | True              | BET_NOW_PAPER |                         1 |
+| 2026-09-18T11:56:37.960435+00:00 | WAS@DAL | 2026-09-20T20:25:00+00:00 | KXNFLRECYDS-26SEP20WASDAL-DALCLAMB88-75     | CeeDee Lamb: 75+ receiving yards      | 00-0036358  |          75 |      0.48 |      0.54 |     0.46 |     0.52 |      58.4183 |  0.192308  |  0.807692 |  -0.347692 |  0.287692 |               3385.5 |          0.52 |            0.02 |            1 | True             | True              | BET_NOW_PAPER |                         1 |
+| 2026-09-18T11:56:37.960435+00:00 | CIN@HOU | 2026-09-20T17:00:00+00:00 | KXNFLRECYDS-26SEP20CINHOU-CINJCHASE1-70     | Ja'Marr Chase: 70+ receiving yards    | 00-0036900  |          70 |      0.57 |      0.58 |     0.42 |     0.43 |      58.3909 |  0.282748  |  0.717252 |  -0.297252 |  0.287252 |               3180.5 |          0.43 |            0.02 |            1 | True             | True              | BET_NOW_PAPER |                         2 |
+| 2026-09-18T11:56:37.960435+00:00 | WAS@DAL | 2026-09-20T20:25:00+00:00 | KXNFLRECYDS-26SEP20WASDAL-DALGPICKENS3-70   | George Pickens: 70+ receiving yards   | 00-0037247  |          70 |      0.38 |      0.45 |     0.55 |     0.62 |      44.8847 |  0.102891  |  0.897109 |  -0.347109 |  0.277109 |               3385.5 |          0.62 |            0.02 |            1 | True             | True              | BET_NOW_PAPER |                         1 |
+| 2026-09-18T11:56:37.960435+00:00 | CIN@HOU | 2026-09-20T17:00:00+00:00 | KXNFLRECYDS-26SEP20CINHOU-CINJCHASE1-100    | Ja'Marr Chase: 100+ receiving yards   | 00-0036900  |         100 |      0.3  |      0.31 |     0.69 |     0.7  |      58.3909 |  0.0610138 |  0.938986 |  -0.248986 |  0.238986 |               3180.5 |          0.7  |            0.02 |            1 | True             | True              | BET_NOW_PAPER |                         1 |
+| 2026-09-18T11:56:37.960435+00:00 | PIT@NE  | 2026-09-20T17:00:00+00:00 | KXNFLRECYDS-26SEP20PITNE-NERDOUBS87-40      | Romeo Doubs: 40+ receiving yards      | 00-0037816  |          40 |      0.52 |      0.53 |     0.47 |     0.48 |      30.3704 |  0.289157  |  0.710843 |  -0.240843 |  0.230843 |               3180.5 |          0.48 |            0.02 |            1 | True             | True              | BET_NOW_PAPER |                         2 |
+| 2026-09-18T11:56:37.960435+00:00 | CIN@HOU | 2026-09-20T17:00:00+00:00 | KXNFLRECYDS-26SEP20CINHOU-CINJCHASE1-75     | Ja'Marr Chase: 75+ receiving yards    | 00-0036900  |          75 |      0.42 |      0.58 |     0.42 |     0.58 |      58.3909 |  0.192308  |  0.807692 |  -0.387692 |  0.227692 |               3180.5 |          0.58 |            0.02 |            1 | True             | True              | BET_NOW_PAPER |                         1 |
+| 2026-09-18T11:56:37.960435+00:00 | WAS@DAL | 2026-09-20T20:25:00+00:00 | KXNFLRECYDS-26SEP20WASDAL-DALGPICKENS3-50   | George Pickens: 50+ receiving yards   | 00-0037247  |          50 |      0.58 |      0.65 |     0.35 |     0.42 |      44.8847 |  0.360258  |  0.639742 |  -0.289742 |  0.219742 |               3385.5 |          0.42 |            0.02 |            1 | True             | True              | BET_NOW_PAPER |                         2 |
+| 2026-09-18T11:56:37.960435+00:00 | MIN@CHI | 2026-09-20T17:00:00+00:00 | KXNFLRECYDS-26SEP20MINCHI-CHICLOVELAND84-50 | Colston Loveland: 50+ receiving yards | 00-0040126  |          50 |      0.46 |      0.47 |     0.53 |     0.54 |      36.3984 |  0.242718  |  0.757282 |  -0.227282 |  0.217282 |               3180.5 |          0.54 |            0.02 |            1 | True             | True              | BET_NOW_PAPER |                         1 |
 
-## Current watchlist (not entries)
+## Current WATCH list
 
-| game    | player_name                            |   threshold |   no_ask |   fair_no |   no_edge | kickoff_utc               | action       |
-|:--------|:---------------------------------------|------------:|---------:|----------:|----------:|:--------------------------|:-------------|
-| WAS@DAL | George Pickens: 60+ receiving yards    |          60 |     0.44 |  0.776522 | 0.336522  | 2026-09-20T20:25:00+00:00 | WAIT_FOR_T30 |
-| CIN@HOU | Ja'Marr Chase: 70+ receiving yards     |          70 |     0.43 |  0.717252 | 0.287252  | 2026-09-20T17:00:00+00:00 | WAIT_FOR_T30 |
-| PIT@NE  | Romeo Doubs: 40+ receiving yards       |          40 |     0.48 |  0.710843 | 0.230843  | 2026-09-20T17:00:00+00:00 | WAIT_FOR_T30 |
-| MIN@CHI | Colston Loveland: 40+ receiving yards  |          40 |     0.42 |  0.639742 | 0.219742  | 2026-09-20T17:00:00+00:00 | WAIT_FOR_T30 |
-| WAS@DAL | George Pickens: 50+ receiving yards    |          50 |     0.42 |  0.639742 | 0.219742  | 2026-09-20T20:25:00+00:00 | WAIT_FOR_T30 |
-| WAS@DAL | Terry McLaurin: 50+ receiving yards    |          50 |     0.46 |  0.639742 | 0.179742  | 2026-09-20T20:25:00+00:00 | WAIT_FOR_T30 |
-| MIN@CHI | Luther Burden III: 50+ receiving yards |          50 |     0.48 |  0.639742 | 0.159742  | 2026-09-20T17:00:00+00:00 | WAIT_FOR_T30 |
-| CIN@HOU | Ja'Marr Chase: 60+ receiving yards     |          60 |     0.45 |  0.577827 | 0.127827  | 2026-09-20T17:00:00+00:00 | WAIT_FOR_T30 |
-| WAS@DAL | CeeDee Lamb: 60+ receiving yards       |          60 |     0.45 |  0.577827 | 0.127827  | 2026-09-20T20:25:00+00:00 | WAIT_FOR_T30 |
-| IND@KC  | Josh Downs: 40+ receiving yards        |          40 |     0.48 |  0.577827 | 0.0978267 | 2026-09-21T00:20:00+00:00 | WAIT_FOR_T30 |
-| WAS@DAL | Terry McLaurin: 40+ receiving yards    |          40 |     0.43 |  0.497835 | 0.0678355 | 2026-09-20T20:25:00+00:00 | WAIT_FOR_T30 |
-| IND@KC  | Rashee Rice: 40+ receiving yards       |          40 |     0.43 |  0.493488 | 0.0634877 | 2026-09-21T00:20:00+00:00 | WAIT_FOR_T30 |
+| game    | player_name                              |   threshold |   no_ask |   fair_no |   no_edge | kickoff_utc               | action   |
+|:--------|:-----------------------------------------|------------:|---------:|----------:|----------:|:--------------------------|:---------|
+| PHI@TEN | DeVonta Smith: 40+ receiving yards       |          40 |     0.39 |  0.419118 | 0.0291176 | 2026-09-20T17:00:00+00:00 | WATCH    |
+| PHI@TEN | Dontayvion Wicks: 40+ receiving yards    |          40 |     0.62 |  0.639742 | 0.0197415 | 2026-09-20T17:00:00+00:00 | WATCH    |
+| GB@NYJ  | Matthew Golden: 80+ receiving yards      |          80 |     0.89 |  0.909409 | 0.0194089 | 2026-09-20T17:00:00+00:00 | WATCH    |
+| IND@KC  | Tyler Warren: 70+ receiving yards        |          70 |     0.89 |  0.909409 | 0.0194089 | 2026-09-21T00:20:00+00:00 | WATCH    |
+| SEA@ARI | AJ Barner: 60+ receiving yards           |          60 |     0.92 |  0.938986 | 0.0189862 | 2026-09-20T20:25:00+00:00 | WATCH    |
+| PIT@NE  | Romeo Doubs: 70+ receiving yards         |          70 |     0.92 |  0.938986 | 0.0189862 | 2026-09-20T17:00:00+00:00 | WATCH    |
+| PIT@NE  | DeMario Douglas: 70+ receiving yards     |          70 |     0.92 |  0.938986 | 0.0189862 | 2026-09-20T17:00:00+00:00 | WATCH    |
+| WAS@DAL | George Pickens: 150+ receiving yards     |         150 |     0.98 |  0.998737 | 0.018737  | 2026-09-20T20:25:00+00:00 | WATCH    |
+| IND@KC  | Tyler Warren: 40+ receiving yards        |          40 |     0.56 |  0.577827 | 0.0178267 | 2026-09-21T00:20:00+00:00 | WATCH    |
+| SEA@ARI | Jaxon Smith-Njigba: 100+ receiving yards |         100 |     0.74 |  0.757282 | 0.0172816 | 2026-09-20T20:25:00+00:00 | WATCH    |
+| IND@KC  | Xavier Worthy: 50+ receiving yards       |          50 |     0.74 |  0.757282 | 0.0172816 | 2026-09-21T00:20:00+00:00 | WATCH    |
+| IND@KC  | Alec Pierce: 60+ receiving yards         |          60 |     0.76 |  0.776522 | 0.0165217 | 2026-09-21T00:20:00+00:00 | WATCH    |
 
 ## Guardrail
 
-A large current model edge does not authorize an early trade. The historical timing study did not validate systematic early entry, so the live pilot waits for the frozen target window.
+BET NOW means actionable during the user's current daily check after manual injury/role QC. Edge thresholds and sizing remain prospective hypotheses, not historically proven optima. Same-player ladders and correlated teammates must be collapsed into thesis-level exposure before execution.
