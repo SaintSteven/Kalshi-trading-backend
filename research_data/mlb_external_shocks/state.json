@@ -68,7 +68,7 @@
     "823572": {
       "away_lineup": [],
       "away_lineup_confirmed": false,
-      "away_probable_pitcher": null,
+      "away_probable_pitcher": "Andrew Painter",
       "away_team": "Philadelphia Phillies",
       "game_date": "2026-09-18T23:15:00Z",
       "game_pk": 823572,
@@ -196,5 +196,5 @@
       "status": "Preview"
     }
   },
-  "last_run_at": "2026-09-18T07:37:42.067394Z"
+  "last_run_at": "2026-09-18T12:22:34.733913Z"
 }
