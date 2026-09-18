@@ -1,0 +1,4 @@
+date,season,week,game,player,prop_family,side,threshold,stake_units,entry_price,model_fair,raw_edge,result,settled_value,clean_model_eval,qc_note
+2026-09-17,2026,2,DET@BUF,DJ Moore,receiving_yards,NO,60,1.0,0.46,0.639742,0.179742,WIN,0,false,INJURY_CONTAMINATED_shoulder_stinger_ruled_out
+2026-09-17,2026,2,DET@BUF,Dalton Kincaid,receiving_yards,NO,50,1.0,0.47,0.577827,0.107827,LOSS,95,true,CLEAN
+2026-09-17,2026,2,DET@BUF,Amon-Ra St. Brown,fantasy_points,YES,17.4,1.0,0.568182,0.699,0.130818,WIN,35.2,true,CLEAN_entry_price_implied_by_1.76x_payout
