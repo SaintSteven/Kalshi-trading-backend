@@ -20,8 +20,18 @@
       "away_team": "Boston Red Sox",
       "game_date": "2026-09-18T23:10:00Z",
       "game_pk": 822923,
-      "home_lineup": [],
-      "home_lineup_confirmed": false,
+      "home_lineup": [
+        "Yandy D\u00edaz",
+        "Jonathan Aranda",
+        "Junior Caminero",
+        "Ryan Vilade",
+        "Chandler Simpson",
+        "Jonny DeLuca",
+        "Nick Fortes",
+        "Victor Mesa Jr.",
+        "Taylor Walls"
+      ],
+      "home_lineup_confirmed": true,
       "home_probable_pitcher": "Ian Seymour",
       "home_team": "Tampa Bay Rays",
       "status": "Preview"
@@ -59,8 +69,18 @@
       "away_team": "Kansas City Royals",
       "game_date": "2026-09-18T22:40:00Z",
       "game_pk": 823331,
-      "home_lineup": [],
-      "home_lineup_confirmed": false,
+      "home_lineup": [
+        "Konnor Griffin",
+        "Brandon Lowe",
+        "Bryan Reynolds",
+        "Oneil Cruz",
+        "Nick Gonzales",
+        "Ryan O'Hearn",
+        "Ronny Simon",
+        "Spencer Horwitz",
+        "Henry Davis"
+      ],
+      "home_lineup_confirmed": true,
       "home_probable_pitcher": "Paul Skenes",
       "home_team": "Pittsburgh Pirates",
       "status": "Preview"
@@ -68,7 +88,7 @@
     "823572": {
       "away_lineup": [],
       "away_lineup_confirmed": false,
-      "away_probable_pitcher": "Andrew Painter",
+      "away_probable_pitcher": null,
       "away_team": "Philadelphia Phillies",
       "game_date": "2026-09-18T23:15:00Z",
       "game_pk": 823572,
@@ -126,7 +146,7 @@
       "game_pk": 824303,
       "home_lineup": [],
       "home_lineup_confirmed": false,
-      "home_probable_pitcher": null,
+      "home_probable_pitcher": "Gabriel Hughes",
       "home_team": "Colorado Rockies",
       "status": "Preview"
     },
@@ -137,8 +157,18 @@
       "away_team": "Athletics",
       "game_date": "2026-09-18T23:10:00Z",
       "game_pk": 824383,
-      "home_lineup": [],
-      "home_lineup_confirmed": false,
+      "home_lineup": [
+        "Steven Kwan",
+        "Jos\u00e9 Ram\u00edrez",
+        "Chase DeLauter",
+        "Jo Adell",
+        "Travis Bazzana",
+        "Nathaniel Lowe",
+        "Patrick Bailey",
+        "Petey Halpin",
+        "Brayan Rocchio"
+      ],
+      "home_lineup_confirmed": true,
       "home_probable_pitcher": "Daniel Espino",
       "home_team": "Cleveland Guardians",
       "status": "Preview"
@@ -150,8 +180,18 @@
       "away_team": "Chicago Cubs",
       "game_date": "2026-09-18T22:40:00Z",
       "game_pk": 824463,
-      "home_lineup": [],
-      "home_lineup_confirmed": false,
+      "home_lineup": [
+        "Carlos Jorge",
+        "Elly De La Cruz",
+        "Sal Stewart",
+        "Tyler Stephenson",
+        "JJ Bleday",
+        "Eugenio Su\u00e1rez",
+        "H\u00e9ctor Rodr\u00edguez",
+        "Jose Trevino",
+        "Matt McLain"
+      ],
+      "home_lineup_confirmed": true,
       "home_probable_pitcher": "Chase Burns",
       "home_team": "Cincinnati Reds",
       "status": "Preview"
@@ -178,7 +218,7 @@
       "game_pk": 824790,
       "home_lineup": [],
       "home_lineup_confirmed": false,
-      "home_probable_pitcher": null,
+      "home_probable_pitcher": "Cade Povich",
       "home_team": "Baltimore Orioles",
       "status": "Preview"
     },
@@ -196,5 +236,5 @@
       "status": "Preview"
     }
   },
-  "last_run_at": "2026-09-18T16:36:26.197154Z"
+  "last_run_at": "2026-09-18T19:11:34.003744Z"
 }
