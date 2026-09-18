@@ -13,7 +13,7 @@ if not pred.exists(): raise SystemExit('Test 00 predictions missing')
 d=pd.read_csv(pred); d['resid']=d.actual_fp-d.pred_fp
 BASE='https://api.elections.kalshi.com/trade-api/v2'; SERIES='KXNFLFFPTS'; SUPPORTED={'QB','RB','WR','TE'}
 # Full-name identity is authoritative when abbreviated nflverse display labels collide.
-POSITION_OVERRIDES={'jameson williams':'WR'}
+POSITION_OVERRIDES={'jameson williams':'WR','mike evans':'WR','javonte williams':'RB'}
 # When Test09 has already run, use full current-slate identity to resolve abbreviated historical collisions.
 current_path=OUT/'09_current_slate_projections.csv'
 CURRENT_FULL={}
