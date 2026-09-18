@@ -31,7 +31,7 @@
       "home_lineup_confirmed": true,
       "home_probable_pitcher": "Kumar Rocker",
       "home_team": "Texas Rangers",
-      "status": "Preview"
+      "status": "Live"
     },
     "822923": {
       "away_lineup": [
@@ -64,7 +64,7 @@
       "home_lineup_confirmed": true,
       "home_probable_pitcher": "Ian Seymour",
       "home_team": "Tampa Bay Rays",
-      "status": "Preview"
+      "status": "Live"
     },
     "823005": {
       "away_lineup": [
@@ -100,8 +100,18 @@
       "status": "Preview"
     },
     "823252": {
-      "away_lineup": [],
-      "away_lineup_confirmed": false,
+      "away_lineup": [
+        "Kyle Stowers",
+        "Heriberto Hern\u00e1ndez",
+        "Otto Lopez",
+        "Griffin Conine",
+        "Javier Sanoja",
+        "Jakob Marsee",
+        "Xavier Edwards",
+        "Joe Mack",
+        "Agust\u00edn Ram\u00edrez"
+      ],
+      "away_lineup_confirmed": true,
       "away_probable_pitcher": "Tyler Phillips",
       "away_team": "Miami Marlins",
       "game_date": "2026-09-19T01:40:00Z",
@@ -153,7 +163,7 @@
       "home_lineup_confirmed": true,
       "home_probable_pitcher": "Paul Skenes",
       "home_team": "Pittsburgh Pirates",
-      "status": "Preview"
+      "status": "Live"
     },
     "823572": {
       "away_lineup": [
@@ -186,30 +196,70 @@
       "home_lineup_confirmed": true,
       "home_probable_pitcher": "Zac Thornton",
       "home_team": "New York Mets",
-      "status": "Preview"
+      "status": "Live"
     },
     "823898": {
-      "away_lineup": [],
-      "away_lineup_confirmed": false,
+      "away_lineup": [
+        "Drew Gilbert",
+        "Bryce Eldridge",
+        "Jonah Cox",
+        "Jung Hoo Lee",
+        "Shay Whitcomb",
+        "Turner Hill",
+        "Scott Bandura",
+        "Drew Cavanaugh",
+        "Christian Koss"
+      ],
+      "away_lineup_confirmed": true,
       "away_probable_pitcher": "Cesar Perdomo",
       "away_team": "San Francisco Giants",
       "game_date": "2026-09-19T02:15:00Z",
       "game_pk": 823898,
-      "home_lineup": [],
-      "home_lineup_confirmed": false,
+      "home_lineup": [
+        "Mookie Betts",
+        "Will Smith",
+        "Teoscar Hern\u00e1ndez",
+        "Freddie Freeman",
+        "Miguel Rojas",
+        "Kyle Tucker",
+        "Enrique Hern\u00e1ndez",
+        "Alex Call",
+        "Josue De Paula"
+      ],
+      "home_lineup_confirmed": true,
       "home_probable_pitcher": "Tyler Glasnow",
       "home_team": "Los Angeles Dodgers",
       "status": "Preview"
     },
     "823977": {
-      "away_lineup": [],
-      "away_lineup_confirmed": false,
+      "away_lineup": [
+        "Luke Keaschall",
+        "Brooks Lee",
+        "Kody Clemens",
+        "Ryan Jeffers",
+        "Josh Bell",
+        "Emmanuel Rodriguez",
+        "Royce Lewis",
+        "Walker Jenkins",
+        "Ben Ross"
+      ],
+      "away_lineup_confirmed": true,
       "away_probable_pitcher": "Connor Prielipp",
       "away_team": "Minnesota Twins",
       "game_date": "2026-09-19T01:38:00Z",
       "game_pk": 823977,
-      "home_lineup": [],
-      "home_lineup_confirmed": false,
+      "home_lineup": [
+        "Zach Neto",
+        "Mike Trout",
+        "Jose Siri",
+        "Vaughn Grissom",
+        "Denzer Guzman",
+        "Oswald Peraza",
+        "Travis d'Arnaud",
+        "Christian Moore",
+        "Wade Meckler"
+      ],
+      "home_lineup_confirmed": true,
       "home_probable_pitcher": "Grayson Rodriguez",
       "home_team": "Los Angeles Angels",
       "status": "Preview"
@@ -311,7 +361,7 @@
       "home_lineup_confirmed": true,
       "home_probable_pitcher": "Daniel Espino",
       "home_team": "Cleveland Guardians",
-      "status": "Preview"
+      "status": "Live"
     },
     "824463": {
       "away_lineup": [
@@ -344,7 +394,7 @@
       "home_lineup_confirmed": true,
       "home_probable_pitcher": "Chase Burns",
       "home_team": "Cincinnati Reds",
-      "status": "Preview"
+      "status": "Live"
     },
     "824547": {
       "away_lineup": [
@@ -377,7 +427,7 @@
       "home_lineup_confirmed": true,
       "home_probable_pitcher": "David Sandlin",
       "home_team": "Chicago White Sox",
-      "status": "Preview"
+      "status": "Live"
     },
     "824790": {
       "away_lineup": [
@@ -410,11 +460,21 @@
       "home_lineup_confirmed": true,
       "home_probable_pitcher": "Cade Povich",
       "home_team": "Baltimore Orioles",
-      "status": "Preview"
+      "status": "Live"
     },
     "825032": {
-      "away_lineup": [],
-      "away_lineup_confirmed": false,
+      "away_lineup": [
+        "Paul Goldschmidt",
+        "Cody Bellinger",
+        "Heliot Ramos",
+        "Ben Rice",
+        "Amed Rosario",
+        "Spencer Jones",
+        "George Lombard Jr.",
+        "Austin Wells",
+        "Anthony Volpe"
+      ],
+      "away_lineup_confirmed": true,
       "away_probable_pitcher": "Gerrit Cole",
       "away_team": "New York Yankees",
       "game_date": "2026-09-19T01:40:00Z",
@@ -436,5 +496,5 @@
       "status": "Preview"
     }
   },
-  "last_run_at": "2026-09-18T21:40:51.818523Z"
+  "last_run_at": "2026-09-18T23:35:02.619891Z"
 }
