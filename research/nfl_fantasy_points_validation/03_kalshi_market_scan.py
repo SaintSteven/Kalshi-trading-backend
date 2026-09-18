@@ -14,6 +14,15 @@ d=pd.read_csv(pred); d['resid']=d.actual_fp-d.pred_fp
 BASE='https://api.elections.kalshi.com/trade-api/v2'; SERIES='KXNFLFFPTS'; SUPPORTED={'QB','RB','WR','TE'}
 # Full-name identity is authoritative when abbreviated nflverse display labels collide.
 POSITION_OVERRIDES={'jameson williams':'WR'}
+# When Test09 has already run, use full current-slate identity to resolve abbreviated historical collisions.
+current_path=OUT/'09_current_slate_projections.csv'
+CURRENT_FULL={}
+if current_path.exists():
+ cur=pd.read_csv(current_path)
+ def nfull(s):
+  s=str(s or '').lower(); s=re.sub(r'\b(jr|sr|ii|iii|iv)\.?\b','',s); return re.sub(r'[^a-z0-9]','',s)
+ for rr in cur.itertuples():
+  CURRENT_FULL.setdefault(nfull(getattr(rr,'full_name','')),[]).append(rr)
 def get(path,params=None):
  url=BASE+path
  if params:url+='?'+urllib.parse.urlencode(params)
@@ -71,6 +80,10 @@ for m in markets:
  elif key and key.lower() in proj:
   candidates=[r for r in proj[key.lower()] if str(r.position).upper() in SUPPORTED]
   want=POSITION_OVERRIDES.get(str(n or '').lower())
+  if not want and CURRENT_FULL:
+   fc=CURRENT_FULL.get(nfull(n),[])
+   poss=sorted(set(str(rr.position).upper() for rr in fc if str(rr.position).upper() in SUPPORTED))
+   if len(poss)==1: want=poss[0]
   if want:candidates=[r for r in candidates if str(r.position).upper()==want]
   if len(candidates)==1:matched=candidates[0]
   elif len(candidates)>1:exclusion='AMBIGUOUS_NAME_POSITION'; collision=True
