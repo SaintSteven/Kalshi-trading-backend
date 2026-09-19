@@ -14,14 +14,34 @@
       "status": "Preview"
     },
     "822921": {
-      "away_lineup": [],
-      "away_lineup_confirmed": false,
-      "away_probable_pitcher": null,
+      "away_lineup": [
+        "Roman Anthony",
+        "Mickey Gasper",
+        "Adley Rutschman",
+        "Wilyer Abreu",
+        "Nick Sogard",
+        "Trevor Story",
+        "Caleb Durbin",
+        "Jarren Duran",
+        "Isiah Kiner-Falefa"
+      ],
+      "away_lineup_confirmed": true,
+      "away_probable_pitcher": "Brayan Bello",
       "away_team": "Boston Red Sox",
       "game_date": "2026-09-19T20:10:00Z",
       "game_pk": 822921,
-      "home_lineup": [],
-      "home_lineup_confirmed": false,
+      "home_lineup": [
+        "Jake Fraley",
+        "Jonathan Aranda",
+        "Junior Caminero",
+        "Liam Hicks",
+        "Chandler Simpson",
+        "Victor Mesa Jr.",
+        "Richie Palacios",
+        "Cedric Mullins",
+        "Jorge Mateo"
+      ],
+      "home_lineup_confirmed": true,
       "home_probable_pitcher": "Freddy Peralta",
       "home_team": "Tampa Bay Rays",
       "status": "Preview"
@@ -66,14 +86,34 @@
       "status": "Preview"
     },
     "823571": {
-      "away_lineup": [],
-      "away_lineup_confirmed": false,
+      "away_lineup": [
+        "Kyle Schwarber",
+        "Trea Turner",
+        "Bryce Harper",
+        "Luis Arraez",
+        "Alec Bohm",
+        "Bryson Stott",
+        "Brandon Marsh",
+        "J.T. Realmuto",
+        "Justin Crawford"
+      ],
+      "away_lineup_confirmed": true,
       "away_probable_pitcher": "Andrew Painter",
       "away_team": "Philadelphia Phillies",
       "game_date": "2026-09-19T20:10:00Z",
       "game_pk": 823571,
-      "home_lineup": [],
-      "home_lineup_confirmed": false,
+      "home_lineup": [
+        "Francisco Lindor",
+        "Juan Soto",
+        "Bo Bichette",
+        "Carson Benge",
+        "A.J. Ewing",
+        "Marcus Semien",
+        "Brett Baty",
+        "Francisco Alvarez",
+        "Ronny Mauricio"
+      ],
+      "home_lineup_confirmed": true,
       "home_probable_pitcher": "Christian Scott",
       "home_team": "New York Mets",
       "status": "Preview"
@@ -81,7 +121,7 @@
     "823899": {
       "away_lineup": [],
       "away_lineup_confirmed": false,
-      "away_probable_pitcher": null,
+      "away_probable_pitcher": "Yunior Marte",
       "away_team": "San Francisco Giants",
       "game_date": "2026-09-20T01:10:00Z",
       "game_pk": 823899,
@@ -157,21 +197,51 @@
       "status": "Preview"
     },
     "824545": {
-      "away_lineup": [],
-      "away_lineup_confirmed": false,
+      "away_lineup": [
+        "Kevin McGonigle",
+        "Hao-Yu Lee",
+        "Colt Keith",
+        "Riley Greene",
+        "Dillon Dingler",
+        "Max Clark",
+        "Ben Malgeri",
+        "Brett Callahan",
+        "John Peck"
+      ],
+      "away_lineup_confirmed": true,
       "away_probable_pitcher": "Jackson Jobe",
       "away_team": "Detroit Tigers",
       "game_date": "2026-09-19T18:10:00Z",
       "game_pk": 824545,
-      "home_lineup": [],
-      "home_lineup_confirmed": false,
+      "home_lineup": [
+        "Sam Antonacci",
+        "Kyle Teel",
+        "Miguel Vargas",
+        "Munetaka Murakami",
+        "Andrew Benintendi",
+        "Colson Montgomery",
+        "Chase Meidroth",
+        "Braden Montgomery",
+        "Brenton Doyle"
+      ],
+      "home_lineup_confirmed": true,
       "home_probable_pitcher": "Sean Burke",
       "home_team": "Chicago White Sox",
-      "status": "Preview"
+      "status": "Live"
     },
     "824788": {
-      "away_lineup": [],
-      "away_lineup_confirmed": false,
+      "away_lineup": [
+        "Jackson Chourio",
+        "Garrett Mitchell",
+        "William Contreras",
+        "Andrew Vaughn",
+        "Joey Ortiz",
+        "Gary S\u00e1nchez",
+        "Cooper Pratt",
+        "Luis Lara",
+        "David Hamilton"
+      ],
+      "away_lineup_confirmed": true,
       "away_probable_pitcher": "Robert Gasser",
       "away_team": "Milwaukee Brewers",
       "game_date": "2026-09-19T20:05:00Z",
@@ -196,5 +266,5 @@
       "status": "Preview"
     }
   },
-  "last_run_at": "2026-09-19T14:48:10.780255Z"
+  "last_run_at": "2026-09-19T17:40:52.312502Z"
 }
