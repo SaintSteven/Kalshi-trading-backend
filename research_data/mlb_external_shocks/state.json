@@ -126,7 +126,7 @@
       "game_pk": 824304,
       "home_lineup": [],
       "home_lineup_confirmed": false,
-      "home_probable_pitcher": null,
+      "home_probable_pitcher": "Jose Quintana",
       "home_team": "Colorado Rockies",
       "status": "Preview"
     },
@@ -196,5 +196,5 @@
       "status": "Preview"
     }
   },
-  "last_run_at": "2026-09-19T01:36:14.047656Z"
+  "last_run_at": "2026-09-19T06:37:29.261665Z"
 }
