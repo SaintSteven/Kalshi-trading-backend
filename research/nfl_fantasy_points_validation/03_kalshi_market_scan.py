@@ -88,6 +88,10 @@ for m in markets:
   if len(candidates)==1:matched=candidates[0]
   elif len(candidates)>1:exclusion='AMBIGUOUS_NAME_POSITION'; collision=True
   else:exclusion='NO_SUPPORTED_POSITION_MATCH'
+ else:
+  # Fail closed: any market that cannot map to a supported QB/RB/WR/TE identity
+  # is excluded before the downstream identity gate (e.g. kickers such as Nick Folk).
+  exclusion='UNMAPPED_OR_UNSUPPORTED'
  nums=[float(x) for x in re.findall(r'(?<![A-Za-z])\d+(?:\.\d+)?',' '.join(str(m.get(k,'')) for k in ['title','subtitle','yes_sub_title']))]; th=nums[-1] if nums else None
  fair=None
  if matched is not None and th is not None:
