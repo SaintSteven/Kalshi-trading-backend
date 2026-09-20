@@ -46,40 +46,61 @@ for p in POSITIONS:
  n='pos_'+p; d[n]=(d.position==p).astype(int); features.append(n)
 tr=d[(d.career_games_before>=2)].copy()
 m=make_pipeline(SimpleImputer(strategy='median'),StandardScaler(),Ridge(alpha=25.0)); m.fit(tr[features],tr.fantasy_points)
-# Project the current NFL slate, not merely the game after each player's latest
-# historical appearance. Players with no current-season observation must not
-# masquerade as current projections (e.g. a 2025 postseason row -> 2025 W23).
-slate_season=int(d['season'].max())
-slate_week=int(d.loc[d['season'].eq(slate_season),'week'].max())
-latest=d.sort_values(['season','week']).groupby('player_id',as_index=False).tail(1).copy()
-latest=latest[(latest['season']==slate_season) & (latest['week']==slate_week)].copy()
+# Select the actual current NFL week from the schedule, then project the current
+# weekly roster. This deliberately does NOT infer the target as max(observed week)+1:
+# on Sunday, Thursday's game from the same NFL week is already in player stats.
+# It also does not use Kalshi markets or prices to define the player universe.
+from datetime import datetime, timezone
+import os
+SCHED_URL='https://github.com/nflverse/nfldata/raw/master/data/games.csv'
+sched=pd.read_csv(SCHED_URL,low_memory=False)
+sched['gameday']=pd.to_datetime(sched['gameday'],errors='coerce').dt.date
+target_date=pd.to_datetime(os.environ.get('NFL_TARGET_DATE',datetime.now(timezone.utc).date().isoformat())).date()
+season=2026
+q=sched[(sched['gameday']==target_date) & (pd.to_numeric(sched['season'],errors='coerce')==season)]
+weeks=sorted(set(pd.to_numeric(q['week'],errors='coerce').dropna().astype(int)))
+if len(weeks)!=1: raise SystemExit(f'Cannot resolve one NFL week for target_date={target_date}: {weeks}')
+target_week=weeks[0]
+ROSTER_URL=f'https://github.com/nflverse/nflverse-data/releases/download/weekly_rosters/roster_weekly_{season}.csv'
+roster=pd.read_csv(ROSTER_URL,low_memory=False)
+roster['week']=pd.to_numeric(roster['week'],errors='coerce')
+roster=roster[roster['week'].eq(target_week)].copy()
+id_col=next((x for x in ['gsis_id','player_id'] if x in roster.columns),None)
+name_col=next((x for x in ['full_name','player_name','player_display_name'] if x in roster.columns),None)
+team_col=next((x for x in ['team','recent_team'] if x in roster.columns),None)
+pos_col=next((x for x in ['position','position_group'] if x in roster.columns),None)
+if not all([id_col,name_col,team_col,pos_col]): raise SystemExit(f'Weekly roster schema missing required columns: {list(roster.columns)}')
+roster=roster[roster[pos_col].isin(POSITIONS)].copy()
+roster=roster.drop_duplicates(subset=[id_col],keep='last')
 rows=[]
-for r in latest.itertuples():
- hist=d[d.player_id==r.player_id].sort_values(['season','week'])
+for rr in roster.itertuples(index=False):
+ pid=getattr(rr,id_col); pos=str(getattr(rr,pos_col)); team=getattr(rr,team_col); full_name=getattr(rr,name_col)
+ # Features are strictly pre-target-week. This prevents Thursday results from
+ # leaking into a Sunday player's feature history while still allowing the model
+ # fit itself to use all observations available at run time.
+ hist=d[(d.player_id==pid) & ((d.season<season) | ((d.season==season)&(d.week<target_week)))].sort_values(['season','week'])
  if len(hist)<2: continue
- season=slate_season; next_week=slate_week+1
  vals={}
- for c in base:
-  vals[c+'_last']=float(hist.iloc[-1][c])
-  for w in [3,5]: vals[f'{c}_r{w}']=float(hist[c].tail(w).mean())
+ for cc in base:
+  vals[cc+'_last']=float(hist.iloc[-1][cc])
+  for ww in [3,5]: vals[f'{cc}_r{ww}']=float(hist[cc].tail(ww).mean())
  vals['fp_career_mean']=float(hist.fantasy_points.mean())
- sh=hist[hist['season'].eq(season)]; vals['fp_season_mean']=float(sh.fantasy_points.mean())
- vals['season_games_before']=int(len(sh)); vals['career_games_before']=int(len(hist)); vals['week']=next_week
- for p in POSITIONS: vals['pos_'+p]=int(r.position==p)
+ sh=hist[hist['season'].eq(season)]
+ vals['fp_season_mean']=float(sh.fantasy_points.mean()) if len(sh) else np.nan
+ vals['season_games_before']=int(len(sh)); vals['career_games_before']=int(len(hist)); vals['week']=target_week
+ for pp in POSITIONS: vals['pos_'+pp]=int(pos==pp)
  X=pd.DataFrame([vals],columns=features); proj=float(np.clip(m.predict(X)[0],0,None))
- full_name=getattr(r,'player_display_name',None)
- if full_name is None or pd.isna(full_name): full_name=getattr(r,'player_name',None)
- team=getattr(r,'recent_team',getattr(r,'team',None))
- # Continuity QC is descriptive only; it never changes projection/fair value.
- current_season_history=hist[hist['season'].eq(season)].sort_values('week')
  prior_seasons=hist[hist['season'].lt(season)].sort_values(['season','week'])
- entering_team=current_season_history.iloc[0].get('recent_team',current_season_history.iloc[0].get('team',None)) if len(current_season_history) else team
  prior_season_final_team=prior_seasons.iloc[-1].get('recent_team',prior_seasons.iloc[-1].get('team',None)) if len(prior_seasons) else None
- entering_season_team_changed=bool(pd.notna(entering_team) and pd.notna(prior_season_final_team) and str(entering_team)!=str(prior_season_final_team))
- in_season_team_changed=bool(pd.notna(team) and pd.notna(entering_team) and str(team)!=str(entering_team))
+ entering_season_team=team
+ entering_season_team_changed=bool(pd.notna(team) and pd.notna(prior_season_final_team) and str(team)!=str(prior_season_final_team))
+ in_season_team_changed=False
+ if len(sh):
+  first_team=sh.iloc[0].get('recent_team',sh.iloc[0].get('team',None)); in_season_team_changed=bool(pd.notna(first_team) and pd.notna(team) and str(first_team)!=str(team))
  team_changed=entering_season_team_changed or in_season_team_changed
- rows.append({'player_id':r.player_id,'player_name':r.player_name,'full_name':full_name,'position':r.position,'team':team,'prior_season_final_team':prior_season_final_team,'entering_season_team':entering_team,'entering_season_team_changed':entering_season_team_changed,'in_season_team_changed':in_season_team_changed,'team_changed':team_changed,'projection_fp':proj,'projection_season':season,'projection_week':next_week,'history_games':len(hist),'market_prices_used':False})
+ hist_name=hist.iloc[-1].get('player_name',None)
+ rows.append({'player_id':pid,'player_name':hist_name,'full_name':full_name,'position':pos,'team':team,'prior_season_final_team':prior_season_final_team,'entering_season_team':entering_season_team,'entering_season_team_changed':entering_season_team_changed,'in_season_team_changed':in_season_team_changed,'team_changed':team_changed,'projection_fp':proj,'projection_season':season,'projection_week':target_week,'history_games':len(hist),'market_prices_used':False})
 o=pd.DataFrame(rows); o.to_csv(O/'09_current_slate_projections.csv',index=False)
-summary={'test':'09_current_slate_projection','model':'NFL-FFPTS-RIDGE-EMPIRICAL-v1','market_prices_used':False,'training_rows':int(len(tr)),'projection_rows':int(len(o)),'latest_observed_season':int(d.season.max()),'latest_observed_week':int(d.loc[d.season.eq(d.season.max()),'week'].max()),'full_identity_rows':int(o.full_name.notna().sum()),'team_change_rows':int(o.team_changed.sum()),'method':'Frozen Ridge architecture fit only to observed player history; next-game features use only prior observed stats. Team continuity compares the current-season entering team with the prior-season final observed team and separately flags in-season switches; continuity never alters fair value.'}
+summary={'test':'09_current_slate_projection','model':'NFL-FFPTS-RIDGE-EMPIRICAL-v1','market_prices_used':False,'training_rows':int(len(tr)),'projection_rows':int(len(o)),'latest_observed_season':int(d.season.max()),'latest_observed_week':int(d.loc[d.season.eq(d.season.max()),'week'].max()),'target_date':str(target_date),'target_week':int(target_week),'weekly_roster_rows':int(len(roster)),'full_identity_rows':int(o.full_name.notna().sum()),'team_change_rows':int(o.team_changed.sum()),'method':'Frozen Ridge architecture fit only to observed player history; next-game features use only prior observed stats. Team continuity compares the current-season entering team with the prior-season final observed team and separately flags in-season switches; continuity never alters fair value.'}
 (O/'09_current_slate_projection_summary.json').write_text(json.dumps(summary,indent=2)); print(json.dumps(summary,indent=2))
 if o.empty: raise SystemExit('No current projections generated')
