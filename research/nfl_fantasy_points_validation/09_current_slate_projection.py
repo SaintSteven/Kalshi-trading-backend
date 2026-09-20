@@ -46,12 +46,18 @@ for p in POSITIONS:
  n='pos_'+p; d[n]=(d.position==p).astype(int); features.append(n)
 tr=d[(d.career_games_before>=2)].copy()
 m=make_pipeline(SimpleImputer(strategy='median'),StandardScaler(),Ridge(alpha=25.0)); m.fit(tr[features],tr.fantasy_points)
+# Project the current NFL slate, not merely the game after each player's latest
+# historical appearance. Players with no current-season observation must not
+# masquerade as current projections (e.g. a 2025 postseason row -> 2025 W23).
+current_season=int(d.season.max())
+current_week=int(d.loc[d.season.eq(current_season),'week'].max())
 latest=d.sort_values(['season','week']).groupby('player_id',as_index=False).tail(1).copy()
+latest=latest[(latest.season==current_season) & (latest.week==current_week)].copy()
 rows=[]
 for r in latest.itertuples():
  hist=d[d.player_id==r.player_id].sort_values(['season','week'])
  if len(hist)<2: continue
- season=int(r.season); next_week=int(r.week)+1
+ season=current_season; next_week=current_week+1
  vals={}
  for c in base:
   vals[c+'_last']=float(hist.iloc[-1][c])
