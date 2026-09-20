@@ -119,4 +119,4 @@ for m in markets:
 o=pd.DataFrame(rows); o.to_csv(OUT/'03_kalshi_fantasy_markets.csv',index=False)
 summary={'test':'03_kalshi_fantasy_market_scan','series':SERIES,'research_only':True,'orders_placed':False,'fantasy_point_markets':len(markets),'supported_player_markets':int(o.exclusion_reason.isna().sum()),'player_names_matched':int(o.matched_player.notna().sum()),'markets_with_executable_yes_ask':int(o.yes_ask_probability.notna().sum()),'identity_collisions_unresolved':int((o.exclusion_reason=='AMBIGUOUS_NAME_POSITION').sum()),'mapped_smoke_test_markets':int(o.smoke_test_fair_probability.notna().sum()),'api_errors':errors}
 (OUT/'03_kalshi_scan_summary.json').write_text(json.dumps(summary,indent=2));print(json.dumps(summary,indent=2));print(o.to_json(orient='records',indent=2))
-if summary['identity_collisions_unresolved']>0: raise SystemExit('Unresolved current-slate player identity collision')
+if summary['identity_collisions_unresolved']>0: print('WARNING: unresolved identities excluded from downstream decisions:',summary['identity_collisions_unresolved'])
