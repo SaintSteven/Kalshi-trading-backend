@@ -28,7 +28,12 @@ if current_path.exists():
   # joined directly across a collided historical abbreviation. Resolve the
   # market to the exact current player first, then use that player's position.
   fn=str(getattr(rr,'full_name','') or '').strip()
-  fn=re.sub(r'\s+(?:Jr\\.?|Sr\\.?|II|III|IV)
+  fn=re.sub(r'\\s+(?:Jr\\.?|Sr\\.?|II|III|IV)$','',fn,flags=re.I)
+  pp=fn.split()
+  if len(pp)>=2:
+   ab=(pp[0][0].upper()+'.'+' '.join(pp[1:])).lower()
+   CURRENT_BY_ABBR.setdefault(ab,[]).append(rr)
+def get(path,params=None):
  url=BASE+path
  if params:url+='?'+urllib.parse.urlencode(params)
  req=urllib.request.Request(url,headers={'User-Agent':'nfl-fantasy-points-research/1.5'})
