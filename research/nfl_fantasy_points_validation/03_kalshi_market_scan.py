@@ -85,6 +85,13 @@ for m in markets:
    poss=sorted(set(str(rr.position).upper() for rr in fc if str(rr.position).upper() in SUPPORTED))
    if len(poss)==1: want=poss[0]
   if want:candidates=[r for r in candidates if str(r.position).upper()==want]
+  # Full current-slate name is authoritative when historical abbreviated labels
+  # still collide within the same position (e.g. Kyren/Kyler K.Williams).
+  if len(candidates)>1 and CURRENT_FULL:
+   fc=CURRENT_FULL.get(nfull(n),[])
+   current_keys={(str(rr.player_name).lower(),str(rr.position).upper()) for rr in fc}
+   narrowed=[r for r in candidates if (str(r.player_name).lower(),str(r.position).upper()) in current_keys]
+   if len(narrowed)==1:candidates=narrowed
   if len(candidates)==1:matched=candidates[0]
   elif len(candidates)>1:exclusion='AMBIGUOUS_NAME_POSITION'; collision=True
   else:exclusion='NO_SUPPORTED_POSITION_MATCH'
