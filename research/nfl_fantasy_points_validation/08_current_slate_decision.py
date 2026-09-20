@@ -27,7 +27,7 @@ FULL={}
 for r in p.itertuples(): FULL.setdefault(norm(getattr(r,'full_name','')),[]).append(r)
 ABBR={}
 for r in p.itertuples(): ABBR.setdefault(str(r.player_name).lower(),[]).append(r)
-rows=[]
+rows=[]; excluded=[]
 for x in m.itertuples():
  if pd.notna(getattr(x,'exclusion_reason',None)): continue
  pos=str(x.position).upper(); full_candidates=[r for r in FULL.get(norm(x.kalshi_player_name),[]) if str(r.position).upper()==pos]
@@ -35,7 +35,9 @@ for x in m.itertuples():
  if len(full_candidates)>=1: candidates=full_candidates
  else:
   name=str(x.matched_player).lower(); candidates=[r for r in ABBR.get(name,[]) if str(r.position).upper()==pos]; identity_method='abbrev_position_fallback'
- if len(candidates)!=1: raise SystemExit(f'Current projection identity gate failed: {x.kalshi_player_name} {pos} method={identity_method} candidates={len(candidates)}')
+ if len(candidates)!=1:
+  excluded.append({'ticker':x.ticker,'player':x.kalshi_player_name,'position':pos,'reason':'UNRESOLVED_CURRENT_PROJECTION_IDENTITY','candidates':len(candidates)})
+  continue
  r=candidates[0]
  market_week=slate_week(x.event_ticker)
  if int(r.projection_season)!=2026 or int(r.projection_week)!=int(market_week):
@@ -57,6 +59,6 @@ for x in m.itertuples():
 o=pd.DataFrame(rows)
 if not o.empty:o=o.sort_values(['decision','edge_vs_ask'],ascending=[True,False])
 o.to_csv(O/'08_current_slate_decisions.csv',index=False)
-summary={'pipeline':'NFL FFPTS v1','research_only':True,'orders_placed':False,'frozen_model':model.get('model_version','NFL-FFPTS-RIDGE-EMPIRICAL-v1'),'supported_markets':len(o),'quotes_present':int(o.yes_ask.notna().sum()) if len(o) else 0,'full_name_identity_matches':int((o.identity_method=='full_name').sum()) if len(o) else 0,'fallback_identity_matches':int((o.identity_method=='abbrev_position_fallback').sum()) if len(o) else 0,'team_change_reviews':int(o.qc.str.contains('TEAM_CHANGE_REVIEW').sum()) if len(o) else 0,'slate_consistency_pass':bool(len(o) and (o.projection_week==o.market_week).all()),'PAPER':int((o.decision=='PAPER').sum()) if len(o) else 0,'WATCH':int((o.decision=='WATCH').sum()) if len(o) else 0,'PASS':int((o.decision=='PASS').sum()) if len(o) else 0,'method':'Independent current-slate Ridge point projection plus frozen empirical position residual threshold probability; Kalshi executable ask used only after fair probability is produced.','projection_source':'09_current_slate_projections.csv','identity_gate':'full Kalshi name -> full nflverse display name+position; guarded abbreviated-name+position fallback only when unique','slate_gate':'Kalshi event date -> nflverse schedule season/week must equal projection season/week; fail closed on mismatch','qc_gate':'Frozen Week 1 QB, low-role, team-change, and tail-calibration review rules are applied before PAPER classification.','warning':'Research/paper only. Market prices do not alter model projections or fair probabilities.'}
-(O/'08_current_slate_summary.json').write_text(json.dumps(summary,indent=2));print(json.dumps(summary,indent=2));print(o.to_json(orient='records',indent=2))
+summary={'pipeline':'NFL FFPTS v1','research_only':True,'orders_placed':False,'frozen_model':model.get('model_version','NFL-FFPTS-RIDGE-EMPIRICAL-v1'),'supported_markets':len(o),'excluded_unresolved_identities':len(excluded),'quotes_present':int(o.yes_ask.notna().sum()) if len(o) else 0,'full_name_identity_matches':int((o.identity_method=='full_name').sum()) if len(o) else 0,'fallback_identity_matches':int((o.identity_method=='abbrev_position_fallback').sum()) if len(o) else 0,'team_change_reviews':int(o.qc.str.contains('TEAM_CHANGE_REVIEW').sum()) if len(o) else 0,'slate_consistency_pass':bool(len(o) and (o.projection_week==o.market_week).all()),'PAPER':int((o.decision=='PAPER').sum()) if len(o) else 0,'WATCH':int((o.decision=='WATCH').sum()) if len(o) else 0,'PASS':int((o.decision=='PASS').sum()) if len(o) else 0,'method':'Independent current-slate Ridge point projection plus frozen empirical position residual threshold probability; Kalshi executable ask used only after fair probability is produced.','projection_source':'09_current_slate_projections.csv','identity_gate':'full Kalshi name -> full nflverse display name+position; guarded abbreviated-name+position fallback only when unique','slate_gate':'Kalshi event date -> nflverse schedule season/week must equal projection season/week; fail closed on mismatch','qc_gate':'Frozen Week 1 QB, low-role, team-change, and tail-calibration review rules are applied before PAPER classification.','warning':'Research/paper only. Market prices do not alter model projections or fair probabilities.'}
+(O/'08_current_slate_summary.json').write_text(json.dumps(summary,indent=2)); (O/'08_excluded_identities.json').write_text(json.dumps(excluded,indent=2)); print(json.dumps(summary,indent=2)); print(o.to_json(orient='records',indent=2)); print(json.dumps({'excluded_identities':excluded},indent=2))
 if len(o)==0 or summary['quotes_present']!=len(o) or not summary['slate_consistency_pass']:raise SystemExit('Current-slate gate failed')
