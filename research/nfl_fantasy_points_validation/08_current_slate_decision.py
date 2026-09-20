@@ -30,11 +30,11 @@ for r in p.itertuples(): ABBR.setdefault(str(r.player_name).lower(),[]).append(r
 rows=[]; excluded=[]
 for x in m.itertuples():
  if pd.notna(getattr(x,'exclusion_reason',None)): continue
- pos=str(x.position).upper(); market_team=str(x.ticker).replace(str(x.event_ticker)+'-','').split('-')[0][:3].upper(); full_candidates=[r for r in FULL.get(norm(x.kalshi_player_name),[]) if str(r.position).upper()==pos and str(getattr(r,'team','')).upper()==market_team]
+ pos=str(x.position).upper(); player_token=str(x.ticker).replace(str(x.event_ticker)+'-','').split('-')[0].upper(); team_prefix=lambda t: {'LV':'LVA'}.get(str(t).upper(),str(t).upper()); full_candidates=[r for r in FULL.get(norm(x.kalshi_player_name),[]) if str(r.position).upper()==pos and player_token.startswith(team_prefix(getattr(r,'team','')))]
  identity_method='full_name'
  if len(full_candidates)>=1: candidates=full_candidates
  else:
-  name=str(x.matched_player).lower(); candidates=[r for r in ABBR.get(name,[]) if str(r.position).upper()==pos and str(getattr(r,'team','')).upper()==market_team]; identity_method='abbrev_position_team_fallback'
+  name=str(x.matched_player).lower(); candidates=[r for r in ABBR.get(name,[]) if str(r.position).upper()==pos and player_token.startswith(team_prefix(getattr(r,'team','')))]; identity_method='abbrev_position_team_fallback'
  if len(candidates)!=1:
   excluded.append({'ticker':x.ticker,'player':x.kalshi_player_name,'position':pos,'reason':'UNRESOLVED_CURRENT_PROJECTION_IDENTITY','candidates':len(candidates)})
   continue
