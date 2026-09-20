@@ -49,21 +49,21 @@ m=make_pipeline(SimpleImputer(strategy='median'),StandardScaler(),Ridge(alpha=25
 # Project the current NFL slate, not merely the game after each player's latest
 # historical appearance. Players with no current-season observation must not
 # masquerade as current projections (e.g. a 2025 postseason row -> 2025 W23).
-current_season=int(d.season.max())
-current_week=int(d.loc[d.season.eq(current_season),'week'].max())
+slate_season=int(d['season'].max())
+slate_week=int(d.loc[d['season'].eq(slate_season),'week'].max())
 latest=d.sort_values(['season','week']).groupby('player_id',as_index=False).tail(1).copy()
-latest=latest[(latest.season==current_season) & (latest.week==current_week)].copy()
+latest=latest[(latest['season']==slate_season) & (latest['week']==slate_week)].copy()
 rows=[]
 for r in latest.itertuples():
  hist=d[d.player_id==r.player_id].sort_values(['season','week'])
  if len(hist)<2: continue
- season=current_season; next_week=current_week+1
+ season=slate_season; next_week=slate_week+1
  vals={}
  for c in base:
   vals[c+'_last']=float(hist.iloc[-1][c])
   for w in [3,5]: vals[f'{c}_r{w}']=float(hist[c].tail(w).mean())
  vals['fp_career_mean']=float(hist.fantasy_points.mean())
- sh=hist[hist.season==season]; vals['fp_season_mean']=float(sh.fantasy_points.mean())
+ sh=hist[hist['season'].eq(season)]; vals['fp_season_mean']=float(sh.fantasy_points.mean())
  vals['season_games_before']=int(len(sh)); vals['career_games_before']=int(len(hist)); vals['week']=next_week
  for p in POSITIONS: vals['pos_'+p]=int(r.position==p)
  X=pd.DataFrame([vals],columns=features); proj=float(np.clip(m.predict(X)[0],0,None))
@@ -71,9 +71,9 @@ for r in latest.itertuples():
  if full_name is None or pd.isna(full_name): full_name=getattr(r,'player_name',None)
  team=getattr(r,'recent_team',getattr(r,'team',None))
  # Continuity QC is descriptive only; it never changes projection/fair value.
- current_season=hist[hist.season==season].sort_values('week')
- prior_seasons=hist[hist.season<season].sort_values(['season','week'])
- entering_team=current_season.iloc[0].get('recent_team',current_season.iloc[0].get('team',None)) if len(current_season) else team
+ current_season_history=hist[hist['season'].eq(season)].sort_values('week')
+ prior_seasons=hist[hist['season'].lt(season)].sort_values(['season','week'])
+ entering_team=current_season_history.iloc[0].get('recent_team',current_season_history.iloc[0].get('team',None)) if len(current_season_history) else team
  prior_season_final_team=prior_seasons.iloc[-1].get('recent_team',prior_seasons.iloc[-1].get('team',None)) if len(prior_seasons) else None
  entering_season_team_changed=bool(pd.notna(entering_team) and pd.notna(prior_season_final_team) and str(entering_team)!=str(prior_season_final_team))
  in_season_team_changed=bool(pd.notna(team) and pd.notna(entering_team) and str(team)!=str(entering_team))
