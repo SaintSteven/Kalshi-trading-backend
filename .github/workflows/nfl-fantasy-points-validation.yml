@@ -29,10 +29,10 @@ jobs:
         run: python research/nfl_fantasy_points_validation/06_week1_role_context.py
       - name: Test 07 - team-change context diagnostic
         run: python research/nfl_fantasy_points_validation/07_team_change_context.py
-      - name: Live KXNFLFFPTS scan and executable quotes
-        run: python research/nfl_fantasy_points_validation/03_kalshi_market_scan.py
       - name: Test 09 - independent current-slate projections
         run: python research/nfl_fantasy_points_validation/09_current_slate_projection.py
+      - name: Live KXNFLFFPTS scan and executable quotes
+        run: python research/nfl_fantasy_points_validation/03_kalshi_market_scan.py
       - name: Test 08 - frozen current-slate decisions
         run: python research/nfl_fantasy_points_validation/08_current_slate_decision.py
       - uses: actions/upload-artifact@v4
