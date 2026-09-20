@@ -89,8 +89,11 @@ for m in markets:
   # still collide within the same position (e.g. Kyren/Kyler K.Williams).
   if len(candidates)>1 and CURRENT_FULL:
    fc=CURRENT_FULL.get(nfull(n),[])
-   current_keys={(str(rr.player_name).lower(),str(rr.position).upper()) for rr in fc}
-   narrowed=[r for r in candidates if (str(r.player_name).lower(),str(r.position).upper()) in current_keys]
+   # Test09 carries stable nflverse player_id plus the exact current full name.
+   # Resolve historical abbreviated-label collisions by stable player_id, not
+   # by the same ambiguous abbreviated player_name that caused the collision.
+   current_ids={str(rr.player_id) for rr in fc if str(rr.position).upper() in SUPPORTED}
+   narrowed=[r for r in candidates if str(getattr(r,'player_id','')) in current_ids]
    if len(narrowed)==1:candidates=narrowed
   if len(candidates)==1:matched=candidates[0]
   elif len(candidates)>1:exclusion='AMBIGUOUS_NAME_POSITION'; collision=True
