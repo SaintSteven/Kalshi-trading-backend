@@ -3,7 +3,7 @@
     "822844": {
       "away_lineup": [],
       "away_lineup_confirmed": false,
-      "away_probable_pitcher": null,
+      "away_probable_pitcher": "Spencer Miles",
       "away_team": "Toronto Blue Jays",
       "game_date": "2026-09-20T18:35:00Z",
       "game_pk": 822844,
@@ -61,7 +61,7 @@
       "game_pk": 823329,
       "home_lineup": [],
       "home_lineup_confirmed": false,
-      "home_probable_pitcher": null,
+      "home_probable_pitcher": "Lake Bachar",
       "home_team": "Pittsburgh Pirates",
       "status": "Preview"
     },
@@ -81,7 +81,7 @@
     "823896": {
       "away_lineup": [],
       "away_lineup_confirmed": false,
-      "away_probable_pitcher": null,
+      "away_probable_pitcher": "Matt Wilkinson",
       "away_team": "San Francisco Giants",
       "game_date": "2026-09-20T20:10:00Z",
       "game_pk": 823896,
@@ -196,5 +196,5 @@
       "status": "Preview"
     }
   },
-  "last_run_at": "2026-09-20T01:38:52.392810Z"
+  "last_run_at": "2026-09-20T07:01:10.759217Z"
 }
