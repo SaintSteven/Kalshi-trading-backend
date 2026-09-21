@@ -4,6 +4,7 @@ on:
     branches: [ "refactor/nfl-gameday-engine" ]
     paths:
       - ".github/workflows/nfl-gameday-smoke.yml"
+      - "research/nfl_gameday/ffpts/09_current_slate_projection.py"
 
 permissions:
   contents: read
