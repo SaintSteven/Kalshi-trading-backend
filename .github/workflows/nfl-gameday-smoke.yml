@@ -1,0 +1,77 @@
+name: NFL Game Day Production Smoke Test
+on:
+  push:
+    branches: [ "refactor/nfl-gameday-engine" ]
+    paths:
+      - ".github/workflows/nfl-gameday-smoke.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      NFL_FAIL_STAGE: none
+      NFL_TARGET_DATE: ""
+      NFL_EVENT_FILTER: ""
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pandas numpy scipy scikit-learn requests tabulate
+      - name: Syntax preflight
+        run: python -m py_compile research/nfl_gameday/run.py
+      - name: Capture markets
+        run: python research/nfl_gameday/run.py capture
+      - name: Checkpoint raw
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-raw-${{ github.run_id }}
+          path: research/nfl_gameday/output/raw/
+      - name: Receiving
+        run: python research/nfl_gameday/run.py receiving
+      - name: Rushing
+        run: python research/nfl_gameday/run.py rushing
+      - name: FFPTS
+        run: python research/nfl_gameday/run.py ffpts
+      - name: Checkpoint models
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-models-${{ github.run_id }}
+          path: research/nfl_gameday/output/models/
+      - name: Card
+        run: python research/nfl_gameday/run.py card
+      - name: Health
+        run: python research/nfl_gameday/run.py health
+      - name: Assert production smoke
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path("research/nfl_gameday/output")
+          h=json.loads((p/"health.json").read_text())
+          assert h["overall_usable"] is True, h
+          assert h["stages"]["market_capture"]["ok"], h
+          for stage in ("receiving","rushing","ffpts","card"):
+              assert h["stages"][stage]["ok"], (stage,h)
+          assert h.get("run_id"), h
+          assert h.get("git_sha"), h
+          assert h.get("capture",{}).get("markets",0)>0, h
+          mv=h.get("model_versions",{})
+          assert mv.get("receiving"), mv
+          assert mv.get("rushing"), mv
+          assert mv.get("ffpts"), mv
+          assert (p/"candidates.csv").exists()
+          print(json.dumps(h,indent=2))
+          PY
+      - name: Final artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-final-${{ github.run_id }}
+          path: research/nfl_gameday/output/
