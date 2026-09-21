@@ -26,15 +26,22 @@ def capture():
     (RAW/"capture.json").write_text(json.dumps(meta,indent=2))
     print(meta)
 
-def maybe_fail(stage):\n    if os.environ.get("NFL_FAIL_STAGE","").strip().lower()==stage:\n        raise RuntimeError(f"Injected failure for {stage}")\n\ndef receiving():\n    maybe_fail("receiving")
+def maybe_fail(stage):
+    if os.environ.get("NFL_FAIL_STAGE","").strip().lower()==stage:
+        raise RuntimeError(f"Injected failure for {stage}")
+
+def receiving():
+    maybe_fail("receiving")
     run([sys.executable,LEGACY/"generate_receiving_projections.py","--markets",RAW/"current_markets.csv","--projections",MODELS/"independent_receiving_projections.csv","--mapping",MODELS/"receiving_market_mapping.csv"])
     run([sys.executable,LEGACY/"receiving_feed.py","--markets",RAW/"current_markets.csv","--projections",MODELS/"independent_receiving_projections.csv","--mapping",MODELS/"receiving_market_mapping.csv","--output",MODELS/"receiving_fair_values.csv"])
 
-def rushing():\n    maybe_fail("rushing")
+def rushing():
+    maybe_fail("rushing")
     run([sys.executable,LEGACY/"generate_rushing_projections.py","--markets",RAW/"current_markets.csv","--projections",MODELS/"independent_rushing_projections.csv","--mapping",MODELS/"rushing_market_mapping.csv"])
     run([sys.executable,LEGACY/"rushing_feed.py","--markets",RAW/"current_markets.csv","--projections",MODELS/"independent_rushing_projections.csv","--mapping",MODELS/"rushing_market_mapping.csv","--output",MODELS/"rushing_fair_values.csv"])
 
-def ffpts():\n    maybe_fail("ffpts")
+def ffpts():
+    maybe_fail("ffpts")
     """Run the frozen FFPTS production subset in an isolated workspace."""
     import os
     work=OUT/"ffpts_work"
@@ -52,7 +59,8 @@ def ffpts():\n    maybe_fail("ffpts")
         p=results/name
         if p.exists(): shutil.copy2(p,MODELS/("ffpts_"+name))
 
-def card():\n    maybe_fail("card")
+def card():
+    maybe_fail("card")
     markets=pd.read_csv(RAW/"current_markets.csv")
     rows=[]
     for family,file in [("receiving_yards","receiving_fair_values.csv"),("rushing_yards","rushing_fair_values.csv")]:
@@ -89,7 +97,8 @@ def card():\n    maybe_fail("card")
     d.to_csv(OUT/"candidates.csv",index=False)
     lines=["# NFL Game-Day Candidate Card","",f"Generated: {datetime.now(timezone.utc).isoformat()}","","Production candidate layer only. Manual injury/role and correlation QC still required.",""]
     lines += [d.head(30).to_markdown(index=False) if len(d) else "No model-qualified candidates."]
-    (OUT/"CARD.md").write_text("\n".join(lines))
+    (OUT/"CARD.md").write_text("
+".join(lines))
 
 def health():
     stages={}
@@ -107,7 +116,8 @@ def health():
     (OUT/"health.json").write_text(json.dumps(payload,indent=2))
     lines=["# NFL Game-Day Health","",f"Overall usable: **{overall}**",""]
     for k,v in stages.items(): lines.append(f"- {k}: {'PASS' if v.get('ok') else 'FAIL'}" + (f" — {v.get('rows')} rows" if v.get('ok') else f" — {v.get('error')}"))
-    (OUT/"HEALTH.md").write_text("\n".join(lines))
+    (OUT/"HEALTH.md").write_text("
+".join(lines))
     print(json.dumps(payload,indent=2))
 
 def main():
