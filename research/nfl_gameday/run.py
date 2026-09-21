@@ -34,6 +34,24 @@ def rushing():
     run([sys.executable,LEGACY/"generate_rushing_projections.py","--markets",RAW/"current_markets.csv","--projections",MODELS/"independent_rushing_projections.csv","--mapping",MODELS/"rushing_market_mapping.csv"])
     run([sys.executable,LEGACY/"rushing_feed.py","--markets",RAW/"current_markets.csv","--projections",MODELS/"independent_rushing_projections.csv","--mapping",MODELS/"rushing_market_mapping.csv","--output",MODELS/"rushing_fair_values.csv"])
 
+def ffpts():
+    """Run the frozen FFPTS production subset in an isolated workspace."""
+    import os
+    work=OUT/"ffpts_work"
+    target=work/"research"/"nfl_fantasy_points_validation"
+    target.mkdir(parents=True,exist_ok=True)
+    for name in ["00_walk_forward_baseline.py","FROZEN_MODEL_V1.json","09_current_slate_projection.py","03_kalshi_market_scan.py","08_current_slate_decision.py"]:
+        shutil.copy2(HERE/"ffpts"/name,target/name)
+    env=os.environ.copy()
+    subprocess.run([sys.executable,target/"00_walk_forward_baseline.py"],cwd=work,env=env,check=True)
+    subprocess.run([sys.executable,target/"09_current_slate_projection.py"],cwd=work,env=env,check=True)
+    subprocess.run([sys.executable,target/"03_kalshi_market_scan.py"],cwd=work,env=env,check=True)
+    subprocess.run([sys.executable,target/"08_current_slate_decision.py"],cwd=work,env=env,check=True)
+    results=target/"results"
+    for name in ["09_current_slate_projections.csv","03_kalshi_fantasy_markets.csv","08_current_slate_decisions.csv","08_current_slate_summary.json","08_excluded_identities.json"]:
+        p=results/name
+        if p.exists(): shutil.copy2(p,MODELS/("ffpts_"+name))
+
 def card():
     markets=pd.read_csv(RAW/"current_markets.csv")
     rows=[]
@@ -73,7 +91,7 @@ def health():
     stages["receiving"]=csvstat(MODELS/"receiving_fair_values.csv")
     stages["rushing"]=csvstat(MODELS/"rushing_fair_values.csv")
     stages["card"]=csvstat(OUT/"candidates.csv")
-    overall=stages["market_capture"].get("ok",False) and any(stages[x].get("ok",False) for x in ("receiving","rushing"))
+    overall=stages["market_capture"].get("ok",False) and any(stages[x].get("ok",False) for x in ("receiving","rushing","ffpts"))
     payload={"generated_at":datetime.now(timezone.utc).isoformat(),"overall_usable":overall,"stages":stages}
     (OUT/"health.json").write_text(json.dumps(payload,indent=2))
     lines=["# NFL Game-Day Health","",f"Overall usable: **{overall}**",""]
@@ -82,10 +100,10 @@ def health():
     print(json.dumps(payload,indent=2))
 
 def main():
-    ap=argparse.ArgumentParser();ap.add_argument("stage",choices=["capture","receiving","rushing","card","health","all"]);a=ap.parse_args()
+    ap=argparse.ArgumentParser();ap.add_argument("stage",choices=["capture","receiving","rushing","ffpts","card","health","all"]);a=ap.parse_args()
     if a.stage=="all":
         capture()
-        for fn in (receiving,rushing):
+        for fn in (receiving,rushing,ffpts):
             try:fn()
             except Exception as e:print("STAGE_FAILED",fn.__name__,repr(e),file=sys.stderr)
         try:card()
