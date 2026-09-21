@@ -22,7 +22,20 @@ def run(cmd):
 def capture():
     run([sys.executable,LEGACY/"current_collector.py","--current",RAW/"current_markets.csv","--health",RAW/"collector_health.csv"])
     m=pd.read_csv(RAW/"current_markets.csv")
-    meta={"captured_at":datetime.now(timezone.utc).isoformat(),"markets":len(m),"families":m.prop_family.value_counts().to_dict() if len(m) else {}}
+    target_date=os.environ.get("NFL_TARGET_DATE","").strip()
+    event_filter=os.environ.get("NFL_EVENT_FILTER","").strip().lower()
+    before=len(m)
+    if target_date and "kickoff_utc" in m.columns:
+        kickoff=pd.to_datetime(m["kickoff_utc"],utc=True,errors="coerce")
+        m=m[kickoff.dt.strftime("%Y-%m-%d").eq(target_date)]
+    if event_filter:
+        cols=[c for c in ("game","event_ticker","market_ticker") if c in m.columns]
+        mask=pd.Series(False,index=m.index)
+        for col in cols: mask |= m[col].astype(str).str.lower().str.contains(event_filter,regex=False,na=False)
+        m=m[mask]
+    if target_date or event_filter:
+        m.to_csv(RAW/"current_markets.csv",index=False)
+    meta={"captured_at":datetime.now(timezone.utc).isoformat(),"markets":len(m),"markets_before_scope":before,"target_date":target_date or None,"event_filter":event_filter or None,"families":m.prop_family.value_counts().to_dict() if len(m) else {}}
     (RAW/"capture.json").write_text(json.dumps(meta,indent=2))
     print(meta)
 
@@ -62,6 +75,7 @@ def ffpts():
 def card():
     maybe_fail("card")
     markets=pd.read_csv(RAW/"current_markets.csv")
+    event_filter=os.environ.get("NFL_EVENT_FILTER","").strip().lower()
     rows=[]
     for family,file in [("receiving_yards","receiving_fair_values.csv"),("rushing_yards","rushing_fair_values.csv")]:
         p=MODELS/file
@@ -85,6 +99,8 @@ def card():
     fp=MODELS/"ffpts_08_current_slate_decisions.csv"
     if fp.exists() and fp.stat().st_size:
         f=pd.read_csv(fp)
+        if event_filter and "event_ticker" in f.columns:
+            f=f[f["event_ticker"].astype(str).str.lower().str.contains(event_filter,regex=False,na=False)]
         for _,r in f.iterrows():
             if str(r.get("decision","")) not in ("PAPER","WATCH"): continue
             edge=pd.to_numeric(pd.Series([r.get("edge_vs_ask")]),errors="coerce").iloc[0]
