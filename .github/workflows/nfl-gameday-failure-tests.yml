@@ -23,7 +23,9 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: pip install pandas numpy scipy scikit-learn requests tabulate\n      - name: Syntax preflight\n        run: python -m py_compile research/nfl_gameday/run.py
+      - run: pip install pandas numpy scipy scikit-learn requests tabulate
+      - name: Syntax preflight
+        run: python -m py_compile research/nfl_gameday/run.py
       - name: Capture markets
         run: python research/nfl_gameday/run.py capture
       - name: Checkpoint raw
