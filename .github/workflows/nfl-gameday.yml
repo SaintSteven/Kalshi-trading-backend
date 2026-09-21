@@ -13,11 +13,6 @@ on:
           - rushing
           - ffpts
           - card
-  push:
-    branches: [ "refactor/nfl-gameday-engine" ]
-    paths:
-      - "research/nfl_gameday/**"
-      - ".github/workflows/nfl-gameday.yml"
 
 permissions:
   contents: read
@@ -36,6 +31,8 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install pandas numpy scipy scikit-learn requests tabulate
+      - name: Syntax preflight
+        run: python -m py_compile research/nfl_gameday/run.py
 
       - name: Capture markets
         run: python research/nfl_gameday/run.py capture
