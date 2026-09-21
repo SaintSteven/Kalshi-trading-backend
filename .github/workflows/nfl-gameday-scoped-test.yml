@@ -1,0 +1,77 @@
+name: NFL Game Day Scoped Test
+on:
+  push:
+    branches: [ "refactor/nfl-gameday-engine" ]
+    paths:
+      - ".github/workflows/nfl-gameday-scoped-test.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  scoped:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      NFL_FAIL_STAGE: none
+      NFL_TARGET_DATE: "2026-09-21"
+      NFL_EVENT_FILTER: "NYG-LAR"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pandas numpy scipy scikit-learn requests tabulate
+      - name: Syntax preflight
+        run: python -m py_compile research/nfl_gameday/run.py
+      - name: Capture markets
+        run: python research/nfl_gameday/run.py capture
+      - name: Checkpoint raw
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: scoped-nyg-lar-raw-${{ github.run_id }}
+          path: research/nfl_gameday/output/raw/
+      - name: Receiving
+        continue-on-error: true
+        run: python research/nfl_gameday/run.py receiving
+      - name: Rushing
+        continue-on-error: true
+        run: python research/nfl_gameday/run.py rushing
+      - name: FFPTS
+        continue-on-error: true
+        run: python research/nfl_gameday/run.py ffpts
+      - name: Checkpoint models
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: scoped-nyg-lar-models-${{ github.run_id }}
+          path: research/nfl_gameday/output/models/
+      - name: Card
+        continue-on-error: true
+        run: python research/nfl_gameday/run.py card
+      - name: Health
+        if: always()
+        run: python research/nfl_gameday/run.py health
+      - name: Assert scope
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path("research/nfl_gameday/output")
+          h=json.loads((p/"health.json").read_text())
+          cap=h.get("capture",{})
+          assert cap.get("target_date")=="2026-09-21", cap
+          assert cap.get("event_filter")=="NYG-LAR", cap
+          assert cap.get("markets",0)>0, cap
+          assert cap.get("markets",0)<cap.get("markets_before_scope",0), cap
+          assert h.get("overall_usable") is True, h
+          assert h["stages"]["card"]["ok"], h
+          print(json.dumps(h,indent=2))
+          PY
+      - name: Final artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: scoped-nyg-lar-final-${{ github.run_id }}
+          path: research/nfl_gameday/output/
