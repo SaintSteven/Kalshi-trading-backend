@@ -2,6 +2,16 @@ name: NFL Game Day Engine
 on:
   workflow_dispatch:
     inputs:
+      target_date:
+        description: "Optional slate date (YYYY-MM-DD)"
+        required: false
+        default: ""
+        type: string
+      event_filter:
+        description: "Optional game/event substring, e.g. IND-KC"
+        required: false
+        default: ""
+        type: string
       fail_stage:
         description: "Failure injection stage"
         required: false
@@ -25,6 +35,9 @@ jobs:
   gameday:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    env:
+      NFL_TARGET_DATE: ${{ inputs.target_date || '' }}
+      NFL_EVENT_FILTER: ${{ inputs.event_filter || '' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
