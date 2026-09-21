@@ -97,8 +97,7 @@ def card():
     d.to_csv(OUT/"candidates.csv",index=False)
     lines=["# NFL Game-Day Candidate Card","",f"Generated: {datetime.now(timezone.utc).isoformat()}","","Production candidate layer only. Manual injury/role and correlation QC still required.",""]
     lines += [d.head(30).to_markdown(index=False) if len(d) else "No model-qualified candidates."]
-    (OUT/"CARD.md").write_text("
-".join(lines))
+    (OUT/"CARD.md").write_text("\n".join(lines))
 
 def health():
     stages={}
@@ -116,8 +115,7 @@ def health():
     (OUT/"health.json").write_text(json.dumps(payload,indent=2))
     lines=["# NFL Game-Day Health","",f"Overall usable: **{overall}**",""]
     for k,v in stages.items(): lines.append(f"- {k}: {'PASS' if v.get('ok') else 'FAIL'}" + (f" — {v.get('rows')} rows" if v.get('ok') else f" — {v.get('error')}"))
-    (OUT/"HEALTH.md").write_text("
-".join(lines))
+    (OUT/"HEALTH.md").write_text("\n".join(lines))
     print(json.dumps(payload,indent=2))
 
 def main():
