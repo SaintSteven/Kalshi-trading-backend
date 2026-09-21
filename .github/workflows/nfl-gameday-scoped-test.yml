@@ -63,9 +63,13 @@ jobs:
           h=json.loads((p/"health.json").read_text())
           cap=h.get("capture",{})
           assert cap.get("target_date")=="2026-09-21", cap
-          assert cap.get("event_filter")=="NYG-LAR", cap
+          assert cap.get("event_filter")=="nyg-lar", cap
           assert cap.get("markets",0)>0, cap
           assert cap.get("markets",0)<cap.get("markets_before_scope",0), cap
+          import pandas as pd
+          m=pd.read_csv(p/"raw"/"current_markets.csv")
+          assert set(m["game"].dropna().astype(str))=={"NYG@LAR"}, m["game"].value_counts().to_dict()
+          assert m["event_ticker"].astype(str).str.contains("NYGLAR",case=False,regex=False).all(), m["event_ticker"].value_counts().to_dict()
           assert h.get("overall_usable") is True, h
           assert h["stages"]["card"]["ok"], h
           print(json.dumps(h,indent=2))
