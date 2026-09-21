@@ -4,6 +4,7 @@ on:
     branches: [ "refactor/nfl-gameday-engine" ]
     paths:
       - ".github/workflows/nfl-gameday-failure-tests.yml"
+      - "research/nfl_gameday/run.py"
 
 permissions:
   contents: read
