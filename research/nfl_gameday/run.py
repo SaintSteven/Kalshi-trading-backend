@@ -7,6 +7,8 @@ from __future__ import annotations
 import argparse, json, os, shutil, subprocess, sys
 from datetime import datetime, timezone
 from pathlib import Path
+from zoneinfo import ZoneInfo
+import re
 import pandas as pd
 
 ROOT=Path(__file__).resolve().parents[1]
@@ -27,11 +29,15 @@ def capture():
     before=len(m)
     if target_date and "kickoff_utc" in m.columns:
         kickoff=pd.to_datetime(m["kickoff_utc"],utc=True,errors="coerce")
-        m=m[kickoff.dt.strftime("%Y-%m-%d").eq(target_date)]
+        local_date=kickoff.dt.tz_convert(ZoneInfo("America/New_York")).dt.strftime("%Y-%m-%d")
+        m=m[local_date.eq(target_date)]
     if event_filter:
+        needle=re.sub(r"[^a-z0-9]","",event_filter)
         cols=[c for c in ("game","event_ticker","market_ticker") if c in m.columns]
         mask=pd.Series(False,index=m.index)
-        for col in cols: mask |= m[col].astype(str).str.lower().str.contains(event_filter,regex=False,na=False)
+        for col in cols:
+            normalized=m[col].astype(str).str.lower().str.replace(r"[^a-z0-9]","",regex=True)
+            mask |= normalized.str.contains(needle,regex=False,na=False)
         m=m[mask]
     if target_date or event_filter:
         m.to_csv(RAW/"current_markets.csv",index=False)
@@ -100,7 +106,9 @@ def card():
     if fp.exists() and fp.stat().st_size:
         f=pd.read_csv(fp)
         if event_filter and "event_ticker" in f.columns:
-            f=f[f["event_ticker"].astype(str).str.lower().str.contains(event_filter,regex=False,na=False)]
+            needle=re.sub(r"[^a-z0-9]","",event_filter)
+            normalized=f["event_ticker"].astype(str).str.lower().str.replace(r"[^a-z0-9]","",regex=True)
+            f=f[normalized.str.contains(needle,regex=False,na=False)]
         for _,r in f.iterrows():
             if str(r.get("decision","")) not in ("PAPER","WATCH"): continue
             edge=pd.to_numeric(pd.Series([r.get("edge_vs_ask")]),errors="coerce").iloc[0]
