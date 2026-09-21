@@ -74,6 +74,16 @@ def card():
             side,edge,price=max(choices,key=lambda z: z[1] if pd.notna(z[1]) else -999)
             if pd.isna(edge) or edge < .02: continue
             rows.append({"family":family,"game":r.get("game"),"kickoff_utc":r.get("kickoff_utc"),"player":r.get("player_name"),"ticker":r.market_ticker,"projection":r.get("projection"),"side":side,"price":price,"fair":r.get("fair_yes") if side=="YES" else r.get("fair_no"),"edge":edge,"model_version":r.get("model_version")})
+    fp=MODELS/"ffpts_08_current_slate_decisions.csv"
+    if fp.exists() and fp.stat().st_size:
+        f=pd.read_csv(fp)
+        for _,r in f.iterrows():
+            if str(r.get("decision","")) not in ("PAPER","WATCH"): continue
+            edge=pd.to_numeric(pd.Series([r.get("edge_vs_ask")]),errors="coerce").iloc[0]
+            price=pd.to_numeric(pd.Series([r.get("yes_ask")]),errors="coerce").iloc[0]
+            fair=pd.to_numeric(pd.Series([r.get("fair_yes")]),errors="coerce").iloc[0]
+            if pd.isna(edge) or pd.isna(price) or edge < .02: continue
+            rows.append({"family":"fantasy_points","game":r.get("event_ticker"),"kickoff_utc":"","player":r.get("player"),"ticker":r.get("ticker"),"projection":r.get("projection_fp"),"side":"YES","price":price,"fair":fair,"edge":edge,"model_version":r.get("model"),"qc":r.get("qc"),"decision":r.get("decision")})
     d=pd.DataFrame(rows)
     if len(d): d=d.sort_values("edge",ascending=False)
     d.to_csv(OUT/"candidates.csv",index=False)
@@ -89,7 +99,7 @@ def health():
     stages["market_capture"]=csvstat(RAW/"current_markets.csv")
     stages["collector_health"]=csvstat(RAW/"collector_health.csv")
     stages["receiving"]=csvstat(MODELS/"receiving_fair_values.csv")
-    stages["rushing"]=csvstat(MODELS/"rushing_fair_values.csv")
+    stages["rushing"]=csvstat(MODELS/"rushing_fair_values.csv")\n    stages["ffpts"]=csvstat(MODELS/"ffpts_08_current_slate_decisions.csv")
     stages["card"]=csvstat(OUT/"candidates.csv")
     overall=stages["market_capture"].get("ok",False) and any(stages[x].get("ok",False) for x in ("receiving","rushing","ffpts"))
     payload={"generated_at":datetime.now(timezone.utc).isoformat(),"overall_usable":overall,"stages":stages}
