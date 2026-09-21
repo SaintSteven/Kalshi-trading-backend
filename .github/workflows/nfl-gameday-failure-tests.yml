@@ -1,0 +1,83 @@
+name: NFL Game Day Failure Injection Tests
+on:
+  push:
+    branches: [ "refactor/nfl-gameday-engine" ]
+    paths:
+      - ".github/workflows/nfl-gameday-failure-tests.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  failure-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        fail_stage: [receiving, rushing, ffpts, card]
+    env:
+      NFL_FAIL_STAGE: ${{ matrix.fail_stage }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pandas numpy scipy scikit-learn requests tabulate
+      - name: Capture markets
+        run: python research/nfl_gameday/run.py capture
+      - name: Checkpoint raw
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: failure-${{ matrix.fail_stage }}-raw-${{ github.run_id }}
+          path: research/nfl_gameday/output/raw/
+      - name: Receiving
+        continue-on-error: true
+        run: python research/nfl_gameday/run.py receiving
+      - name: Rushing
+        continue-on-error: true
+        run: python research/nfl_gameday/run.py rushing
+      - name: FFPTS
+        continue-on-error: true
+        run: python research/nfl_gameday/run.py ffpts
+      - name: Checkpoint models
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: failure-${{ matrix.fail_stage }}-models-${{ github.run_id }}
+          path: research/nfl_gameday/output/models/
+          if-no-files-found: warn
+      - name: Card
+        continue-on-error: true
+        run: python research/nfl_gameday/run.py card
+      - name: Health
+        if: always()
+        run: python research/nfl_gameday/run.py health
+      - name: Final checkpoint
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: failure-${{ matrix.fail_stage }}-final-${{ github.run_id }}
+          path: research/nfl_gameday/output/
+          if-no-files-found: warn
+      - name: Assert isolation
+        if: always()
+        run: |
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          h=json.loads(Path("research/nfl_gameday/output/health.json").read_text())
+          f=os.environ["NFL_FAIL_STAGE"]
+          s=h["stages"]
+          assert s["market_capture"]["ok"], "raw capture lost"
+          if f=="receiving":
+              assert not s["receiving"]["ok"] and s["rushing"]["ok"] and s["ffpts"]["ok"]
+          elif f=="rushing":
+              assert s["receiving"]["ok"] and not s["rushing"]["ok"] and s["ffpts"]["ok"]
+          elif f=="ffpts":
+              assert s["receiving"]["ok"] and s["rushing"]["ok"] and not s["ffpts"]["ok"]
+          elif f=="card":
+              assert s["receiving"]["ok"] and s["rushing"]["ok"] and s["ffpts"]["ok"] and not s["card"]["ok"]
+          print("ISOLATION_PASS", f, h)
+          PY
