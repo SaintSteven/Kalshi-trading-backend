@@ -111,11 +111,25 @@ def health():
     stages["ffpts"]=csvstat(MODELS/"ffpts_08_current_slate_decisions.csv")
     stages["card"]=csvstat(OUT/"candidates.csv")
     overall=stages["market_capture"].get("ok",False) and any(stages[x].get("ok",False) for x in ("receiving","rushing","ffpts"))
-    capture_meta={}\n    try: capture_meta=json.loads((RAW/"capture.json").read_text())\n    except Exception: pass\n    model_versions={}\n    for name,file in [("receiving","receiving_fair_values.csv"),("rushing","rushing_fair_values.csv")]:\n        try:\n            df=pd.read_csv(MODELS/file)\n            if "model_version" in df.columns: model_versions[name]=sorted(df.model_version.dropna().astype(str).unique().tolist())\n        except Exception: pass\n    try:\n        summary=json.loads((MODELS/"ffpts_08_current_slate_summary.json").read_text())\n        model_versions["ffpts"]=summary.get("model") or summary.get("model_version")\n    except Exception: pass\n    payload={"generated_at":datetime.now(timezone.utc).isoformat(),"run_id":os.environ.get("GITHUB_RUN_ID"),"git_sha":os.environ.get("GITHUB_SHA"),"overall_usable":overall,"capture":capture_meta,"model_versions":model_versions,"stages":stages}
+    capture_meta={}
+    try: capture_meta=json.loads((RAW/"capture.json").read_text())
+    except Exception: pass
+    model_versions={}
+    for name,file in [("receiving","receiving_fair_values.csv"),("rushing","rushing_fair_values.csv")]:
+        try:
+            df=pd.read_csv(MODELS/file)
+            if "model_version" in df.columns: model_versions[name]=sorted(df.model_version.dropna().astype(str).unique().tolist())
+        except Exception: pass
+    try:
+        summary=json.loads((MODELS/"ffpts_08_current_slate_summary.json").read_text())
+        model_versions["ffpts"]=summary.get("model") or summary.get("model_version")
+    except Exception: pass
+    payload={"generated_at":datetime.now(timezone.utc).isoformat(),"run_id":os.environ.get("GITHUB_RUN_ID"),"git_sha":os.environ.get("GITHUB_SHA"),"overall_usable":overall,"capture":capture_meta,"model_versions":model_versions,"stages":stages}
     (OUT/"health.json").write_text(json.dumps(payload,indent=2))
     lines=["# NFL Game-Day Health","",f"Overall usable: **{overall}**",""]
     for k,v in stages.items(): lines.append(f"- {k}: {'PASS' if v.get('ok') else 'FAIL'}" + (f" — {v.get('rows')} rows" if v.get('ok') else f" — {v.get('error')}"))
-    (OUT/"HEALTH.md").write_text("\n".join(lines))
+    (OUT/"HEALTH.md").write_text("
+".join(lines))
     print(json.dumps(payload,indent=2))
 
 def main():
