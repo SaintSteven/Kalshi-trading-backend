@@ -1,0 +1,61 @@
+{
+  "model_family": "NFL fantasy points",
+  "model_version": "NFL-FFPTS-RIDGE-EMPIRICAL-v1",
+  "status": "FROZEN_RESEARCH_CANDIDATE",
+  "architecture": [
+    "football reality/history",
+    "independent Ridge point projection",
+    "position-specific empirical residual distribution",
+    "freeze threshold probabilities",
+    "overlay prediction-market price",
+    "QC/correlation/execution"
+  ],
+  "market_price_as_model_input": false,
+  "training_history": [
+    2022,
+    2023,
+    2024,
+    2025
+  ],
+  "validation_seasons": [
+    2024,
+    2025
+  ],
+  "point_validation": {
+    "player_games": 11977,
+    "mae": 4.49,
+    "bias": 0.08,
+    "rmse": 6.11
+  },
+  "probability_validation": {
+    "method": "raw empirical residual distribution",
+    "threshold_observations": 98037,
+    "player_games": 10893,
+    "brier": 0.11204,
+    "ece_pp": 0.5
+  },
+  "qc_rules": [
+    {
+      "flag": "WEEK1_QB_REVIEW",
+      "action": "REVIEW_NO_AUTOMATIC_BET_NOW",
+      "basis": "Test 06 Week 1 QB calibration gap -10.86 pp"
+    },
+    {
+      "flag": "WEEK1_LOW_ROLE_REVIEW",
+      "condition": "projected fantasy points < 8",
+      "action": "REVIEW_NO_AUTOMATIC_BET_NOW",
+      "basis": "Test 06 Week 1 low-role calibration gap +5.38 pp"
+    },
+    {
+      "flag": "TEAM_CHANGE_REVIEW",
+      "action": "REVIEW_NO_AUTOMATIC_BET_NOW",
+      "basis": "Test 07 changed-team calibration gap +7.59 pp across 239 player-games"
+    }
+  ],
+  "execution_rules_status": "NOT_VALIDATED_BY_THIS_MODEL",
+  "notes": [
+    "Do not infer historical Kalshi profitability.",
+    "Do not use market price to alter frozen probabilities.",
+    "Prospective execution bands/caps remain hypotheses."
+  ]
+}
