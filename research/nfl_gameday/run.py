@@ -138,7 +138,7 @@ def health():
         except Exception: pass
     try:
         summary=json.loads((MODELS/"ffpts_08_current_slate_summary.json").read_text())
-        model_versions["ffpts"]=summary.get("model") or summary.get("model_version")
+        model_versions["ffpts"]=summary.get("frozen_model") or summary.get("model") or summary.get("model_version")
     except Exception: pass
     payload={"generated_at":datetime.now(timezone.utc).isoformat(),"run_id":os.environ.get("GITHUB_RUN_ID"),"git_sha":os.environ.get("GITHUB_SHA"),"overall_usable":overall,"capture":capture_meta,"model_versions":model_versions,"stages":stages}
     (OUT/"health.json").write_text(json.dumps(payload,indent=2))
