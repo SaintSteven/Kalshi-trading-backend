@@ -144,8 +144,7 @@ def health():
     (OUT/"health.json").write_text(json.dumps(payload,indent=2))
     lines=["# NFL Game-Day Health","",f"Overall usable: **{overall}**",""]
     for k,v in stages.items(): lines.append(f"- {k}: {'PASS' if v.get('ok') else 'FAIL'}" + (f" — {v.get('rows')} rows" if v.get('ok') else f" — {v.get('error')}"))
-    (OUT/"HEALTH.md").write_text("
-".join(lines))
+    (OUT/"HEALTH.md").write_text("\n".join(lines))
     print(json.dumps(payload,indent=2))
 
 def main():
