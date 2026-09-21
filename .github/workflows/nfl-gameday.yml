@@ -1,6 +1,18 @@
 name: NFL Game Day Engine
 on:
   workflow_dispatch:
+    inputs:
+      fail_stage:
+        description: "Failure injection stage"
+        required: false
+        default: "none"
+        type: choice
+        options:
+          - none
+          - receiving
+          - rushing
+          - ffpts
+          - card
   push:
     branches: [ "refactor/nfl-gameday-engine" ]
     paths:
@@ -37,15 +49,21 @@ jobs:
 
       - name: Run receiving model
         id: receiving
+        env:
+          NFL_FAIL_STAGE: ${{ inputs.fail_stage || 'none' }}
         continue-on-error: true
         run: python research/nfl_gameday/run.py receiving
       - name: Run rushing model
         id: rushing
+        env:
+          NFL_FAIL_STAGE: ${{ inputs.fail_stage || 'none' }}
         continue-on-error: true
         run: python research/nfl_gameday/run.py rushing
 
       - name: Run fantasy-points model
         id: ffpts
+        env:
+          NFL_FAIL_STAGE: ${{ inputs.fail_stage || 'none' }}
         continue-on-error: true
         run: python research/nfl_gameday/run.py ffpts
 
@@ -59,6 +77,8 @@ jobs:
 
       - name: Build unified card
         id: card
+        env:
+          NFL_FAIL_STAGE: ${{ inputs.fail_stage || 'none' }}
         continue-on-error: true
         run: python research/nfl_gameday/run.py card
 
