@@ -44,6 +44,11 @@ jobs:
         continue-on-error: true
         run: python research/nfl_gameday/run.py rushing
 
+      - name: Run fantasy-points model
+        id: ffpts
+        continue-on-error: true
+        run: python research/nfl_gameday/run.py ffpts
+
       - name: Checkpoint model outputs
         if: always()
         uses: actions/upload-artifact@v4
