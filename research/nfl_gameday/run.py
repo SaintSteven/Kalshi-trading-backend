@@ -99,7 +99,8 @@ def health():
     stages["market_capture"]=csvstat(RAW/"current_markets.csv")
     stages["collector_health"]=csvstat(RAW/"collector_health.csv")
     stages["receiving"]=csvstat(MODELS/"receiving_fair_values.csv")
-    stages["rushing"]=csvstat(MODELS/"rushing_fair_values.csv")\n    stages["ffpts"]=csvstat(MODELS/"ffpts_08_current_slate_decisions.csv")
+    stages["rushing"]=csvstat(MODELS/"rushing_fair_values.csv")
+    stages["ffpts"]=csvstat(MODELS/"ffpts_08_current_slate_decisions.csv")
     stages["card"]=csvstat(OUT/"candidates.csv")
     overall=stages["market_capture"].get("ok",False) and any(stages[x].get("ok",False) for x in ("receiving","rushing","ffpts"))
     payload={"generated_at":datetime.now(timezone.utc).isoformat(),"overall_usable":overall,"stages":stages}
