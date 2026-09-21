@@ -55,7 +55,8 @@ import os
 SCHED_URL='https://github.com/nflverse/nfldata/raw/master/data/games.csv'
 sched=pd.read_csv(SCHED_URL,low_memory=False)
 sched['gameday']=pd.to_datetime(sched['gameday'],errors='coerce').dt.date
-target_date=pd.to_datetime(os.environ.get('NFL_TARGET_DATE',datetime.now(timezone.utc).date().isoformat())).date()
+target_date_raw=os.environ.get('NFL_TARGET_DATE','').strip()
+target_date=pd.to_datetime(target_date_raw or datetime.now(timezone.utc).date().isoformat()).date()
 season=2026
 q=sched[(sched['gameday']==target_date) & (pd.to_numeric(sched['season'],errors='coerce')==season)]
 weeks=sorted(set(pd.to_numeric(q['week'],errors='coerce').dropna().astype(int)))
