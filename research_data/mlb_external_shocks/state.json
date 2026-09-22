@@ -79,14 +79,34 @@
       "status": "Preview"
     },
     "823543": {
-      "away_lineup": [],
-      "away_lineup_confirmed": false,
+      "away_lineup": [
+        "Yandy D\u00edaz",
+        "Jonathan Aranda",
+        "Junior Caminero",
+        "Liam Hicks",
+        "Chandler Simpson",
+        "Jonny DeLuca",
+        "Victor Mesa Jr.",
+        "Ben Williamson",
+        "Richie Palacios"
+      ],
+      "away_lineup_confirmed": true,
       "away_probable_pitcher": "Nick Martinez",
       "away_team": "Tampa Bay Rays",
       "game_date": "2026-09-22T17:05:00Z",
       "game_pk": 823543,
-      "home_lineup": [],
-      "home_lineup_confirmed": false,
+      "home_lineup": [
+        "Ben Rice",
+        "Cody Bellinger",
+        "Heliot Ramos",
+        "Luis Garc\u00eda Jr.",
+        "George Lombard Jr.",
+        "Spencer Jones",
+        "Anthony Volpe",
+        "Ali S\u00e1nchez",
+        "Jos\u00e9 Caballero"
+      ],
+      "home_lineup_confirmed": true,
       "home_probable_pitcher": "Carlos Rod\u00f3n",
       "home_team": "New York Yankees",
       "status": "Preview"
@@ -152,7 +172,7 @@
       "game_pk": 824624,
       "home_lineup": [],
       "home_lineup_confirmed": false,
-      "home_probable_pitcher": null,
+      "home_probable_pitcher": "Shota Imanaga",
       "home_team": "Chicago Cubs",
       "status": "Preview"
     },
@@ -209,5 +229,5 @@
       "status": "Preview"
     }
   },
-  "last_run_at": "2026-09-22T10:22:04.400434Z"
+  "last_run_at": "2026-09-22T15:05:52.714093Z"
 }
