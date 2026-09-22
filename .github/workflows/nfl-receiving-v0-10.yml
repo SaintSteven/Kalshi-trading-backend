@@ -1,6 +1,11 @@
 name: NFL Receiving v0.10 YES + NO Backtest
 
 on:
+  push:
+    branches:
+      - refactor/nfl-gameday-engine
+    paths:
+      - 'research/nfl_receiving_v0_10/TRIGGER'
   workflow_dispatch:
     inputs:
       simulations:
