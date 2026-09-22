@@ -7,8 +7,18 @@
       "away_team": "New York Mets",
       "game_date": "2026-09-23T00:05:00Z",
       "game_pk": 822840,
-      "home_lineup": [],
-      "home_lineup_confirmed": false,
+      "home_lineup": [
+        "Wyatt Langford",
+        "Corey Seager",
+        "Josh Jung",
+        "Jake Burger",
+        "Brandon Nimmo",
+        "Ezequiel Duran",
+        "Justin Foscue",
+        "Elias D\u00edaz",
+        "Danny Jansen"
+      ],
+      "home_lineup_confirmed": true,
       "home_probable_pitcher": "MacKenzie Gore",
       "home_team": "Texas Rangers",
       "status": "Preview"
@@ -20,8 +30,18 @@
       "away_team": "Houston Astros",
       "game_date": "2026-09-23T01:40:00Z",
       "game_pk": 823089,
-      "home_lineup": [],
-      "home_lineup_confirmed": false,
+      "home_lineup": [
+        "J.P. Crawford",
+        "Randy Arozarena",
+        "Dominic Canzone",
+        "Cal Raleigh",
+        "Julio Rodr\u00edguez",
+        "Josh Naylor",
+        "Cole Young",
+        "Lazaro Montes",
+        "Brock Rodden"
+      ],
+      "home_lineup_confirmed": true,
       "home_probable_pitcher": "Logan Gilbert",
       "home_team": "Seattle Mariners",
       "status": "Preview"
@@ -73,27 +93,67 @@
       "status": "Preview"
     },
     "823412": {
-      "away_lineup": [],
-      "away_lineup_confirmed": false,
+      "away_lineup": [
+        "Garrett Mitchell",
+        "Jackson Chourio",
+        "Brice Turang",
+        "William Contreras",
+        "Jake Bauers",
+        "Christian Yelich",
+        "Luis Lara",
+        "Cooper Pratt",
+        "David Hamilton"
+      ],
+      "away_lineup_confirmed": true,
       "away_probable_pitcher": "Dustin May",
       "away_team": "Milwaukee Brewers",
       "game_date": "2026-09-22T22:40:00Z",
       "game_pk": 823412,
-      "home_lineup": [],
-      "home_lineup_confirmed": false,
+      "home_lineup": [
+        "Kyle Schwarber",
+        "Trea Turner",
+        "Bryce Harper",
+        "Luis Arraez",
+        "Alec Bohm",
+        "Bryson Stott",
+        "Brandon Marsh",
+        "J.T. Realmuto",
+        "Justin Crawford"
+      ],
+      "home_lineup_confirmed": true,
       "home_probable_pitcher": "Zack Wheeler",
       "home_team": "Philadelphia Phillies",
       "status": "Preview"
     },
     "823494": {
-      "away_lineup": [],
-      "away_lineup_confirmed": false,
+      "away_lineup": [
+        "Yandy D\u00edaz",
+        "Ryan Vilade",
+        "Junior Caminero",
+        "Jonny DeLuca",
+        "Chandler Simpson",
+        "Ben Williamson",
+        "Nick Fortes",
+        "Taylor Walls",
+        "Cedric Mullins"
+      ],
+      "away_lineup_confirmed": true,
       "away_probable_pitcher": "Drew Rasmussen",
       "away_team": "Tampa Bay Rays",
       "game_date": "2026-09-22T23:05:00Z",
       "game_pk": 823494,
-      "home_lineup": [],
-      "home_lineup_confirmed": false,
+      "home_lineup": [
+        "Ben Rice",
+        "Cody Bellinger",
+        "Heliot Ramos",
+        "Luis Garc\u00eda Jr.",
+        "Spencer Jones",
+        "Jazz Chisholm Jr.",
+        "George Lombard Jr.",
+        "Austin Wells",
+        "Ryan McMahon"
+      ],
+      "home_lineup_confirmed": true,
       "home_probable_pitcher": "Max Fried",
       "home_team": "New York Yankees",
       "status": "Preview"
@@ -108,7 +168,7 @@
         "Jonny DeLuca",
         "Victor Mesa Jr.",
         "Jorge Mateo",
-        "Richie Palacios"
+        "Cedric Mullins"
       ],
       "away_lineup_confirmed": true,
       "away_probable_pitcher": "Nick Martinez",
@@ -129,7 +189,7 @@
       "home_lineup_confirmed": true,
       "home_probable_pitcher": "Carlos Rod\u00f3n",
       "home_team": "New York Yankees",
-      "status": "Live"
+      "status": "Final"
     },
     "823897": {
       "away_lineup": [],
@@ -145,8 +205,18 @@
       "status": "Preview"
     },
     "824061": {
-      "away_lineup": [],
-      "away_lineup_confirmed": false,
+      "away_lineup": [
+        "Miguel Vargas",
+        "Tommy Pham",
+        "Randal Grichuk",
+        "Munetaka Murakami",
+        "Chase Meidroth",
+        "Kyle Teel",
+        "Brenton Doyle",
+        "Colson Montgomery",
+        "Braden Montgomery"
+      ],
+      "away_lineup_confirmed": true,
       "away_probable_pitcher": "Anthony Kay",
       "away_team": "Chicago White Sox",
       "game_date": "2026-09-22T23:40:00Z",
@@ -168,8 +238,18 @@
       "status": "Preview"
     },
     "824222": {
-      "away_lineup": [],
-      "away_lineup_confirmed": false,
+      "away_lineup": [
+        "James Wood",
+        "Daylen Lile",
+        "Dylan Crews",
+        "CJ Abrams",
+        "Andr\u00e9s Chaparro",
+        "Jorbit Vivas",
+        "Yohandy Morales",
+        "Keibert Ruiz",
+        "Nasim Nu\u00f1ez"
+      ],
+      "away_lineup_confirmed": true,
       "away_probable_pitcher": "Riley Cornelio",
       "away_team": "Washington Nationals",
       "game_date": "2026-09-22T22:40:00Z",
@@ -191,8 +271,18 @@
       "status": "Preview"
     },
     "824302": {
-      "away_lineup": [],
-      "away_lineup_confirmed": false,
+      "away_lineup": [
+        "Ildemaro Vargas",
+        "Ketel Marte",
+        "Gabriel Moreno",
+        "Geraldo Perdomo",
+        "Nolan Arenado",
+        "Jordan Lawlar",
+        "Corbin Carroll",
+        "Tim Tawa",
+        "Jose Fernandez"
+      ],
+      "away_lineup_confirmed": true,
       "away_probable_pitcher": "Michael Soroka",
       "away_team": "Arizona Diamondbacks",
       "game_date": "2026-09-23T00:40:00Z",
@@ -214,27 +304,67 @@
       "status": "Preview"
     },
     "824624": {
-      "away_lineup": [],
-      "away_lineup_confirmed": false,
+      "away_lineup": [
+        "Heriberto Hern\u00e1ndez",
+        "Otto Lopez",
+        "Kyle Stowers",
+        "Javier Sanoja",
+        "Agust\u00edn Ram\u00edrez",
+        "Esteury Ruiz",
+        "Griffin Conine",
+        "Deyvison De Los Santos",
+        "Jared Serna"
+      ],
+      "away_lineup_confirmed": true,
       "away_probable_pitcher": "Janson Junk",
       "away_team": "Miami Marlins",
       "game_date": "2026-09-22T23:40:00Z",
       "game_pk": 824624,
-      "home_lineup": [],
-      "home_lineup_confirmed": false,
+      "home_lineup": [
+        "Pete Crow-Armstrong",
+        "Seiya Suzuki",
+        "Michael Busch",
+        "Michael Conforto",
+        "Ian Happ",
+        "Nico Hoerner",
+        "Pedro Ram\u00edrez",
+        "Carson Kelly",
+        "Dansby Swanson"
+      ],
+      "home_lineup_confirmed": true,
       "home_probable_pitcher": "Shota Imanaga",
       "home_team": "Chicago Cubs",
       "status": "Preview"
     },
     "824709": {
-      "away_lineup": [],
-      "away_lineup_confirmed": false,
+      "away_lineup": [
+        "Steven Kwan",
+        "Jos\u00e9 Ram\u00edrez",
+        "Chase DeLauter",
+        "Jo Adell",
+        "Angel Mart\u00ednez",
+        "David Fry",
+        "Travis Bazzana",
+        "Austin Hedges",
+        "Brayan Rocchio"
+      ],
+      "away_lineup_confirmed": true,
       "away_probable_pitcher": "Parker Messick",
       "away_team": "Cleveland Guardians",
       "game_date": "2026-09-22T22:45:00Z",
       "game_pk": 824709,
-      "home_lineup": [],
-      "home_lineup_confirmed": false,
+      "home_lineup": [
+        "Roman Anthony",
+        "Nick Sogard",
+        "Jahmai Jones",
+        "Wilyer Abreu",
+        "Adley Rutschman",
+        "Caleb Durbin",
+        "Andruw Monasterio",
+        "Isiah Kiner-Falefa",
+        "Nate Eaton"
+      ],
+      "home_lineup_confirmed": true,
       "home_probable_pitcher": "Payton Tolle",
       "home_team": "Boston Red Sox",
       "status": "Preview"
@@ -253,14 +383,34 @@
       "status": "Final"
     },
     "824867": {
-      "away_lineup": [],
-      "away_lineup_confirmed": false,
+      "away_lineup": [
+        "Carlos Jorge",
+        "Elly De La Cruz",
+        "Sal Stewart",
+        "Tyler Stephenson",
+        "JJ Bleday",
+        "Eugenio Su\u00e1rez",
+        "Dane Myers",
+        "H\u00e9ctor Rodr\u00edguez",
+        "Matt McLain"
+      ],
+      "away_lineup_confirmed": true,
       "away_probable_pitcher": "Brandon Williamson",
       "away_team": "Cincinnati Reds",
       "game_date": "2026-09-22T23:15:00Z",
       "game_pk": 824867,
-      "home_lineup": [],
-      "home_lineup_confirmed": false,
+      "home_lineup": [
+        "Ronald Acu\u00f1a Jr.",
+        "Drake Baldwin",
+        "Matt Olson",
+        "Ozzie Albies",
+        "Michael Harris II",
+        "Mauricio Dub\u00f3n",
+        "Austin Riley",
+        "Sean Murphy",
+        "Ha-Seong Kim"
+      ],
+      "home_lineup_confirmed": true,
       "home_probable_pitcher": "JR Ritchie",
       "home_team": "Atlanta Braves",
       "status": "Preview"
@@ -279,5 +429,5 @@
       "status": "Preview"
     }
   },
-  "last_run_at": "2026-09-22T18:52:54.150677Z"
+  "last_run_at": "2026-09-22T21:44:49.433796Z"
 }
