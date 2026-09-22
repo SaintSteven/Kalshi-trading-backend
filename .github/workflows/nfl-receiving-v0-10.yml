@@ -41,8 +41,8 @@ jobs:
         run: |
           mkdir -p nfl_receiving_backtest_v0_10_output
           python research/nfl_receiving_v0_10/run_v010.py \
-            --validation-seasons ${{ inputs.validation_seasons }} \
-            --simulations ${{ inputs.simulations }} \
+            --validation-seasons ${{ inputs.validation_seasons || '2024 2025' }} \
+            --simulations ${{ inputs.simulations || '12000' }} \
             --output-dir nfl_receiving_backtest_v0_10_output | tee nfl_receiving_backtest_v0_10_output/run.log
 
       - name: Write compact job summary
