@@ -9,7 +9,7 @@
       "game_pk": 822841,
       "home_lineup": [],
       "home_lineup_confirmed": false,
-      "home_probable_pitcher": null,
+      "home_probable_pitcher": "Cody Bradford",
       "home_team": "Texas Rangers",
       "status": "Preview"
     },
@@ -27,14 +27,34 @@
       "status": "Preview"
     },
     "823168": {
-      "away_lineup": [],
-      "away_lineup_confirmed": false,
+      "away_lineup": [
+        "Luke Keaschall",
+        "Brooks Lee",
+        "Josh Bell",
+        "Ryan Jeffers",
+        "Alan Roden",
+        "Royce Lewis",
+        "Emmanuel Rodriguez",
+        "Aaron Sabato",
+        "Ben Ross"
+      ],
+      "away_lineup_confirmed": true,
       "away_probable_pitcher": "Connor Prielipp",
       "away_team": "Minnesota Twins",
       "game_date": "2026-09-23T19:45:00Z",
       "game_pk": 823168,
-      "home_lineup": [],
-      "home_lineup_confirmed": false,
+      "home_lineup": [
+        "Jonah Cox",
+        "Turner Hill",
+        "Victor Bericoto",
+        "Bo Davidson",
+        "Andrew Knizner",
+        "Brett Harris",
+        "Marcelo Mayer",
+        "Shay Whitcomb",
+        "Christian Koss"
+      ],
+      "home_lineup_confirmed": true,
       "home_probable_pitcher": "Cesar Perdomo",
       "home_team": "San Francisco Giants",
       "status": "Preview"
@@ -68,7 +88,7 @@
     "823492": {
       "away_lineup": [],
       "away_lineup_confirmed": false,
-      "away_probable_pitcher": "Ian Seymour",
+      "away_probable_pitcher": "Mason Englert",
       "away_team": "Tampa Bay Rays",
       "game_date": "2026-09-23T23:05:00Z",
       "game_pk": 823492,
@@ -105,17 +125,37 @@
       "status": "Preview"
     },
     "824223": {
-      "away_lineup": [],
-      "away_lineup_confirmed": false,
+      "away_lineup": [
+        "James Wood",
+        "Andr\u00e9s Chaparro",
+        "Brady House",
+        "CJ Abrams",
+        "Dylan Crews",
+        "Yohandy Morales",
+        "Harry Ford",
+        "Jacob Young",
+        "Nasim Nu\u00f1ez"
+      ],
+      "away_lineup_confirmed": true,
       "away_probable_pitcher": "Richard Lovelady",
       "away_team": "Washington Nationals",
       "game_date": "2026-09-23T17:10:00Z",
       "game_pk": 824223,
-      "home_lineup": [],
-      "home_lineup_confirmed": false,
+      "home_lineup": [
+        "Kevin McGonigle",
+        "Hao-Yu Lee",
+        "Ben Malgeri",
+        "Riley Greene",
+        "Dillon Dingler",
+        "Max Clark",
+        "Spencer Torkelson",
+        "John Peck",
+        "Zach McKinstry"
+      ],
+      "home_lineup_confirmed": true,
       "home_probable_pitcher": "Framber Valdez",
       "home_team": "Detroit Tigers",
-      "status": "Preview"
+      "status": "Live"
     },
     "824301": {
       "away_lineup": [],
@@ -170,17 +210,37 @@
       "status": "Preview"
     },
     "824785": {
-      "away_lineup": [],
-      "away_lineup_confirmed": false,
+      "away_lineup": [
+        "Nathan Lukes",
+        "Vladimir Guerrero Jr.",
+        "Kazuma Okamoto",
+        "George Springer",
+        "Josh Smith",
+        "Andr\u00e9s Gim\u00e9nez",
+        "Brandon Valenzuela",
+        "Myles Straw",
+        "Ernie Clement"
+      ],
+      "away_lineup_confirmed": true,
       "away_probable_pitcher": "Max Scherzer",
       "away_team": "Toronto Blue Jays",
       "game_date": "2026-09-23T17:35:00Z",
       "game_pk": 824785,
-      "home_lineup": [],
-      "home_lineup_confirmed": false,
-      "home_probable_pitcher": null,
+      "home_lineup": [
+        "Dylan Beavers",
+        "Pete Alonso",
+        "Gunnar Henderson",
+        "Coby Mayo",
+        "Christian Encarnacion-Strand",
+        "Colton Cowser",
+        "Jeremiah Jackson",
+        "Leody Taveras",
+        "Carlos Narv\u00e1ez"
+      ],
+      "home_lineup_confirmed": true,
+      "home_probable_pitcher": "Chris Bassitt",
       "home_team": "Baltimore Orioles",
-      "status": "Preview"
+      "status": "Live"
     },
     "824868": {
       "away_lineup": [],
@@ -209,5 +269,5 @@
       "status": "Preview"
     }
   },
-  "last_run_at": "2026-09-23T13:38:48.658243Z"
+  "last_run_at": "2026-09-23T17:58:23.084737Z"
 }
