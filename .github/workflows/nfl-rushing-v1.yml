@@ -1,0 +1,34 @@
+name: NFL Rushing v1 Historical Profitability Audit
+on:
+  push:
+    branches: [refactor/nfl-gameday-engine]
+    paths: ['research/nfl_rushing_v1/TRIGGER']
+permissions:
+  contents: read
+jobs:
+  backtest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install pandas numpy requests scikit-learn
+      - name: Run rushing audit
+        run: |
+          mkdir -p nfl_rushing_backtest_v1_output
+          python research/nfl_rushing_v1/backtest.py --output-dir nfl_rushing_backtest_v1_output | tee nfl_rushing_backtest_v1_output/run.log
+      - name: Summary
+        if: always()
+        run: |
+          echo '# NFL Rushing v1 Historical Profitability Audit' >> "$GITHUB_STEP_SUMMARY"
+          if [ -f nfl_rushing_backtest_v1_output/profitability_summary.csv ]; then
+            cat nfl_rushing_backtest_v1_output/profitability_summary.csv >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: nfl-rushing-v1-results-${{ github.run_number }}
+          path: nfl_rushing_backtest_v1_output/
+          retention-days: 30
