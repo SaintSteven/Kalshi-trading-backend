@@ -16,7 +16,7 @@
     "823086": {
       "away_lineup": [],
       "away_lineup_confirmed": false,
-      "away_probable_pitcher": null,
+      "away_probable_pitcher": "Ethan Pecko",
       "away_team": "Houston Astros",
       "game_date": "2026-09-24T02:10:00Z",
       "game_pk": 823086,
@@ -94,7 +94,7 @@
     "824060": {
       "away_lineup": [],
       "away_lineup_confirmed": false,
-      "away_probable_pitcher": "Erick Fedde",
+      "away_probable_pitcher": "Bryan Hudson",
       "away_team": "Chicago White Sox",
       "game_date": "2026-09-23T23:40:00Z",
       "game_pk": 824060,
@@ -209,5 +209,5 @@
       "status": "Preview"
     }
   },
-  "last_run_at": "2026-09-23T02:53:06.918801Z"
+  "last_run_at": "2026-09-23T08:12:06.092971Z"
 }
