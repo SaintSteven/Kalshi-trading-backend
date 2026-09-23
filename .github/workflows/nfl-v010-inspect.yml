@@ -1,0 +1,23 @@
+name: NFL Receiving v0.10 Source Inspect
+on:
+  push:
+    branches: [refactor/nfl-gameday-engine]
+    paths: ['research/nfl_receiving_v0_10/INSPECT_TRIGGER']
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python research/nfl_receiving_v0_10/inspect_model.py | tee inspect.log
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v010-source
+          path: |
+            recovered_model.py
+            inspect.log
+          retention-days: 7
