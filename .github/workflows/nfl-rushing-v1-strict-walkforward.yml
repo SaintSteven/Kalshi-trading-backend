@@ -2,7 +2,7 @@ name: NFL Rushing Strict Walk Forward
 on:
   push:
     branches: [refactor/nfl-gameday-engine]
-    paths: ['research/nfl_rushing_v1/WALKFORWARD_TRIGGER']
+    paths: ['research/nfl_rushing_v1/WALKFORWARD_TRIGGER', 'research/nfl_rushing_v1/strict_walkforward.py']
 permissions:
   actions: read
   contents: read
