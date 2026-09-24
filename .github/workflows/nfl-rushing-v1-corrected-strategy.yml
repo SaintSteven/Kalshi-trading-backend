@@ -1,0 +1,28 @@
+name: NFL Rushing Corrected Strategy Test
+on:
+  push:
+    branches: [refactor/nfl-gameday-engine]
+    paths: ['research/nfl_rushing_v1/STRATEGY_TRIGGER']
+permissions:
+  actions: read
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: nfl-rushing-v1-results-1
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: 35930249310
+          path: prior
+      - run: pip install pandas numpy scipy scikit-learn
+      - run: |
+          mkdir -p corrected_strategy
+          python research/nfl_rushing_v1/test_corrected_strategy.py --input prior/player_thesis_backtest.csv --out corrected_strategy | tee corrected_strategy/run.log
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nfl-rushing-v1-corrected-strategy
+          path: corrected_strategy/
+          retention-days: 30
