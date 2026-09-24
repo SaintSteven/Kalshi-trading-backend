@@ -69,3 +69,5 @@ def main():
  print(res.to_string(index=False))
  print('\nTOTAL',{'weeks':len(res),'bets':int(n),'wins':int(w),'cost':round(c,2),'pnl':round(pr,2),'roi':pr/c if c else np.nan})
 if __name__=='__main__':main()
+
+# trigger rerun
