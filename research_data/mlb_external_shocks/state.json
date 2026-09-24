@@ -9,7 +9,7 @@
       "game_pk": 822842,
       "home_lineup": [],
       "home_lineup_confirmed": false,
-      "home_probable_pitcher": null,
+      "home_probable_pitcher": "Kumar Rocker",
       "home_team": "Texas Rangers",
       "status": "Preview"
     },
@@ -42,7 +42,7 @@
     "823411": {
       "away_lineup": [],
       "away_lineup_confirmed": false,
-      "away_probable_pitcher": null,
+      "away_probable_pitcher": "Bryse Wilson",
       "away_team": "Milwaukee Brewers",
       "game_date": "2026-09-24T22:05:00Z",
       "game_pk": 823411,
@@ -81,7 +81,7 @@
     "824059": {
       "away_lineup": [],
       "away_lineup_confirmed": false,
-      "away_probable_pitcher": null,
+      "away_probable_pitcher": "David Sandlin",
       "away_team": "Chicago White Sox",
       "game_date": "2026-09-24T18:10:00Z",
       "game_pk": 824059,
@@ -120,7 +120,7 @@
     "824707": {
       "away_lineup": [],
       "away_lineup_confirmed": false,
-      "away_probable_pitcher": null,
+      "away_probable_pitcher": "Daniel Espino",
       "away_team": "Cleveland Guardians",
       "game_date": "2026-09-24T22:45:00Z",
       "game_pk": 824707,
@@ -152,10 +152,10 @@
       "game_pk": 824950,
       "home_lineup": [],
       "home_lineup_confirmed": false,
-      "home_probable_pitcher": null,
+      "home_probable_pitcher": "Mason Barnett",
       "home_team": "Athletics",
       "status": "Preview"
     }
   },
-  "last_run_at": "2026-09-24T01:40:10.793041Z"
+  "last_run_at": "2026-09-24T06:45:18.734740Z"
 }
