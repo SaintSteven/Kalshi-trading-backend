@@ -1,0 +1,36 @@
+name: NFL Gameday ATL-GB 2026-09-24
+on:
+  push:
+    branches: [refactor/nfl-gameday-engine]
+    paths: ['research/nfl_gameday/ATL_GB_TRIGGER']
+permissions:
+  contents: read
+jobs:
+  card:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      NFL_TARGET_DATE: '2026-09-24'
+      NFL_EVENT_FILTER: 'ATL-GB'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - run: pip install pandas numpy scipy scikit-learn requests tabulate
+      - run: python research/nfl_gameday/run.py capture
+      - run: python research/nfl_gameday/run.py receiving
+        continue-on-error: true
+      - run: python research/nfl_gameday/run.py rushing
+        continue-on-error: true
+      - run: python research/nfl_gameday/run.py ffpts
+        continue-on-error: true
+      - run: python research/nfl_gameday/run.py card
+        continue-on-error: true
+      - run: python research/nfl_gameday/run.py health
+        if: always()
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: atl-gb-card
+          path: research/nfl_gameday/output/
+          retention-days: 7
