@@ -18,7 +18,9 @@ jobs:
           run-id: 35930249310
           path: prior
       - run: pip install pandas numpy
-      - run: python research/nfl_rushing_v1/diagnose.py --input prior/player_thesis_backtest.csv --out diagnosis | tee diagnosis/run.log
+      - run: |
+          mkdir -p diagnosis
+          python research/nfl_rushing_v1/diagnose.py --input prior/player_thesis_backtest.csv --out diagnosis | tee diagnosis/run.log
       - uses: actions/upload-artifact@v4
         with:
           name: nfl-rushing-v1-diagnosis
