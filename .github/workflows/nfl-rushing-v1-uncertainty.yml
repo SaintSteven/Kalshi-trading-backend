@@ -1,0 +1,28 @@
+name: NFL Rushing Uncertainty Test
+on:
+  push:
+    branches: [refactor/nfl-gameday-engine]
+    paths: ['research/nfl_rushing_v1/UNCERTAINTY_TRIGGER']
+permissions:
+  actions: read
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: nfl-rushing-v1-results-1
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: 35930249310
+          path: prior
+      - run: pip install pandas numpy scipy scikit-learn
+      - run: |
+          mkdir -p uncertainty
+          python research/nfl_rushing_v1/test_uncertainty.py --input prior/player_thesis_backtest.csv --out uncertainty | tee uncertainty/run.log
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nfl-rushing-v1-uncertainty
+          path: uncertainty/
+          retention-days: 30
