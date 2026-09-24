@@ -1,0 +1,28 @@
+name: NFL Rushing Strict Walk Forward
+on:
+  push:
+    branches: [refactor/nfl-gameday-engine]
+    paths: ['research/nfl_rushing_v1/WALKFORWARD_TRIGGER']
+permissions:
+  actions: read
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: nfl-rushing-v1-results-1
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: 35930249310
+          path: prior
+      - run: pip install pandas numpy scipy scikit-learn
+      - run: |
+          mkdir -p strict_walkforward
+          python research/nfl_rushing_v1/strict_walkforward.py --input prior/player_thesis_backtest.csv --out strict_walkforward | tee strict_walkforward/run.log
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nfl-rushing-v1-strict-walkforward
+          path: strict_walkforward/
+          retention-days: 30
