@@ -25,14 +25,14 @@ def col(df,*names):
 def main():
     q=pd.read_csv(DATA/'quote_history.csv',low_memory=False)
     # Fail closed: validation must use captured timestamps and 2026 games only.
-    tc=col(q,'captured_at','snapshot_at','timestamp','collected_at'); kc=col(q,'kickoff_utc','kickoff')
+    # Historical collector schema names the observation timestamp `updated_at`.
+    tc=col(q,'captured_at','snapshot_at','timestamp','collected_at','updated_at'); kc=col(q,'kickoff_utc','kickoff')
     if not tc or not kc: raise SystemExit(f'quote history lacks capture/kickoff timestamps: {list(q.columns)}')
     q[tc]=pd.to_datetime(q[tc],utc=True,errors='coerce'); q[kc]=pd.to_datetime(q[kc],utc=True,errors='coerce')
     q=q[(q[tc].notna())&(q[kc].notna())&(q[tc]<q[kc])].copy()
     q=q[q[kc].dt.year.eq(2026)].copy()
     fam=col(q,'prop_family','family')
     if fam:q=q[q[fam].astype(str).eq('receiving_yards')].copy()
-    # One reproducible pregame snapshot per market: latest captured before kickoff.
     ticker=col(q,'market_ticker','ticker')
     if not ticker: raise SystemExit('quote history lacks market ticker')
     q=q.sort_values(tc).groupby(ticker,as_index=False).tail(1).copy()
@@ -50,17 +50,13 @@ def main():
     d[th]=pd.to_numeric(d[th],errors='coerce'); d[noask]=pd.to_numeric(d[noask],errors='coerce'); d['fair_no']=pd.to_numeric(d.fair_no,errors='coerce')
     d['edge']=d.fair_no-d[noask]
     d=d[(d[th]<=float(RULE['threshold_max_yards']))&(d.edge>=float(RULE['minimum_edge_vs_executable_ask']))].copy()
-    # Existing feed QC remains mandatory; manual QC cannot be recreated retroactively, so label separately.
     qc=col(d,'qc_status_model','qc_status')
     if qc:d=d[d[qc].isin(['PASS','MODEL_AVAILABLE'])].copy()
     game=col(d,'game','event_ticker'); player=col(d,'player_name','player')
     keys=[c for c in [game,player] if c]
     if keys:d=d.sort_values('edge',ascending=False).drop_duplicates(keys)
-    # Grade from nflverse weekly data; fail closed on unresolved player/game outcomes.
-    stats=pd.concat([pd.read_csv(f'https://github.com/nflverse/nflverse-data/releases/download/player_stats/player_stats.csv?raw=1')],ignore_index=True)
-    # The release schema can change; require explicit receiving_yards and player identifiers.
+    stats=pd.concat([pd.read_csv('https://github.com/nflverse/nflverse-data/releases/download/player_stats/player_stats.csv?raw=1')],ignore_index=True)
     if 'receiving_yards' not in stats.columns: raise SystemExit('nflverse stats missing receiving_yards')
-    # Prefer gsis/player id if both sides expose one, otherwise exact normalized display name + week.
     pid=col(d,'player_id','gsis_id'); spid=col(stats,'player_id','gsis_id')
     week=col(d,'week'); sweek=col(stats,'week')
     if pid and spid and week and sweek:
