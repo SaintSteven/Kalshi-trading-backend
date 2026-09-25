@@ -8,16 +8,16 @@ MIN_PRIOR_BETS=75
 
 def pnl(x):
     if len(x)==0:return (0,0,0.0,0.0,np.nan)
-    y=x['won'].astype(int)
-    cost=x['entry_price'].sum()
-    profit=np.where(y.eq(1),1-x['entry_price'],-x['entry_price']).sum()
+    y=x['side_won'].astype(bool).astype(int)
+    cost=x['contract_cost'].sum()
+    profit=x['gross_pnl_per_contract'].sum()
     return len(x),int(y.sum()),float(cost),float(profit),float(profit/cost) if cost else np.nan
 
 def select(d,edge,side='NO'):
     x=d[d['side'].eq(side)].copy()
     x=x[x['edge_points']>=100*edge]
-    keys=[c for c in ['season','week','game_id','player_id'] if c in x.columns]
-    if not keys: keys=[c for c in ['season','week','event_ticker','player'] if c in x.columns]
+    keys=[c for c in ['season','week','player_id'] if c in x.columns]
+    if not keys: keys=[c for c in ['season','week','player'] if c in x.columns]
     if keys:
         x=x.sort_values('edge_points',ascending=False).drop_duplicates(keys)
     return x
@@ -25,6 +25,9 @@ def select(d,edge,side='NO'):
 def main():
     ap=argparse.ArgumentParser();ap.add_argument('--input',required=True);ap.add_argument('--out',required=True);a=ap.parse_args()
     d=pd.read_csv(a.input).sort_values(['season','week']).reset_index(drop=True)
+    required={'season','week','side','edge_points','side_won','contract_cost','gross_pnl_per_contract'}
+    missing=required-set(d.columns)
+    if missing: raise ValueError(f'Missing required columns: {sorted(missing)}')
     out=Path(a.out);out.mkdir(parents=True,exist_ok=True)
     weeks=sorted(d[['season','week']].drop_duplicates().itertuples(index=False,name=None))
     rows=[];bets=[]
