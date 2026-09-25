@@ -1,0 +1,29 @@
+name: NFL Receiving v0.11 Validate 2026
+on:
+  push:
+    branches: [refactor/nfl-gameday-engine]
+    paths: ['research/nfl_receiving_v0_11/VALIDATE_2026_TRIGGER']
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - run: pip install pandas numpy scipy scikit-learn requests pyarrow
+      - name: Run locked 2026 receiving validation
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/nfl_receiving_v0_11/validate_2026.py 2>&1 | tee rec_v011_2026.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: nfl-receiving-v0-11-2026-validation
+          path: |
+            research/nfl_receiving_v0_11/results/
+            rec_v011_2026.log
+          retention-days: 30
