@@ -1,0 +1,5 @@
+card_id,date,game,market,side,entry_price,stake,result,settlement_display,model_branch,notes
+POSTVAL-001,2026-09-24,ATL-GB,Matthew Golden 9+ PPR fantasy points,YES,0.66,1.00,WIN,+1.48,FFPTS/manual-QC,"FFPTS production stage failed; selected from external projection/matchup QC against live Kalshi price"
+POSTVAL-001,2026-09-24,ATL-GB,Tucker Kraft 50+ receiving yards,NO,0.55,1.00,WIN,+1.76,receiving,"Fresh receiving model candidate; selective NO-side framework"
+POSTVAL-001,2026-09-24,ATL-GB,Drake London 70+ receiving yards,NO,0.54,1.00,LOSS,-0.43,receiving,"User chose 70+ NO instead of proposed 60+ NO; screenshot also shows partial sale of London NO for +0.75 before settlement"
+POSTVAL-001,2026-09-24,ATL-GB,Jordan Love 16+ PPR fantasy points,YES,0.55,1.00,WIN,+1.76,FFPTS/manual-QC,"FFPTS production stage failed; selected from external projection/matchup QC against live Kalshi price"
