@@ -2,7 +2,9 @@ name: NFL Receiving v0.10 Strict Walk Forward
 on:
   push:
     branches: [refactor/nfl-gameday-engine]
-    paths: ['research/nfl_receiving_v0_10/WALKFORWARD_TRIGGER']
+    paths:
+      - 'research/nfl_receiving_v0_10/WALKFORWARD_TRIGGER'
+      - 'research/nfl_receiving_v0_10/strict_walkforward.py'
 permissions:
   actions: read
   contents: read
@@ -25,11 +27,13 @@ jobs:
           gh run download "$RUN_ID" -n "$(gh api repos/${GITHUB_REPOSITORY}/actions/runs/$RUN_ID/artifacts --jq '.artifacts[0].name')" -D prior
       - run: pip install pandas numpy
       - name: Locate thesis ledger and run strict walk-forward
+        shell: bash
         run: |
+          set -euo pipefail
           mkdir -p strict_walkforward
-          INPUT=$(find prior -type f \( -name '*thesis*.csv' -o -name '*market_level*.csv' -o -name '*backtest*.csv' \) | head -1)
+          INPUT=$(find prior -type f -name 'nfl_receiving_v0_10_player_thesis_backtest.csv' | head -1)
           test -n "$INPUT"
-          python research/nfl_receiving_v0_10/strict_walkforward.py --input "$INPUT" --out strict_walkforward | tee strict_walkforward/run.log
+          python research/nfl_receiving_v0_10/strict_walkforward.py --input "$INPUT" --out strict_walkforward 2>&1 | tee strict_walkforward/run.log
       - uses: actions/upload-artifact@v4
         if: always()
         with:
