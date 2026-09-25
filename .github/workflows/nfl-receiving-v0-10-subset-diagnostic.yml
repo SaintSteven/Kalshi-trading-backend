@@ -20,7 +20,10 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          gh run download 35758853355 -n nfl-receiving-v0-10-results -D prior
+          ARTIFACT=$(gh api repos/${GITHUB_REPOSITORY}/actions/runs/35758853355/artifacts --jq '.artifacts[] | select(.expired==false) | .name' | head -1)
+          test -n "$ARTIFACT"
+          echo "Downloading artifact: $ARTIFACT"
+          gh run download 35758853355 -n "$ARTIFACT" -D prior
       - run: pip install pandas numpy
       - name: Run fixed receiving subset diagnostic
         shell: bash
