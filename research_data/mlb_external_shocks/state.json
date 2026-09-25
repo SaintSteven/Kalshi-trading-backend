@@ -81,26 +81,36 @@
     "823489": {
       "away_lineup": [],
       "away_lineup_confirmed": false,
-      "away_probable_pitcher": "Trevor Rogers",
+      "away_probable_pitcher": "Brandon Young",
       "away_team": "Baltimore Orioles",
       "game_date": "2026-09-25T20:10:00Z",
       "game_pk": 823489,
       "home_lineup": [],
       "home_lineup_confirmed": false,
-      "home_probable_pitcher": "Brendan Beck",
+      "home_probable_pitcher": null,
       "home_team": "New York Yankees",
       "status": "Preview"
     },
     "823491": {
       "away_lineup": [],
       "away_lineup_confirmed": false,
-      "away_probable_pitcher": "Brandon Young",
+      "away_probable_pitcher": "Trevor Rogers",
       "away_team": "Baltimore Orioles",
       "game_date": "2026-09-25T20:05:00Z",
       "game_pk": 823491,
-      "home_lineup": [],
-      "home_lineup_confirmed": false,
-      "home_probable_pitcher": null,
+      "home_lineup": [
+        "Paul Goldschmidt",
+        "Ben Rice",
+        "Heliot Ramos",
+        "Amed Rosario",
+        "George Lombard Jr.",
+        "Spencer Jones",
+        "Anthony Volpe",
+        "Ali S\u00e1nchez",
+        "Jos\u00e9 Caballero"
+      ],
+      "home_lineup_confirmed": true,
+      "home_probable_pitcher": "Brendan Beck",
       "home_team": "New York Yankees",
       "status": "Preview"
     },
@@ -183,24 +193,44 @@
       "status": "Preview"
     },
     "824703": {
-      "away_lineup": [],
-      "away_lineup_confirmed": false,
+      "away_lineup": [
+        "Pete Crow-Armstrong",
+        "Seiya Suzuki",
+        "Alex Bregman",
+        "Tyrone Taylor",
+        "Nico Hoerner",
+        "Matt Shaw",
+        "Michael Busch",
+        "Dansby Swanson",
+        "Miguel Amaya"
+      ],
+      "away_lineup_confirmed": true,
       "away_probable_pitcher": "Clay Holmes",
       "away_team": "Chicago Cubs",
       "game_date": "2026-09-25T17:05:00Z",
       "game_pk": 824703,
-      "home_lineup": [],
-      "home_lineup_confirmed": false,
+      "home_lineup": [
+        "Roman Anthony",
+        "Mickey Gasper",
+        "Adley Rutschman",
+        "Wilyer Abreu",
+        "Caleb Durbin",
+        "Nick Sogard",
+        "Jarren Duran",
+        "Andruw Monasterio",
+        "Isiah Kiner-Falefa"
+      ],
+      "home_lineup_confirmed": true,
       "home_probable_pitcher": "Alec Gamboa",
       "home_team": "Boston Red Sox",
-      "status": "Preview"
+      "status": "Live"
     },
     "824706": {
       "away_lineup": [],
       "away_lineup_confirmed": false,
       "away_probable_pitcher": "David Peterson",
       "away_team": "Chicago Cubs",
-      "game_date": "2026-09-25T22:05:00Z",
+      "game_date": "2026-09-25T21:35:00Z",
       "game_pk": 824706,
       "home_lineup": [],
       "home_lineup_confirmed": false,
@@ -222,5 +252,5 @@
       "status": "Preview"
     }
   },
-  "last_run_at": "2026-09-25T12:14:17.985595Z"
+  "last_run_at": "2026-09-25T17:14:58.413567Z"
 }
