@@ -32,8 +32,6 @@ def main():
         subprocess.run([sys.executable,LEGACY/'generate_receiving_projections.py','--markets',markets,'--projections',projs,'--mapping',mapping],check=True)
         subprocess.run([sys.executable,LEGACY/'receiving_feed.py','--markets',markets,'--projections',projs,'--mapping',mapping,'--output',fair],check=True)
         f=pd.read_csv(fair)
-    # Threshold is an output of the existing verified market mapping/feed. Reuse it
-    # rather than adding a second ticker parser to this validation harness.
     keep=[c for c in ['market_ticker','player_id','threshold','projection','fair_no','qc_status','model_version'] if c in f.columns]
     d=q.merge(f[keep],on='market_ticker',how='inner',suffixes=('_market','_model'))
     th=col(d,'threshold','threshold_model','line','strike'); noask=col(d,'no_ask','no_ask_probability')
@@ -46,12 +44,23 @@ def main():
     game=col(d,'game','event_ticker'); player=col(d,'player_name','player')
     keys=[c for c in [game,player] if c]
     if keys:d=d.sort_values('edge',ascending=False).drop_duplicates(keys)
+
     stats=pd.read_csv('https://github.com/nflverse/nflverse-data/releases/download/player_stats/player_stats.csv?raw=1')
     if 'receiving_yards' not in stats.columns: raise SystemExit('nflverse stats missing receiving_yards')
     pid=col(d,'player_id','player_id_model','gsis_id'); spid=col(stats,'player_id','gsis_id'); week=col(d,'week'); sweek=col(stats,'week')
-    if pid and spid and week and sweek:g=d.merge(stats[[spid,sweek,'receiving_yards']],left_on=[pid,week],right_on=[spid,sweek],how='left')
-    else:raise SystemExit('Cannot safely grade outcomes: no shared player_id/week fields. Add explicit schedule identity mapping; do not fuzzy-match.')
-    if g.receiving_yards.isna().any(): raise SystemExit(f'Unresolved outcomes: {int(g.receiving_yards.isna().sum())}')
+    if not (pid and spid and week and sweek): raise SystemExit('Cannot safely grade outcomes: no shared player_id/week fields.')
+    # Weekly nflverse stats contain one row per player/week when the player recorded stats.
+    # A selected market with a valid player id but no stats row is not automatically a zero:
+    # first distinguish true DNP/inactive from identity/schema mismatches using the roster/player data.
+    statkey=stats[[spid,sweek,'receiving_yards']].copy()
+    g=d.merge(statkey,left_on=[pid,week],right_on=[spid,sweek],how='left',indicator='_stats_merge')
+    unresolved=g[g.receiving_yards.isna()].copy()
+    if len(unresolved):
+        cols=[c for c in ['market_ticker',pid,week,'event_ticker','game','player_name','player',th,noask,'fair_no','edge'] if c in unresolved.columns]
+        unresolved[cols].to_csv(OUT/'unresolved_outcomes.csv',index=False)
+        print('UNRESOLVED OUTCOMES DETAIL')
+        print(unresolved[cols].to_string(index=False))
+        raise SystemExit(f'Unresolved outcomes: {len(unresolved)}; detail saved to {OUT}/unresolved_outcomes.csv')
     g['won']=g.receiving_yards < g[th]; g['cost']=g[noask]; g['pnl']=g.won.astype(float)-g.cost
     g.to_csv(OUT/'candidates_2026.csv',index=False)
     summary={'model_version':SPEC['model_version'],'frozen_at':SPEC['frozen_at'],'validation_label':'RETROSPECTIVE_2026_PRE_FREEZE_NOT_PROSPECTIVE','snapshot_policy':'latest repository-captured quote strictly before kickoff','candidates':len(g),'wins':int(g.won.sum()),'cost':float(g.cost.sum()),'pnl':float(g.pnl.sum()),'roi':float(g.pnl.sum()/g.cost.sum()) if len(g) and g.cost.sum() else None,'manual_qc_recreated':False}
