@@ -83,7 +83,7 @@
       "away_lineup_confirmed": false,
       "away_probable_pitcher": "Trevor Rogers",
       "away_team": "Baltimore Orioles",
-      "game_date": "2026-09-25T20:05:00Z",
+      "game_date": "2026-09-25T20:10:00Z",
       "game_pk": 823489,
       "home_lineup": [],
       "home_lineup_confirmed": false,
@@ -96,7 +96,7 @@
       "away_lineup_confirmed": false,
       "away_probable_pitcher": "Brandon Young",
       "away_team": "Baltimore Orioles",
-      "game_date": "2026-09-25T20:10:00Z",
+      "game_date": "2026-09-25T20:05:00Z",
       "game_pk": 823491,
       "home_lineup": [],
       "home_lineup_confirmed": false,
@@ -222,5 +222,5 @@
       "status": "Preview"
     }
   },
-  "last_run_at": "2026-09-25T06:40:26.616467Z"
+  "last_run_at": "2026-09-25T12:14:17.985595Z"
 }
