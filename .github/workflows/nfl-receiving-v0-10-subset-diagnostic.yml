@@ -1,0 +1,38 @@
+name: NFL Receiving v0.10 Fixed Subset Diagnostic
+on:
+  push:
+    branches: [refactor/nfl-gameday-engine]
+    paths: ['research/nfl_receiving_v0_10/SUBSET_TRIGGER']
+permissions:
+  actions: read
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Download frozen receiving v0.10 artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh run download 35758853355 -n nfl-receiving-v0-10-results -D prior
+      - run: pip install pandas numpy
+      - name: Run fixed receiving subset diagnostic
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p subset_diagnostic
+          INPUT=$(find prior -type f -name 'nfl_receiving_v0_10_player_thesis_backtest.csv' | head -1)
+          test -n "$INPUT"
+          python research/nfl_receiving_v0_10/strict_subset_diagnostic.py --input "$INPUT" --out subset_diagnostic 2>&1 | tee subset_diagnostic/run.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: nfl-receiving-v0-10-fixed-subset-diagnostic
+          path: subset_diagnostic/
+          retention-days: 30
