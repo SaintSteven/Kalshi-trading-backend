@@ -50,3 +50,4 @@ def main():
     summary=pd.DataFrame([{'weeks':len(res),'bets':n,'cost':c,'pnl':p,'roi':p/c if c else np.nan}]);summary.to_csv(out/'summary.csv',index=False)
     print(res.to_string(index=False));print('\nTOTAL\n',summary.to_string(index=False))
 if __name__=='__main__':main()
+# workflow rerun after schema inspection
