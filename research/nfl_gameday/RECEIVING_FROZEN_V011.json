@@ -1,0 +1,29 @@
+{
+  "model_version": "NFL-REC-v0.11-PROSPECTIVE",
+  "status": "WATCH_PROSPECTIVE_VALIDATION",
+  "frozen_at": "2026-09-25",
+  "production_rule": {
+    "family": "receiving_yards",
+    "side": "NO",
+    "threshold_max_yards": 50,
+    "minimum_edge_vs_executable_ask": 0.03,
+    "one_position_per_player_game": true,
+    "selection_if_multiple": "highest_model_edge",
+    "manual_injury_role_correlation_qc_required": true
+  },
+  "historical_diagnostic": {
+    "source": "NFL Receiving v0.10 Fixed Subset Diagnostic run 36140949831",
+    "bets": 254,
+    "cost": 115.23,
+    "pnl": 2.77,
+    "roi": 0.024039,
+    "positive_weeks": 5,
+    "weeks": 9
+  },
+  "interpretation": "Hypothesis frozen after subset diagnostic. Historical result is not treated as pristine out-of-sample evidence because multiple subsets were inspected. No further 2025 tuning permitted. Track all qualifying 2026 candidates prospectively, including unbet candidates.",
+  "graduation_policy": {
+    "minimum_prospective_candidates_before_review": 50,
+    "minimum_distinct_weeks_before_review": 6,
+    "no_parameter_changes_before_checkpoint": true
+  }
+}
