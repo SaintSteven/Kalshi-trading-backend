@@ -1,27 +1,67 @@
 {
   "games": {
     "822678": {
-      "away_lineup": [],
-      "away_lineup_confirmed": false,
+      "away_lineup": [
+        "Francisco Lindor",
+        "Juan Soto",
+        "Bo Bichette",
+        "Carson Benge",
+        "Mark Vientos",
+        "Brett Baty",
+        "Francisco Alvarez",
+        "A.J. Ewing",
+        "Ronny Mauricio"
+      ],
+      "away_lineup_confirmed": true,
       "away_probable_pitcher": "Jonah Tong",
       "away_team": "New York Mets",
       "game_date": "2026-09-26T16:35:00Z",
       "game_pk": 822678,
-      "home_lineup": [],
-      "home_lineup_confirmed": false,
+      "home_lineup": [
+        "James Wood",
+        "Abimelec Ortiz",
+        "Dylan Crews",
+        "CJ Abrams",
+        "Brady House",
+        "Daylen Lile",
+        "Yohandy Morales",
+        "Keibert Ruiz",
+        "Nasim Nu\u00f1ez"
+      ],
+      "home_lineup_confirmed": true,
       "home_probable_pitcher": "Connelly Early",
       "home_team": "Washington Nationals",
-      "status": "Preview"
+      "status": "Live"
     },
     "822759": {
-      "away_lineup": [],
-      "away_lineup_confirmed": false,
+      "away_lineup": [
+        "Carlos Jorge",
+        "Elly De La Cruz",
+        "Sal Stewart",
+        "Eugenio Su\u00e1rez",
+        "JJ Bleday",
+        "Tyler Stephenson",
+        "H\u00e9ctor Rodr\u00edguez",
+        "Juan Brito",
+        "Matt McLain"
+      ],
+      "away_lineup_confirmed": true,
       "away_probable_pitcher": "Rhett Lowder",
       "away_team": "Cincinnati Reds",
       "game_date": "2026-09-26T19:07:00Z",
       "game_pk": 822759,
-      "home_lineup": [],
-      "home_lineup_confirmed": false,
+      "home_lineup": [
+        "Brett Bateman",
+        "Nathan Lukes",
+        "Vladimir Guerrero Jr.",
+        "Alejandro Kirk",
+        "Kazuma Okamoto",
+        "Sean Keys",
+        "Josh Smith",
+        "Andr\u00e9s Gim\u00e9nez",
+        "Ernie Clement"
+      ],
+      "home_lineup_confirmed": true,
       "home_probable_pitcher": "Trey Yesavage",
       "home_team": "Toronto Blue Jays",
       "status": "Preview"
@@ -131,14 +171,34 @@
       "status": "Preview"
     },
     "824219": {
-      "away_lineup": [],
-      "away_lineup_confirmed": false,
+      "away_lineup": [
+        "Ryan O'Hearn",
+        "Brandon Lowe",
+        "Bryan Reynolds",
+        "Oneil Cruz",
+        "Konnor Griffin",
+        "Spencer Horwitz",
+        "Ronny Simon",
+        "Jacob Gonzalez",
+        "Henry Davis"
+      ],
+      "away_lineup_confirmed": true,
       "away_probable_pitcher": "Kirby Yates",
       "away_team": "Pittsburgh Pirates",
       "game_date": "2026-09-26T17:10:00Z",
       "game_pk": 824219,
-      "home_lineup": [],
-      "home_lineup_confirmed": false,
+      "home_lineup": [
+        "Max Clark",
+        "Hao-Yu Lee",
+        "Kevin McGonigle",
+        "Eduardo Valencia",
+        "Riley Greene",
+        "Dillon Dingler",
+        "Spencer Torkelson",
+        "Zach McKinstry",
+        "Javier B\u00e1ez"
+      ],
+      "home_lineup_confirmed": true,
       "home_probable_pitcher": "Justin Verlander",
       "home_team": "Detroit Tigers",
       "status": "Preview"
@@ -170,5 +230,5 @@
       "status": "Preview"
     }
   },
-  "last_run_at": "2026-09-26T12:19:12.939348Z"
+  "last_run_at": "2026-09-26T16:34:02.414671Z"
 }
