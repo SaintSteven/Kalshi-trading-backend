@@ -1,57 +1,58 @@
 #!/usr/bin/env python3
-"""Locked REC-v0.11 retrospective validation on captured 2026 Week-1 quotes only."""
+"""Audit captured receiving quote identity before any retrospective grading."""
 from pathlib import Path
-import json, subprocess, sys, tempfile
+import json, re, sys
 import pandas as pd
-ROOT=Path(__file__).resolve().parents[2]; LEGACY=ROOT/'research/nfl_prospective_paper_v001'; DATA=LEGACY/'data'
-SPEC=json.loads((ROOT/'research/nfl_gameday/RECEIVING_FROZEN_V011.json').read_text()); RULE=SPEC['production_rule']
+ROOT=Path(__file__).resolve().parents[2]
+DATA=ROOT/'research/nfl_prospective_paper_v001/data'
 OUT=Path('research/nfl_receiving_v0_11/results'); OUT.mkdir(parents=True,exist_ok=True)
+
 def col(df,*names):
     for n in names:
         if n in df.columns:return n
 
 def main():
     q=pd.read_csv(DATA/'quote_history.csv',low_memory=False)
-    tc=col(q,'captured_at','snapshot_at','timestamp','collected_at','updated_at'); kc=col(q,'kickoff_utc','kickoff'); ticker=col(q,'market_ticker','ticker')
-    q[tc]=pd.to_datetime(q[tc],utc=True,errors='coerce'); q[kc]=pd.to_datetime(q[kc],utc=True,errors='coerce')
-    q=q[(q[tc].notna())&(q[kc].notna())&(q[tc]<q[kc])&q[kc].dt.year.eq(2026)].copy()
+    ticker=col(q,'market_ticker','ticker'); kc=col(q,'kickoff_utc','kickoff'); tc=col(q,'captured_at','snapshot_at','timestamp','collected_at','updated_at')
     fam=col(q,'prop_family','family')
-    if fam:q=q[q[fam].astype(str).eq('receiving_yards')]
-    q=q.sort_values(tc).groupby(ticker,as_index=False).tail(1).copy()
-    # Repository audit established this capture contains only 2026 Week 1. Do not
-    # manufacture Week 2 quotes. Preserve the stored week for this one-week test.
-    weeks=sorted(pd.to_numeric(q['week'],errors='coerce').dropna().unique().tolist()) if 'week' in q else []
-    if weeks != [1]: raise SystemExit(f'Expected audited Week-1-only capture, found weeks={weeks}')
-    print(f'AUDITED COVERAGE: Week 1 only; {q[ticker].nunique()} unique receiving markets. Week 2 historical quotes unavailable.')
-    with tempfile.TemporaryDirectory() as td:
-        td=Path(td); markets=td/'markets.csv'; projs=td/'projections.csv'; mapping=td/'mapping.csv'; fair=td/'fair.csv'
-        q.to_csv(markets,index=False)
-        subprocess.run([sys.executable,LEGACY/'generate_receiving_projections.py','--markets',markets,'--projections',projs,'--mapping',mapping],check=True)
-        subprocess.run([sys.executable,LEGACY/'receiving_feed.py','--markets',markets,'--projections',projs,'--mapping',mapping,'--output',fair],check=True)
-        f=pd.read_csv(fair)
-    keep=[c for c in ['market_ticker','player_id','threshold','projection','fair_no','qc_status','model_version'] if c in f.columns]
-    d=q.merge(f[keep],on='market_ticker',how='inner',suffixes=('_market','_model'))
-    th=col(d,'threshold','threshold_model','line','strike'); noask=col(d,'no_ask','no_ask_probability')
-    d[th]=pd.to_numeric(d[th],errors='coerce'); d[noask]=pd.to_numeric(d[noask],errors='coerce'); d['fair_no']=pd.to_numeric(d.fair_no,errors='coerce'); d['edge']=d.fair_no-d[noask]
-    d=d[(d[th]<=float(RULE['threshold_max_yards']))&(d.edge>=float(RULE['minimum_edge_vs_executable_ask']))]
-    qc=col(d,'qc_status_model','qc_status')
-    if qc:d=d[d[qc].isin(['PASS','MODEL_AVAILABLE'])]
-    player=col(d,'player_name','player'); keys=[c for c in ['game',player] if c]
-    if keys:d=d.sort_values('edge',ascending=False).drop_duplicates(keys)
-    stats=pd.read_csv('https://github.com/nflverse/nflverse-data/releases/download/player_stats/player_stats.csv?raw=1')
-    # Restrict outcomes explicitly to 2026 Week 1; previous failures were caused by
-    # joining a multi-season player_stats release on player_id+week without season.
-    if 'season' not in stats.columns: raise SystemExit('nflverse player_stats lacks season')
-    stats=stats[(pd.to_numeric(stats.season,errors='coerce')==2026)&(pd.to_numeric(stats.week,errors='coerce')==1)].copy()
-    pid=col(d,'player_id','player_id_model','gsis_id'); spid=col(stats,'player_id','gsis_id')
-    g=d.merge(stats[[spid,'receiving_yards']],left_on=pid,right_on=spid,how='left')
-    unresolved=g[g.receiving_yards.isna()].copy()
-    if len(unresolved):
-        cols=[c for c in ['market_ticker',pid,'game',player,th,noask,'fair_no','edge'] if c in unresolved]
-        unresolved[cols].to_csv(OUT/'unresolved_week1.csv',index=False); print(unresolved[cols].to_string(index=False))
-        raise SystemExit(f'Week 1 still has {len(unresolved)} unresolved selected outcomes; refusing biased grading.')
-    g['won']=g.receiving_yards < g[th]; g['cost']=g[noask]; g['pnl']=g.won.astype(float)-g.cost
-    g.to_csv(OUT/'candidates_week1_2026.csv',index=False)
-    summary={'model_version':SPEC['model_version'],'validation_label':'RETROSPECTIVE_2026_WEEK1_ONLY_PRE_FREEZE_NOT_PROSPECTIVE','historical_quote_weeks_available':[1],'week2_quote_data_available':False,'candidates':len(g),'wins':int(g.won.sum()),'losses':int((~g.won).sum()),'win_rate':float(g.won.mean()) if len(g) else None,'cost':float(g.cost.sum()),'pnl':float(g.pnl.sum()),'roi':float(g.pnl.sum()/g.cost.sum()) if len(g) and g.cost.sum() else None}
-    (OUT/'summary_week1_2026.json').write_text(json.dumps(summary,indent=2)); print(json.dumps(summary,indent=2))
+    if fam:q=q[q[fam].astype(str).eq('receiving_yards')].copy()
+    q[tc]=pd.to_datetime(q[tc],utc=True,errors='coerce'); q[kc]=pd.to_datetime(q[kc],utc=True,errors='coerce')
+    q=q[q[tc].notna() & q[kc].notna() & (q[tc]<q[kc])].sort_values(tc).groupby(ticker,as_index=False).tail(1).copy()
+    # Kalshi ticker date is YYMONDD. Parse it independently of stored season/week/kickoff metadata.
+    pat=re.compile(r'KXNFLRECYDS-(\d{2}[A-Z]{3}\d{2})')
+    def parse_date(t):
+        m=pat.search(str(t));
+        if not m:return pd.NaT
+        return pd.to_datetime(m.group(1),format='%y%b%d',errors='coerce')
+    q['ticker_date']=q[ticker].map(parse_date)
+    q['stored_kickoff_date']=q[kc].dt.tz_convert('US/Eastern').dt.normalize().dt.tz_localize(None)
+    q['ticker_vs_kickoff_days']=(q['stored_kickoff_date']-q['ticker_date']).dt.days
+
+    # Pull canonical schedule and test every plausible season represented by the ticker year.
+    sched=pd.read_csv('https://github.com/nflverse/nfldata/raw/master/data/games.csv')
+    sched['gameday_dt']=pd.to_datetime(sched['gameday'],errors='coerce')
+    sched['game_key']=sched['away_team'].astype(str)+'@'+sched['home_team'].astype(str)
+    game=col(q,'game','event_ticker')
+    if not game: raise SystemExit('quote history lacks game identity')
+    # Normalize common team aliases only for schedule comparison; preserve originals in artifact.
+    aliases={'JAC':'JAX','WSH':'WAS','LA':'LAR'}
+    def norm_game(x):
+        s=str(x)
+        if '@' not in s:return s
+        a,h=s.split('@',1); return aliases.get(a,a)+'@'+aliases.get(h,h)
+    q['game_normalized']=q[game].map(norm_game)
+    candidates=sched[sched['season'].between(2024,2026)].copy()
+    exact=q.merge(candidates[['season','week','gameday_dt','game_key']],left_on=['ticker_date','game_normalized'],right_on=['gameday_dt','game_key'],how='left')
+    exact['schedule_exact_match']=exact['season'].notna()
+    cols=[ticker,game,'game_normalized','ticker_date',kc,'stored_kickoff_date','ticker_vs_kickoff_days']
+    if 'week' in q.columns: cols.append('week')
+    audit=exact[cols+['season','week_y','schedule_exact_match']].copy() if 'week_y' in exact.columns else exact[cols+['season','schedule_exact_match']].copy()
+    audit.to_csv(OUT/'quote_identity_audit.csv',index=False)
+
+    total=q[ticker].nunique(); parsed=int(q.ticker_date.notna().sum()); kickoff_match=int((q.ticker_vs_kickoff_days==0).sum()); exact_n=int(exact.schedule_exact_match.sum())
+    by_date=q.groupby(q.ticker_date.dt.date)[ticker].nunique().to_dict()
+    schedule_matches=exact[exact.schedule_exact_match].groupby(['season','week_y'] if 'week_y' in exact.columns else ['season'])[ticker].nunique().to_dict()
+    summary={'unique_markets':total,'ticker_dates_parsed':parsed,'ticker_date_equals_stored_kickoff_date':kickoff_match,'exact_ticker_date_plus_matchup_schedule_matches':exact_n,'markets_without_exact_schedule_identity':total-exact_n,'markets_by_ticker_date':{str(k):int(v) for k,v in by_date.items()},'exact_schedule_matches_by_season_week':{str(k):int(v) for k,v in schedule_matches.items()},'grading_allowed':bool(exact_n==total)}
+    (OUT/'quote_identity_summary.json').write_text(json.dumps(summary,indent=2)); print(json.dumps(summary,indent=2))
+    if exact_n!=total: raise SystemExit('Quote identity audit failed: historical capture cannot be safely graded until every ticker date+matchup maps to canonical schedule.')
 if __name__=='__main__':main()
