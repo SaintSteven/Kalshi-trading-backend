@@ -6,11 +6,9 @@ import pandas as pd
 import requests
 ROOT=Path(__file__).resolve().parents[2]; LEGACY=ROOT/'research/nfl_prospective_paper_v001'; DATA=LEGACY/'data'; OUT=Path('research/nfl_receiving_v0_11/results'); OUT.mkdir(parents=True,exist_ok=True)
 SPEC=json.loads((ROOT/'research/nfl_gameday/RECEIVING_FROZEN_V011.json').read_text()); RULE=SPEC['production_rule']; BASE='https://api.elections.kalshi.com/trade-api/v2'; UA={'User-Agent':'rec-v011-2026-retro/1.0'}
-
 def col(df,*ns):
  for n in ns:
   if n in df.columns:return n
-
 def api(path,params=None):
  r=requests.get(BASE+path,params=params,headers=UA,timeout=40); r.raise_for_status(); return r.json()
 def num(x):
@@ -42,7 +40,6 @@ def map_event(e,s):
   a,h=normteam(r.away_team),normteam(r.home_team)
   if teams in (a+h,h+a):return {'season':2026,'week':int(r.week),'game_id':str(r.game_id),'game':f'{a}@{h}','kickoff_utc':pd.Timestamp(r.kickoff)}
  return None
-
 def model_select(markets):
  with tempfile.TemporaryDirectory() as td:
   td=Path(td); mi=td/'m.csv'; pr=td/'p.csv'; mp=td/'map.csv'; fv=td/'f.csv'; markets.to_csv(mi,index=False)
@@ -50,44 +47,65 @@ def model_select(markets):
   subprocess.run([sys.executable,LEGACY/'receiving_feed.py','--markets',mi,'--projections',pr,'--mapping',mp,'--output',fv],check=True); f=pd.read_csv(fv)
  keep=[c for c in ['market_ticker','player_id','threshold','projection','fair_no','qc_status','model_version'] if c in f]
  d=markets.merge(f[keep],on='market_ticker',how='inner',suffixes=('_market','_model')); th=col(d,'threshold','threshold_model','line','strike'); na=col(d,'no_ask','no_ask_probability')
+ if not th or not na: raise SystemExit(f'model feed missing threshold/no ask; columns={list(d.columns)}')
  d[th]=pd.to_numeric(d[th],errors='coerce'); d[na]=pd.to_numeric(d[na],errors='coerce'); d['fair_no']=pd.to_numeric(d.fair_no,errors='coerce'); d['edge']=d.fair_no-d[na]
  d=d[(d[th]<=float(RULE['threshold_max_yards']))&(d.edge>=float(RULE['minimum_edge_vs_executable_ask']))].copy(); qc=col(d,'qc_status_model','qc_status')
  if qc:d=d[d[qc].isin(['PASS','MODEL_AVAILABLE'])]
  player=col(d,'player_name','player'); keys=[c for c in ['game',player] if c]
  if keys:d=d.sort_values('edge',ascending=False).drop_duplicates(keys)
  return d,th,na
-
 def grade(d,th,na,stats,week):
  sw=stats[(pd.to_numeric(stats.season,errors='coerce')==2026)&(pd.to_numeric(stats.week,errors='coerce')==week)].copy(); pid=col(d,'player_id','player_id_model','gsis_id'); spid=col(sw,'player_id','gsis_id'); namec=col(d,'player_name','player'); sn=col(sw,'player_display_name','player_name','player'); teamc=col(sw,'recent_team','team')
- keep=[c for c in [spid,'receiving_yards',sn,teamc] if c]; g=d.merge(sw[keep],left_on=pid,right_on=spid,how='left',suffixes=('','_stat'))
- # Safe fallback for projection IDs that do not equal current nflverse GSIS IDs: exact normalized display name,
- # additionally constrained to one of the two teams in the verified game, and only if unique.
+ keep=[c for c in [spid,'receiving_yards',sn,teamc] if c]
+ if not pid or not spid: raise SystemExit('No safe player-id outcome join')
+ g=d.merge(sw[keep],left_on=pid,right_on=spid,how='left',suffixes=('','_stat'))
  if sn:
   sw['_nn']=sw[sn].map(normname)
   for i,r in g[g.receiving_yards.isna()].iterrows():
    nn=normname(r.get(namec,'')); cand=sw[sw._nn.eq(nn)]
    if teamc and '@' in str(r.get('game','')):
     teams={normteam(x) for x in str(r.game).split('@')}; cand=cand[cand[teamc].astype(str).map(normteam).isin(teams)]
-   cand=cand.drop_duplicates(subset=[spid] if spid else None)
+   cand=cand.drop_duplicates(subset=[spid])
    if len(cand)==1:g.at[i,'receiving_yards']=cand.iloc[0].receiving_yards; g.at[i,'outcome_match_method']='unique_name_team'
  g['outcome_match_method']=g.get('outcome_match_method',pd.Series(index=g.index,dtype=object)).fillna('player_id')
  bad=g[g.receiving_yards.isna()].copy(); bad.to_csv(OUT/f'unresolved_week{week}.csv',index=False)
  good=g[g.receiving_yards.notna()].copy(); good['won']=pd.to_numeric(good.receiving_yards)<good[th]; good['cost']=good[na]; good['pnl']=good.won.astype(float)-good.cost; good['week']=week
  return good,bad
-
 def week1():
- q=pd.read_csv(DATA/'quote_history.csv',low_memory=False); tc=col(q,'captured_at','snapshot_at','timestamp'); kc=col(q,'kickoff_utc','kickoff'); fam=col(q,'prop_family','family'); ticker=col(q,'market_ticker','ticker')
- if fam:q=q[q[fam].astype(str).eq('receiving_yards')]
- q[tc]=pd.to_datetime(q[tc],utc=True,errors='coerce'); q[kc]=pd.to_datetime(q[kc],utc=True,errors='coerce'); q=q[q[tc].notna()&q[kc].notna()&(q[tc]<q[kc])].sort_values(tc).groupby(ticker,as_index=False).tail(1).copy(); q=q[pd.to_numeric(q.week,errors='coerce').eq(1)].copy(); return q
-
+ q=pd.read_csv(DATA/'quote_history.csv',low_memory=False)
+ fam=col(q,'prop_family','family'); ticker=col(q,'market_ticker','ticker')
+ if fam:q=q[q[fam].astype(str).eq('receiving_yards')].copy()
+ # Historical capture schemas evolved. Require a capture timestamp, but derive kickoff from
+ # canonical 2026 schedule when the stored file has no kickoff column rather than indexing q[None].
+ tc=col(q,'captured_at','snapshot_at','timestamp','collected_at','updated_at','quote_time_utc')
+ if not tc or not ticker: raise SystemExit(f'Week1 quote schema missing capture/ticker; columns={list(q.columns)}')
+ q[tc]=pd.to_datetime(q[tc],utc=True,errors='coerce')
+ kc=col(q,'kickoff_utc','kickoff','start_time','scheduled_time')
+ if kc:
+  q[kc]=pd.to_datetime(q[kc],utc=True,errors='coerce'); q=q[q[tc].notna()&q[kc].notna()&(q[tc]<q[kc])].copy()
+ else:
+  sched=load_schedule(); ev=col(q,'event_ticker'); gm=col(q,'game')
+  mapped=[]
+  for _,r in q.iterrows():
+   m=map_event(r.get(ev,''),sched) if ev else None
+   if not m and gm and '@' in str(r.get(gm,'')):
+    game=str(r[gm]); a,h=[normteam(x) for x in game.split('@',1)]
+    cand=sched[(sched.week==1)&(((sched.away_team.map(normteam)==a)&(sched.home_team.map(normteam)==h))|((sched.away_team.map(normteam)==h)&(sched.home_team.map(normteam)==a)))]
+    if len(cand)==1:m={'kickoff_utc':cand.iloc[0].kickoff}
+   mapped.append(m.get('kickoff_utc') if m else pd.NaT)
+  q['kickoff_utc']=pd.to_datetime(mapped,utc=True,errors='coerce'); kc='kickoff_utc'; q=q[q[tc].notna()&q[kc].notna()&(q[tc]<q[kc])].copy()
+ q=q.sort_values(tc).groupby(ticker,as_index=False).tail(1).copy()
+ # Do not trust a stale stored week field: verified W1 capture is selected by canonical kickoff mapping/date.
+ if 'week' in q.columns:q=q[pd.to_numeric(q.week,errors='coerce').eq(1)].copy()
+ print(f'WEEK1_CAPTURE rows={len(q)} capture_col={tc} kickoff_col={kc}')
+ return q
 def settled_receiving():
  rows=[]; cur=''
  while True:
-  p={'series_ticker':'KXNFLRECYDS','status':'settled','limit':1000};
+  p={'series_ticker':'KXNFLRECYDS','status':'settled','limit':1000}
   if cur:p['cursor']=cur
   d=api('/markets',p); rows+=d.get('markets',[]) or []; cur=str(d.get('cursor') or '')
   if not cur:return rows
-
 def recover_week2(sched):
  rows=[]; markets=settled_receiving(); print(f'Kalshi settled receiving markets scanned={len(markets)}')
  for m in markets:
@@ -106,7 +124,6 @@ def recover_week2(sched):
   qt=pd.to_datetime(int(c['end_period_ts']),unit='s',utc=True); name=str(m.get('subtitle') or m.get('title') or '').strip(); key=str(m.get('primary_participant_key') or '').strip()
   rows.append({'captured_at':qt.isoformat(),'season':2026,'week':2,'game_id':gm['game_id'],'game':gm['game'],'kickoff_utc':gm['kickoff_utc'].isoformat(),'market_ticker':ticker,'event_ticker':m.get('event_ticker',''),'series_ticker':'KXNFLRECYDS','prop_family':'receiving_yards','player_key':key,'player_name':name,'yes_bid':yb,'yes_ask':ya,'no_bid':1-ya,'no_ask':1-yb,'qc_status':'PASS' if key else 'FAIL','qc_reason':'' if key else 'MISSING_PARTICIPANT_KEY','recovery_source':'Kalshi historical 1m candle latest <= kickoff','quote_time_utc':qt.isoformat()})
  w=pd.DataFrame(rows); w.to_csv(OUT/'recovered_week2_quotes.csv',index=False); return w
-
 def summ(g,bad,week,source):
  cost=float(g.cost.sum()) if len(g) else 0; pnl=float(g.pnl.sum()) if len(g) else 0
  return {'week':week,'source':source,'graded_candidates':int(len(g)),'unresolved_candidates':int(len(bad)),'wins':int(g.won.sum()) if len(g) else 0,'losses':int((~g.won).sum()) if len(g) else 0,'win_rate':float(g.won.mean()) if len(g) else None,'cost':cost,'pnl':pnl,'roi':pnl/cost if cost else None}
@@ -115,12 +132,11 @@ def main():
  w1=week1(); d1,th1,na1=model_select(w1); g1,b1=grade(d1,th1,na1,stats,1); g1.to_csv(OUT/'graded_week1.csv',index=False)
  w2=recover_week2(sched)
  if len(w2): d2,th2,na2=model_select(w2); g2,b2=grade(d2,th2,na2,stats,2); g2.to_csv(OUT/'graded_week2.csv',index=False)
- else: g2=pd.DataFrame(); b2=pd.DataFrame(); print('WEEK2_RECOVERY_EMPTY')
+ else:g2=pd.DataFrame(); b2=pd.DataFrame(); print('WEEK2_RECOVERY_EMPTY')
  s1=summ(g1,b1,1,'repository quote_history latest pre-kickoff'); s2=summ(g2,b2,2,'Kalshi historical 1m candles recovered after the fact')
  allg=pd.concat([g1,g2],ignore_index=True) if len(g2) else g1.copy(); cost=float(allg.cost.sum()) if len(allg) else 0; pnl=float(allg.pnl.sum()) if len(allg) else 0
  combined={'graded_candidates':int(len(allg)),'unresolved_candidates':int(len(b1)+len(b2)),'wins':int(allg.won.sum()) if len(allg) else 0,'losses':int((~allg.won).sum()) if len(allg) else 0,'win_rate':float(allg.won.mean()) if len(allg) else None,'cost':cost,'pnl':pnl,'roi':pnl/cost if cost else None}
  report={'model_version':SPEC['model_version'],'label':'RETROSPECTIVE_2026_W1_W2_MECHANICAL_QC_ONLY_NOT_PROSPECTIVE','manual_injury_role_correlation_qc_recreated':False,'week1':s1,'week2':s2,'combined':combined,'comparability_note':'W1 uses repository-captured quotes; W2 is recovered from Kalshi historical 1-minute candles. Combined result is diagnostic and should not be represented as pristine prospective evidence.'}
  (OUT/'summary_weeks1_2_2026.json').write_text(json.dumps(report,indent=2)); allg.to_csv(OUT/'graded_weeks1_2.csv',index=False); print(json.dumps(report,indent=2))
- # Fail only after writing all useful artifacts; unresolved rows remain explicit rather than silently excluded.
- if len(b1)+len(b2): print(f'WARNING unresolved candidates={len(b1)+len(b2)}; summary reports graded subset and unresolved count explicitly')
+ if len(b1)+len(b2):print(f'WARNING unresolved candidates={len(b1)+len(b2)}; summary reports graded subset and unresolved count explicitly')
 if __name__=='__main__':main()
