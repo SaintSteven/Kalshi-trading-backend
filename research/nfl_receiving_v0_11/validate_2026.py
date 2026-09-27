@@ -22,6 +22,12 @@ def cv(side):
 def normteam(x): return {'JAC':'JAX','WSH':'WAS','LA':'LAR','STL':'LAR','OAK':'LV','SD':'LAC'}.get(str(x).upper(),str(x).upper())
 def normname(x):
  s=unicodedata.normalize('NFKD',str(x)).encode('ascii','ignore').decode().lower(); s=re.sub(r':.*$','',s); s=re.sub(r'\b(jr|sr|ii|iii|iv)\b','',s); return re.sub(r'[^a-z0-9]','',s)
+def ticker_player_key(ticker):
+ # KXNFLRECYDS-26SEP20LVLAC-LACLMCCONKEY15-60 -> LACLMCCONKEY15.
+ # Kalshi's API primary_participant_key is generic ('football_player') for these
+ # settled markets, while the legacy projection mapper expects a team-prefixed key.
+ p=str(ticker or '').upper().split('-')
+ return p[-2] if len(p)>=4 else ''
 def parse_event(e):
  m=re.search(r'-(\d{2})([A-Z]{3})(\d{2})([A-Z]+)$',str(e).upper())
  if not m:return None
@@ -55,10 +61,14 @@ def model_select(markets):
  if keys:d=d.sort_values('edge',ascending=False).drop_duplicates(keys)
  return d,th,na
 def grade(d,th,na,stats,week):
+ if d.empty:return d.copy(),d.copy()
  sw=stats[(pd.to_numeric(stats.season,errors='coerce')==2026)&(pd.to_numeric(stats.week,errors='coerce')==week)].copy(); pid=col(d,'player_id','player_id_model','gsis_id'); spid=col(sw,'player_id','gsis_id'); namec=col(d,'player_name','player'); sn=col(sw,'player_display_name','player_name','player'); teamc=col(sw,'recent_team','team')
  keep=[c for c in [spid,'receiving_yards',sn,teamc] if c]
  if not pid or not spid: raise SystemExit('No safe player-id outcome join')
- g=d.merge(sw[keep],left_on=pid,right_on=spid,how='left',suffixes=('','_stat'))
+ # IDs can arrive as numeric/NaN in recovered feeds; compare normalized strings and let
+ # the unique name+game-team fallback resolve any remaining historical identity mismatch.
+ left=d.copy(); right=sw[keep].copy(); left['_join_pid']=left[pid].fillna('').astype(str); right['_join_pid']=right[spid].fillna('').astype(str)
+ g=left.merge(right.drop(columns=[spid] if spid in right.columns else []),on='_join_pid',how='left',suffixes=('','_stat'))
  if sn:
   sw['_nn']=sw[sn].map(normname)
   for i,r in g[g.receiving_yards.isna()].iterrows():
@@ -75,8 +85,6 @@ def week1():
  q=pd.read_csv(DATA/'quote_history.csv',low_memory=False)
  fam=col(q,'prop_family','family'); ticker=col(q,'market_ticker','ticker')
  if fam:q=q[q[fam].astype(str).eq('receiving_yards')].copy()
- # Historical capture schemas evolved. Require a capture timestamp, but derive kickoff from
- # canonical 2026 schedule when the stored file has no kickoff column rather than indexing q[None].
  tc=col(q,'captured_at','snapshot_at','timestamp','collected_at','updated_at','quote_time_utc')
  if not tc or not ticker: raise SystemExit(f'Week1 quote schema missing capture/ticker; columns={list(q.columns)}')
  q[tc]=pd.to_datetime(q[tc],utc=True,errors='coerce')
@@ -84,21 +92,17 @@ def week1():
  if kc:
   q[kc]=pd.to_datetime(q[kc],utc=True,errors='coerce'); q=q[q[tc].notna()&q[kc].notna()&(q[tc]<q[kc])].copy()
  else:
-  sched=load_schedule(); ev=col(q,'event_ticker'); gm=col(q,'game')
-  mapped=[]
+  sched=load_schedule(); ev=col(q,'event_ticker'); gm=col(q,'game'); mapped=[]
   for _,r in q.iterrows():
    m=map_event(r.get(ev,''),sched) if ev else None
    if not m and gm and '@' in str(r.get(gm,'')):
-    game=str(r[gm]); a,h=[normteam(x) for x in game.split('@',1)]
-    cand=sched[(sched.week==1)&(((sched.away_team.map(normteam)==a)&(sched.home_team.map(normteam)==h))|((sched.away_team.map(normteam)==h)&(sched.home_team.map(normteam)==a)))]
+    game=str(r[gm]); a,h=[normteam(x) for x in game.split('@',1)]; cand=sched[(sched.week==1)&(((sched.away_team.map(normteam)==a)&(sched.home_team.map(normteam)==h))|((sched.away_team.map(normteam)==h)&(sched.home_team.map(normteam)==a)))]
     if len(cand)==1:m={'kickoff_utc':cand.iloc[0].kickoff}
    mapped.append(m.get('kickoff_utc') if m else pd.NaT)
   q['kickoff_utc']=pd.to_datetime(mapped,utc=True,errors='coerce'); kc='kickoff_utc'; q=q[q[tc].notna()&q[kc].notna()&(q[tc]<q[kc])].copy()
  q=q.sort_values(tc).groupby(ticker,as_index=False).tail(1).copy()
- # Do not trust a stale stored week field: verified W1 capture is selected by canonical kickoff mapping/date.
  if 'week' in q.columns:q=q[pd.to_numeric(q.week,errors='coerce').eq(1)].copy()
- print(f'WEEK1_CAPTURE rows={len(q)} capture_col={tc} kickoff_col={kc}')
- return q
+ print(f'WEEK1_CAPTURE rows={len(q)} capture_col={tc} kickoff_col={kc}'); return q
 def settled_receiving():
  rows=[]; cur=''
  while True:
@@ -121,9 +125,9 @@ def recover_week2(sched):
   if not elig:continue
   c=max(elig,key=lambda z:int(z.get('end_period_ts',0))); yb=cv(c.get('yes_bid')); ya=cv(c.get('yes_ask'))
   if yb is None or ya is None:continue
-  qt=pd.to_datetime(int(c['end_period_ts']),unit='s',utc=True); name=str(m.get('subtitle') or m.get('title') or '').strip(); key=str(m.get('primary_participant_key') or '').strip()
-  rows.append({'captured_at':qt.isoformat(),'season':2026,'week':2,'game_id':gm['game_id'],'game':gm['game'],'kickoff_utc':gm['kickoff_utc'].isoformat(),'market_ticker':ticker,'event_ticker':m.get('event_ticker',''),'series_ticker':'KXNFLRECYDS','prop_family':'receiving_yards','player_key':key,'player_name':name,'yes_bid':yb,'yes_ask':ya,'no_bid':1-ya,'no_ask':1-yb,'qc_status':'PASS' if key else 'FAIL','qc_reason':'' if key else 'MISSING_PARTICIPANT_KEY','recovery_source':'Kalshi historical 1m candle latest <= kickoff','quote_time_utc':qt.isoformat()})
- w=pd.DataFrame(rows); w.to_csv(OUT/'recovered_week2_quotes.csv',index=False); return w
+  qt=pd.to_datetime(int(c['end_period_ts']),unit='s',utc=True); name=str(m.get('subtitle') or m.get('title') or '').strip(); key=ticker_player_key(ticker)
+  rows.append({'captured_at':qt.isoformat(),'season':2026,'week':2,'game_id':gm['game_id'],'game':gm['game'],'kickoff_utc':gm['kickoff_utc'].isoformat(),'market_ticker':ticker,'event_ticker':m.get('event_ticker',''),'series_ticker':'KXNFLRECYDS','prop_family':'receiving_yards','player_key':key,'player_name':name,'yes_bid':yb,'yes_ask':ya,'no_bid':1-ya,'no_ask':1-yb,'qc_status':'PASS' if key else 'FAIL','qc_reason':'' if key else 'MISSING_TICKER_PARTICIPANT_KEY','recovery_source':'Kalshi historical 1m candle latest <= kickoff','quote_time_utc':qt.isoformat()})
+ w=pd.DataFrame(rows); w.to_csv(OUT/'recovered_week2_quotes.csv',index=False); print(f'WEEK2_RECOVERED rows={len(w)} ticker_participant_keys={int(w.player_key.ne("").sum()) if len(w) else 0}'); return w
 def summ(g,bad,week,source):
  cost=float(g.cost.sum()) if len(g) else 0; pnl=float(g.pnl.sum()) if len(g) else 0
  return {'week':week,'source':source,'graded_candidates':int(len(g)),'unresolved_candidates':int(len(bad)),'wins':int(g.won.sum()) if len(g) else 0,'losses':int((~g.won).sum()) if len(g) else 0,'win_rate':float(g.won.mean()) if len(g) else None,'cost':cost,'pnl':pnl,'roi':pnl/cost if cost else None}
