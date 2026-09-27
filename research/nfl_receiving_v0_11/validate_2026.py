@@ -23,11 +23,7 @@ def normteam(x): return {'JAC':'JAX','WSH':'WAS','LA':'LAR','STL':'LAR','OAK':'L
 def normname(x):
  s=unicodedata.normalize('NFKD',str(x)).encode('ascii','ignore').decode().lower(); s=re.sub(r':.*$','',s); s=re.sub(r'\b(jr|sr|ii|iii|iv)\b','',s); return re.sub(r'[^a-z0-9]','',s)
 def ticker_player_key(ticker):
- # KXNFLRECYDS-26SEP20LVLAC-LACLMCCONKEY15-60 -> LACLMCCONKEY15.
- # Kalshi's API primary_participant_key is generic ('football_player') for these
- # settled markets, while the legacy projection mapper expects a team-prefixed key.
- p=str(ticker or '').upper().split('-')
- return p[-2] if len(p)>=4 else ''
+ p=str(ticker or '').upper().split('-'); return p[-2] if len(p)>=4 else ''
 def parse_event(e):
  m=re.search(r'-(\d{2})([A-Z]{3})(\d{2})([A-Z]+)$',str(e).upper())
  if not m:return None
@@ -60,43 +56,44 @@ def model_select(markets):
  player=col(d,'player_name','player'); keys=[c for c in ['game',player] if c]
  if keys:d=d.sort_values('edge',ascending=False).drop_duplicates(keys)
  return d,th,na
-def grade(d,th,na,stats,week):
+def grade(d,th,na,stats,week,settlements):
  if d.empty:return d.copy(),d.copy()
  sw=stats[(pd.to_numeric(stats.season,errors='coerce')==2026)&(pd.to_numeric(stats.week,errors='coerce')==week)].copy(); pid=col(d,'player_id','player_id_model','gsis_id'); spid=col(sw,'player_id','gsis_id'); namec=col(d,'player_name','player'); sn=col(sw,'player_display_name','player_name','player'); teamc=col(sw,'recent_team','team')
  keep=[c for c in [spid,'receiving_yards',sn,teamc] if c]
- if not pid or not spid: raise SystemExit('No safe player-id outcome join')
- # IDs can arrive as numeric/NaN in recovered feeds; compare normalized strings and let
- # the unique name+game-team fallback resolve any remaining historical identity mismatch.
- left=d.copy(); right=sw[keep].copy(); left['_join_pid']=left[pid].fillna('').astype(str); right['_join_pid']=right[spid].fillna('').astype(str)
- g=left.merge(right.drop(columns=[spid] if spid in right.columns else []),on='_join_pid',how='left',suffixes=('','_stat'))
+ left=d.copy(); left['_join_pid']=left[pid].fillna('').astype(str) if pid else ''
+ if spid:
+  right=sw[keep].copy(); right['_join_pid']=right[spid].fillna('').astype(str); g=left.merge(right.drop(columns=[spid] if spid in right.columns else []),on='_join_pid',how='left',suffixes=('','_stat'))
+ else:g=left.copy(); g['receiving_yards']=pd.NA
  if sn:
   sw['_nn']=sw[sn].map(normname)
   for i,r in g[g.receiving_yards.isna()].iterrows():
    nn=normname(r.get(namec,'')); cand=sw[sw._nn.eq(nn)]
    if teamc and '@' in str(r.get('game','')):
     teams={normteam(x) for x in str(r.game).split('@')}; cand=cand[cand[teamc].astype(str).map(normteam).isin(teams)]
-   cand=cand.drop_duplicates(subset=[spid])
-   if len(cand)==1:g.at[i,'receiving_yards']=cand.iloc[0].receiving_yards; g.at[i,'outcome_match_method']='unique_name_team'
- g['outcome_match_method']=g.get('outcome_match_method',pd.Series(index=g.index,dtype=object)).fillna('player_id')
- bad=g[g.receiving_yards.isna()].copy(); bad.to_csv(OUT/f'unresolved_week{week}.csv',index=False)
- good=g[g.receiving_yards.notna()].copy(); good['won']=pd.to_numeric(good.receiving_yards)<good[th]; good['cost']=good[na]; good['pnl']=good.won.astype(float)-good.cost; good['week']=week
+   if spid:cand=cand.drop_duplicates(subset=[spid])
+   if len(cand)==1:g.at[i,'receiving_yards']=cand.iloc[0].receiving_yards; g.at[i,'outcome_match_method']='nflverse_unique_name_team'
+ # Authoritative fallback for binary grading: Kalshi's settled market result directly
+ # determines whether the model's NO contract paid $1. This avoids depending on nflverse's
+ # 2026 weekly-stat publication lag while preserving exact market-level outcome identity.
+ g['settlement_result']=g['market_ticker'].map(settlements)
+ g['won']=pd.NA; yards=pd.to_numeric(g['receiving_yards'],errors='coerce'); have_yards=yards.notna(); g.loc[have_yards,'won']=yards[have_yards] < pd.to_numeric(g.loc[have_yards,th],errors='coerce'); g.loc[have_yards,'outcome_match_method']=g.loc[have_yards,'outcome_match_method'].fillna('nflverse_player_id')
+ need=g['won'].isna(); g.loc[need & g.settlement_result.eq('no'),'won']=True; g.loc[need & g.settlement_result.eq('yes'),'won']=False; g.loc[need & g.settlement_result.isin(['yes','no']),'outcome_match_method']='kalshi_settlement'
+ bad=g[g.won.isna()].copy(); bad.to_csv(OUT/f'unresolved_week{week}.csv',index=False)
+ good=g[g.won.notna()].copy(); good['won']=good.won.astype(bool); good['cost']=pd.to_numeric(good[na],errors='coerce'); good['pnl']=good.won.astype(float)-good.cost; good['week']=week
  return good,bad
 def week1():
- q=pd.read_csv(DATA/'quote_history.csv',low_memory=False)
- fam=col(q,'prop_family','family'); ticker=col(q,'market_ticker','ticker')
+ q=pd.read_csv(DATA/'quote_history.csv',low_memory=False); fam=col(q,'prop_family','family'); ticker=col(q,'market_ticker','ticker')
  if fam:q=q[q[fam].astype(str).eq('receiving_yards')].copy()
- tc=col(q,'captured_at','snapshot_at','timestamp','collected_at','updated_at','quote_time_utc')
- if not tc or not ticker: raise SystemExit(f'Week1 quote schema missing capture/ticker; columns={list(q.columns)}')
+ tc=col(q,'captured_at','snapshot_at','timestamp','collected_at','updated_at','quote_time_utc'); kc=col(q,'kickoff_utc','kickoff','start_time','scheduled_time')
+ if not tc or not ticker:raise SystemExit(f'Week1 quote schema missing capture/ticker; columns={list(q.columns)}')
  q[tc]=pd.to_datetime(q[tc],utc=True,errors='coerce')
- kc=col(q,'kickoff_utc','kickoff','start_time','scheduled_time')
- if kc:
-  q[kc]=pd.to_datetime(q[kc],utc=True,errors='coerce'); q=q[q[tc].notna()&q[kc].notna()&(q[tc]<q[kc])].copy()
+ if kc:q[kc]=pd.to_datetime(q[kc],utc=True,errors='coerce'); q=q[q[tc].notna()&q[kc].notna()&(q[tc]<q[kc])].copy()
  else:
   sched=load_schedule(); ev=col(q,'event_ticker'); gm=col(q,'game'); mapped=[]
   for _,r in q.iterrows():
    m=map_event(r.get(ev,''),sched) if ev else None
    if not m and gm and '@' in str(r.get(gm,'')):
-    game=str(r[gm]); a,h=[normteam(x) for x in game.split('@',1)]; cand=sched[(sched.week==1)&(((sched.away_team.map(normteam)==a)&(sched.home_team.map(normteam)==h))|((sched.away_team.map(normteam)==h)&(sched.home_team.map(normteam)==a)))]
+    a,h=[normteam(x) for x in str(r[gm]).split('@',1)]; cand=sched[(sched.week==1)&(((sched.away_team.map(normteam)==a)&(sched.home_team.map(normteam)==h))|((sched.away_team.map(normteam)==h)&(sched.home_team.map(normteam)==a)))]
     if len(cand)==1:m={'kickoff_utc':cand.iloc[0].kickoff}
    mapped.append(m.get('kickoff_utc') if m else pd.NaT)
   q['kickoff_utc']=pd.to_datetime(mapped,utc=True,errors='coerce'); kc='kickoff_utc'; q=q[q[tc].notna()&q[kc].notna()&(q[tc]<q[kc])].copy()
@@ -110,8 +107,8 @@ def settled_receiving():
   if cur:p['cursor']=cur
   d=api('/markets',p); rows+=d.get('markets',[]) or []; cur=str(d.get('cursor') or '')
   if not cur:return rows
-def recover_week2(sched):
- rows=[]; markets=settled_receiving(); print(f'Kalshi settled receiving markets scanned={len(markets)}')
+def recover_week2(sched,markets):
+ rows=[]; print(f'Kalshi settled receiving markets scanned={len(markets)}')
  for m in markets:
   gm=map_event(m.get('event_ticker'),sched)
   if not gm or gm['week']!=2:continue
@@ -132,15 +129,16 @@ def summ(g,bad,week,source):
  cost=float(g.cost.sum()) if len(g) else 0; pnl=float(g.pnl.sum()) if len(g) else 0
  return {'week':week,'source':source,'graded_candidates':int(len(g)),'unresolved_candidates':int(len(bad)),'wins':int(g.won.sum()) if len(g) else 0,'losses':int((~g.won).sum()) if len(g) else 0,'win_rate':float(g.won.mean()) if len(g) else None,'cost':cost,'pnl':pnl,'roi':pnl/cost if cost else None}
 def main():
- sched=load_schedule(); stats=pd.read_csv('https://github.com/nflverse/nflverse-data/releases/download/player_stats/player_stats.csv?raw=1')
- w1=week1(); d1,th1,na1=model_select(w1); g1,b1=grade(d1,th1,na1,stats,1); g1.to_csv(OUT/'graded_week1.csv',index=False)
- w2=recover_week2(sched)
- if len(w2): d2,th2,na2=model_select(w2); g2,b2=grade(d2,th2,na2,stats,2); g2.to_csv(OUT/'graded_week2.csv',index=False)
+ sched=load_schedule(); stats=pd.read_csv('https://github.com/nflverse/nflverse-data/releases/download/player_stats/player_stats.csv?raw=1'); settled=settled_receiving(); settlements={str(m.get('ticker')):str(m.get('result','')).lower() for m in settled}
+ print(f'SETTLEMENT_MAP settled={len(settlements)} yes_no={sum(v in ("yes","no") for v in settlements.values())}')
+ w1=week1(); d1,th1,na1=model_select(w1); g1,b1=grade(d1,th1,na1,stats,1,settlements); g1.to_csv(OUT/'graded_week1.csv',index=False)
+ w2=recover_week2(sched,settled)
+ if len(w2):d2,th2,na2=model_select(w2); g2,b2=grade(d2,th2,na2,stats,2,settlements); g2.to_csv(OUT/'graded_week2.csv',index=False)
  else:g2=pd.DataFrame(); b2=pd.DataFrame(); print('WEEK2_RECOVERY_EMPTY')
  s1=summ(g1,b1,1,'repository quote_history latest pre-kickoff'); s2=summ(g2,b2,2,'Kalshi historical 1m candles recovered after the fact')
  allg=pd.concat([g1,g2],ignore_index=True) if len(g2) else g1.copy(); cost=float(allg.cost.sum()) if len(allg) else 0; pnl=float(allg.pnl.sum()) if len(allg) else 0
  combined={'graded_candidates':int(len(allg)),'unresolved_candidates':int(len(b1)+len(b2)),'wins':int(allg.won.sum()) if len(allg) else 0,'losses':int((~allg.won).sum()) if len(allg) else 0,'win_rate':float(allg.won.mean()) if len(allg) else None,'cost':cost,'pnl':pnl,'roi':pnl/cost if cost else None}
- report={'model_version':SPEC['model_version'],'label':'RETROSPECTIVE_2026_W1_W2_MECHANICAL_QC_ONLY_NOT_PROSPECTIVE','manual_injury_role_correlation_qc_recreated':False,'week1':s1,'week2':s2,'combined':combined,'comparability_note':'W1 uses repository-captured quotes; W2 is recovered from Kalshi historical 1-minute candles. Combined result is diagnostic and should not be represented as pristine prospective evidence.'}
+ report={'model_version':SPEC['model_version'],'label':'RETROSPECTIVE_2026_W1_W2_MECHANICAL_QC_ONLY_NOT_PROSPECTIVE','manual_injury_role_correlation_qc_recreated':False,'outcome_grading':'nflverse receiving yards when available; otherwise authoritative Kalshi settled binary result for the exact ticker','week1':s1,'week2':s2,'combined':combined,'comparability_note':'W1 uses repository-captured quotes; W2 is recovered from Kalshi historical 1-minute candles. Combined result is diagnostic and should not be represented as pristine prospective evidence.'}
  (OUT/'summary_weeks1_2_2026.json').write_text(json.dumps(report,indent=2)); allg.to_csv(OUT/'graded_weeks1_2.csv',index=False); print(json.dumps(report,indent=2))
- if len(b1)+len(b2):print(f'WARNING unresolved candidates={len(b1)+len(b2)}; summary reports graded subset and unresolved count explicitly')
+ if len(b1)+len(b2):print(f'WARNING unresolved candidates={len(b1)+len(b2)}')
 if __name__=='__main__':main()
