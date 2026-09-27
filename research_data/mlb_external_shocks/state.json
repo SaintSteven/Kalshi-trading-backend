@@ -48,7 +48,7 @@
       "game_pk": 823164,
       "home_lineup": [],
       "home_lineup_confirmed": false,
-      "home_probable_pitcher": null,
+      "home_probable_pitcher": "Carson Seymour",
       "home_team": "San Francisco Giants",
       "status": "Preview"
     },
@@ -61,7 +61,7 @@
       "game_pk": 823246,
       "home_lineup": [],
       "home_lineup_confirmed": false,
-      "home_probable_pitcher": null,
+      "home_probable_pitcher": "Randy V\u00e1squez",
       "home_team": "San Diego Padres",
       "status": "Preview"
     },
@@ -94,7 +94,7 @@
     "823650": {
       "away_lineup": [],
       "away_lineup_confirmed": false,
-      "away_probable_pitcher": null,
+      "away_probable_pitcher": "MacKenzie Gore",
       "away_team": "Texas Rangers",
       "game_date": "2026-09-27T19:10:00Z",
       "game_pk": 823650,
@@ -133,7 +133,7 @@
     "824055": {
       "away_lineup": [],
       "away_lineup_confirmed": false,
-      "away_probable_pitcher": null,
+      "away_probable_pitcher": "Parker Messick",
       "away_team": "Cleveland Guardians",
       "game_date": "2026-09-27T19:10:00Z",
       "game_pk": 824055,
@@ -185,16 +185,16 @@
     "824948": {
       "away_lineup": [],
       "away_lineup_confirmed": false,
-      "away_probable_pitcher": null,
+      "away_probable_pitcher": "Peter Lambert",
       "away_team": "Houston Astros",
       "game_date": "2026-09-27T19:05:00Z",
       "game_pk": 824948,
       "home_lineup": [],
       "home_lineup_confirmed": false,
-      "home_probable_pitcher": null,
+      "home_probable_pitcher": "Seth Johnson",
       "home_team": "Athletics",
       "status": "Preview"
     }
   },
-  "last_run_at": "2026-09-27T00:34:36.239966Z"
+  "last_run_at": "2026-09-27T05:46:08.668648Z"
 }
