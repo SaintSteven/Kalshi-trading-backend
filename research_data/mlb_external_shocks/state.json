@@ -14,27 +14,67 @@
       "status": "Preview"
     },
     "849845": {
-      "away_lineup": [],
-      "away_lineup_confirmed": false,
+      "away_lineup": [
+        "Trea Turner",
+        "Kyle Schwarber",
+        "Bryce Harper",
+        "Alec Bohm",
+        "Derek Hill",
+        "Bryan De La Cruz",
+        "Bryson Stott",
+        "Edmundo Sosa",
+        "J.T. Realmuto"
+      ],
+      "away_lineup_confirmed": true,
       "away_probable_pitcher": "Jes\u00fas Luzardo",
       "away_team": "Philadelphia Phillies",
       "game_date": "2026-09-29T18:00:00Z",
       "game_pk": 849845,
-      "home_lineup": [],
-      "home_lineup_confirmed": false,
+      "home_lineup": [
+        "Drake Baldwin",
+        "Ronald Acu\u00f1a Jr.",
+        "Matt Olson",
+        "Mauricio Dub\u00f3n",
+        "Michael Harris II",
+        "Ozzie Albies",
+        "Austin Riley",
+        "Mike Yastrzemski",
+        "Ha-Seong Kim"
+      ],
+      "home_lineup_confirmed": true,
       "home_probable_pitcher": "Chris Sale",
       "home_team": "Atlanta Braves",
-      "status": "Preview"
+      "status": "Live"
     },
     "849849": {
-      "away_lineup": [],
-      "away_lineup_confirmed": false,
+      "away_lineup": [
+        "Sam Antonacci",
+        "Kyle Teel",
+        "Miguel Vargas",
+        "Munetaka Murakami",
+        "Andrew Benintendi",
+        "Tristan Peters",
+        "Braden Montgomery",
+        "Chase Meidroth",
+        "Colson Montgomery"
+      ],
+      "away_lineup_confirmed": true,
       "away_probable_pitcher": "Hagen Smith",
       "away_team": "Chicago White Sox",
       "game_date": "2026-09-29T21:00:00Z",
       "game_pk": 849849,
-      "home_lineup": [],
-      "home_lineup_confirmed": false,
+      "home_lineup": [
+        "Jeremy Pe\u00f1a",
+        "Yordan Alvarez",
+        "Isaac Paredes",
+        "Jose Altuve",
+        "Yainer Diaz",
+        "Christian Walker",
+        "Lucas Spence",
+        "Cam Smith",
+        "Taylor Trammell"
+      ],
+      "home_lineup_confirmed": true,
       "home_probable_pitcher": "AJ Blubaugh",
       "home_team": "Houston Astros",
       "status": "Preview"
@@ -53,5 +93,5 @@
       "status": "Preview"
     }
   },
-  "last_run_at": "2026-09-29T12:54:16.611092Z"
+  "last_run_at": "2026-09-29T18:25:27.674148Z"
 }
