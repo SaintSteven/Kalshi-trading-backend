@@ -1,137 +1,57 @@
 {
   "games": {
-    "849843": {
-      "away_lineup": [
-        "Pete Crow-Armstrong",
-        "Alex Bregman",
-        "Michael Busch",
-        "Seiya Suzuki",
-        "Ian Happ",
-        "Nico Hoerner",
-        "Pedro Ram\u00edrez",
-        "Carson Kelly",
-        "Dansby Swanson"
-      ],
-      "away_lineup_confirmed": true,
-      "away_probable_pitcher": "Matthew Boyd",
+    "849841": {
+      "away_lineup": [],
+      "away_lineup_confirmed": false,
+      "away_probable_pitcher": "Cristopher S\u00e1nchez",
+      "away_team": "Philadelphia Phillies",
+      "game_date": "2026-09-30T18:00:00Z",
+      "game_pk": 849841,
+      "home_lineup": [],
+      "home_lineup_confirmed": false,
+      "home_probable_pitcher": "Tyler Mahle",
+      "home_team": "Atlanta Braves",
+      "status": "Preview"
+    },
+    "849842": {
+      "away_lineup": [],
+      "away_lineup_confirmed": false,
+      "away_probable_pitcher": null,
       "away_team": "Chicago Cubs",
-      "game_date": "2026-09-30T02:00:00Z",
-      "game_pk": 849843,
-      "home_lineup": [
-        "Fernando Tatis Jr.",
-        "Samad Taylor",
-        "Manny Machado",
-        "Ty France",
-        "Jackson Merrill",
-        "Austin Hays",
-        "Xander Bogaerts",
-        "Jake Cronenworth",
-        "Luis Campusano"
-      ],
-      "home_lineup_confirmed": true,
-      "home_probable_pitcher": "Michael King",
+      "game_date": "2026-10-01T02:00:00Z",
+      "game_pk": 849842,
+      "home_lineup": [],
+      "home_lineup_confirmed": false,
+      "home_probable_pitcher": "Nick Pivetta",
       "home_team": "San Diego Padres",
       "status": "Preview"
     },
-    "849845": {
-      "away_lineup": [
-        "Trea Turner",
-        "Kyle Schwarber",
-        "Bryce Harper",
-        "Alec Bohm",
-        "Derek Hill",
-        "Brandon Marsh",
-        "Bryan De La Cruz",
-        "Bryson Stott",
-        "Edmundo Sosa"
-      ],
-      "away_lineup_confirmed": true,
-      "away_probable_pitcher": "Jes\u00fas Luzardo",
-      "away_team": "Philadelphia Phillies",
-      "game_date": "2026-09-29T18:00:00Z",
-      "game_pk": 849845,
-      "home_lineup": [
-        "Drake Baldwin",
-        "Ronald Acu\u00f1a Jr.",
-        "Matt Olson",
-        "Mauricio Dub\u00f3n",
-        "Michael Harris II",
-        "Ozzie Albies",
-        "Austin Riley",
-        "Mike Yastrzemski",
-        "Ha-Seong Kim"
-      ],
-      "home_lineup_confirmed": true,
-      "home_probable_pitcher": "Chris Sale",
-      "home_team": "Atlanta Braves",
-      "status": "Final"
-    },
-    "849849": {
-      "away_lineup": [
-        "Sam Antonacci",
-        "Kyle Teel",
-        "Miguel Vargas",
-        "Munetaka Murakami",
-        "Andrew Benintendi",
-        "Tristan Peters",
-        "Braden Montgomery",
-        "Chase Meidroth",
-        "Colson Montgomery"
-      ],
-      "away_lineup_confirmed": true,
-      "away_probable_pitcher": "Hagen Smith",
+    "849846": {
+      "away_lineup": [],
+      "away_lineup_confirmed": false,
+      "away_probable_pitcher": "Sean Burke",
       "away_team": "Chicago White Sox",
-      "game_date": "2026-09-29T21:00:00Z",
-      "game_pk": 849849,
-      "home_lineup": [
-        "Jeremy Pe\u00f1a",
-        "Yordan Alvarez",
-        "Isaac Paredes",
-        "Jose Altuve",
-        "Yainer Diaz",
-        "Christian Walker",
-        "Lucas Spence",
-        "Cam Smith",
-        "Taylor Trammell"
-      ],
-      "home_lineup_confirmed": true,
-      "home_probable_pitcher": "AJ Blubaugh",
+      "game_date": "2026-09-30T21:00:00Z",
+      "game_pk": 849846,
+      "home_lineup": [],
+      "home_lineup_confirmed": false,
+      "home_probable_pitcher": "Hunter Brown",
       "home_team": "Houston Astros",
-      "status": "Live"
+      "status": "Preview"
     },
-    "849851": {
-      "away_lineup": [
-        "Roman Anthony",
-        "Adley Rutschman",
-        "Willson Contreras",
-        "Wilyer Abreu",
-        "Ceddanne Rafaela",
-        "Nick Sogard",
-        "Jarren Duran",
-        "Trevor Story",
-        "Caleb Durbin"
-      ],
-      "away_lineup_confirmed": true,
-      "away_probable_pitcher": "Payton Tolle",
+    "849848": {
+      "away_lineup": [],
+      "away_lineup_confirmed": false,
+      "away_probable_pitcher": "Sonny Gray",
       "away_team": "Boston Red Sox",
-      "game_date": "2026-09-30T00:00:00Z",
-      "game_pk": 849851,
-      "home_lineup": [
-        "Paul Goldschmidt",
-        "Ben Rice",
-        "Heliot Ramos",
-        "Cody Bellinger",
-        "George Lombard Jr.",
-        "Amed Rosario",
-        "Anthony Volpe",
-        "Spencer Jones",
-        "Austin Wells"
-      ],
-      "home_lineup_confirmed": true,
-      "home_probable_pitcher": "Cam Schlittler",
+      "game_date": "2026-10-01T00:00:00Z",
+      "game_pk": 849848,
+      "home_lineup": [],
+      "home_lineup_confirmed": false,
+      "home_probable_pitcher": "Max Fried",
       "home_team": "New York Yankees",
       "status": "Preview"
     }
   },
-  "last_run_at": "2026-09-29T22:29:32.766561Z"
+  "last_run_at": "2026-09-30T01:27:35.129388Z"
 }
