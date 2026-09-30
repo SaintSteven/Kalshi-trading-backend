@@ -1,17 +1,37 @@
 {
   "games": {
     "849841": {
-      "away_lineup": [],
-      "away_lineup_confirmed": false,
+      "away_lineup": [
+        "Trea Turner",
+        "Kyle Schwarber",
+        "Bryce Harper",
+        "Alec Bohm",
+        "Bryson Stott",
+        "Brandon Marsh",
+        "Edmundo Sosa",
+        "Justin Crawford",
+        "J.T. Realmuto"
+      ],
+      "away_lineup_confirmed": true,
       "away_probable_pitcher": "Cristopher S\u00e1nchez",
       "away_team": "Philadelphia Phillies",
       "game_date": "2026-09-30T18:00:00Z",
       "game_pk": 849841,
-      "home_lineup": [],
-      "home_lineup_confirmed": false,
+      "home_lineup": [
+        "Ronald Acu\u00f1a Jr.",
+        "Drake Baldwin",
+        "Ozzie Albies",
+        "Matt Olson",
+        "Mauricio Dub\u00f3n",
+        "Austin Riley",
+        "Michael Harris II",
+        "Sean Murphy",
+        "Ha-Seong Kim"
+      ],
+      "home_lineup_confirmed": true,
       "home_probable_pitcher": "Tyler Mahle",
       "home_team": "Atlanta Braves",
-      "status": "Preview"
+      "status": "Live"
     },
     "849842": {
       "away_lineup": [],
@@ -27,8 +47,18 @@
       "status": "Preview"
     },
     "849846": {
-      "away_lineup": [],
-      "away_lineup_confirmed": false,
+      "away_lineup": [
+        "Sam Antonacci",
+        "Kyle Teel",
+        "Miguel Vargas",
+        "Munetaka Murakami",
+        "Andrew Benintendi",
+        "Tristan Peters",
+        "Chase Meidroth",
+        "Braden Montgomery",
+        "Colson Montgomery"
+      ],
+      "away_lineup_confirmed": true,
       "away_probable_pitcher": "Sean Burke",
       "away_team": "Chicago White Sox",
       "game_date": "2026-09-30T21:00:00Z",
@@ -53,5 +83,5 @@
       "status": "Preview"
     }
   },
-  "last_run_at": "2026-09-30T13:40:37.579795Z"
+  "last_run_at": "2026-09-30T18:34:29.299408Z"
 }
