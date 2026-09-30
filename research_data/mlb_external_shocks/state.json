@@ -8,9 +8,9 @@
         "Alec Bohm",
         "Bryson Stott",
         "Brandon Marsh",
+        "Bryan De La Cruz",
         "Edmundo Sosa",
-        "Justin Crawford",
-        "J.T. Realmuto"
+        "Derek Hill"
       ],
       "away_lineup_confirmed": true,
       "away_probable_pitcher": "Cristopher S\u00e1nchez",
@@ -26,22 +26,42 @@
         "Austin Riley",
         "Michael Harris II",
         "Sean Murphy",
-        "Ha-Seong Kim"
+        "Dominic Smith"
       ],
       "home_lineup_confirmed": true,
       "home_probable_pitcher": "Tyler Mahle",
       "home_team": "Atlanta Braves",
-      "status": "Live"
+      "status": "Final"
     },
     "849842": {
-      "away_lineup": [],
-      "away_lineup_confirmed": false,
+      "away_lineup": [
+        "Pete Crow-Armstrong",
+        "Alex Bregman",
+        "Michael Busch",
+        "Seiya Suzuki",
+        "Ian Happ",
+        "Nico Hoerner",
+        "Matt Shaw",
+        "Carson Kelly",
+        "Dansby Swanson"
+      ],
+      "away_lineup_confirmed": true,
       "away_probable_pitcher": "Kevin Gausman",
       "away_team": "Chicago Cubs",
       "game_date": "2026-10-01T02:00:00Z",
       "game_pk": 849842,
-      "home_lineup": [],
-      "home_lineup_confirmed": false,
+      "home_lineup": [
+        "Fernando Tatis Jr.",
+        "Dustin Harris",
+        "Manny Machado",
+        "Ty France",
+        "Jackson Merrill",
+        "Xander Bogaerts",
+        "Ethan Salas",
+        "Austin Hays",
+        "Jake Cronenworth"
+      ],
+      "home_lineup_confirmed": true,
       "home_probable_pitcher": "Nick Pivetta",
       "home_team": "San Diego Padres",
       "status": "Preview"
@@ -63,25 +83,55 @@
       "away_team": "Chicago White Sox",
       "game_date": "2026-09-30T21:00:00Z",
       "game_pk": 849846,
-      "home_lineup": [],
-      "home_lineup_confirmed": false,
+      "home_lineup": [
+        "Jeremy Pe\u00f1a",
+        "Yordan Alvarez",
+        "Isaac Paredes",
+        "Jose Altuve",
+        "Yainer Diaz",
+        "Christian Walker",
+        "Lucas Spence",
+        "Cam Smith",
+        "Nick Allen"
+      ],
+      "home_lineup_confirmed": true,
       "home_probable_pitcher": "Hunter Brown",
       "home_team": "Houston Astros",
-      "status": "Preview"
+      "status": "Live"
     },
     "849848": {
-      "away_lineup": [],
-      "away_lineup_confirmed": false,
+      "away_lineup": [
+        "Jahmai Jones",
+        "Adley Rutschman",
+        "Willson Contreras",
+        "Wilyer Abreu",
+        "Ceddanne Rafaela",
+        "Caleb Durbin",
+        "Nick Sogard",
+        "Trevor Story",
+        "Nate Eaton"
+      ],
+      "away_lineup_confirmed": true,
       "away_probable_pitcher": "Sonny Gray",
       "away_team": "Boston Red Sox",
       "game_date": "2026-10-01T00:00:00Z",
       "game_pk": 849848,
-      "home_lineup": [],
-      "home_lineup_confirmed": false,
+      "home_lineup": [
+        "Ben Rice",
+        "Cody Bellinger",
+        "Luis Garc\u00eda Jr.",
+        "Spencer Jones",
+        "George Lombard Jr.",
+        "Jazz Chisholm Jr.",
+        "Trent Grisham",
+        "Austin Wells",
+        "Ryan McMahon"
+      ],
+      "home_lineup_confirmed": true,
       "home_probable_pitcher": "Max Fried",
       "home_team": "New York Yankees",
       "status": "Preview"
     }
   },
-  "last_run_at": "2026-09-30T18:34:29.299408Z"
+  "last_run_at": "2026-09-30T22:37:46.633334Z"
 }
