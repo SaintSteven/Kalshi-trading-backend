@@ -3,16 +3,26 @@
     "849844": {
       "away_lineup": [],
       "away_lineup_confirmed": false,
-      "away_probable_pitcher": null,
+      "away_probable_pitcher": "Aaron Nola",
       "away_team": "Philadelphia Phillies",
       "game_date": "2026-10-02T00:00:00Z",
       "game_pk": 849844,
-      "home_lineup": [],
-      "home_lineup_confirmed": false,
-      "home_probable_pitcher": null,
+      "home_lineup": [
+        "Drake Baldwin",
+        "Ronald Acu\u00f1a Jr.",
+        "Matt Olson",
+        "Michael Harris II",
+        "Mauricio Dub\u00f3n",
+        "Mike Yastrzemski",
+        "Austin Riley",
+        "Ozzie Albies",
+        "Dominic Smith"
+      ],
+      "home_lineup_confirmed": true,
+      "home_probable_pitcher": "Ray Kerr",
       "home_team": "Atlanta Braves",
       "status": "Preview"
     }
   },
-  "last_run_at": "2026-10-01T15:00:21.391314Z"
+  "last_run_at": "2026-10-01T20:20:27.579573Z"
 }
