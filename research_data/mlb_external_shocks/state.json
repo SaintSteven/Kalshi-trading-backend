@@ -1,44 +1,18 @@
 {
   "games": {
-    "849840": {
-      "away_lineup": [],
-      "away_lineup_confirmed": false,
-      "away_probable_pitcher": null,
-      "away_team": "Chicago Cubs",
-      "game_date": "2026-10-02T02:00:00Z",
-      "game_pk": 849840,
-      "home_lineup": [],
-      "home_lineup_confirmed": false,
-      "home_probable_pitcher": null,
-      "home_team": "San Diego Padres",
-      "status": "Preview"
-    },
     "849844": {
       "away_lineup": [],
       "away_lineup_confirmed": false,
       "away_probable_pitcher": null,
       "away_team": "Philadelphia Phillies",
-      "game_date": "2026-10-01T18:00:00Z",
+      "game_date": "2026-10-02T00:00:00Z",
       "game_pk": 849844,
       "home_lineup": [],
       "home_lineup_confirmed": false,
       "home_probable_pitcher": null,
       "home_team": "Atlanta Braves",
       "status": "Preview"
-    },
-    "849847": {
-      "away_lineup": [],
-      "away_lineup_confirmed": false,
-      "away_probable_pitcher": "Ranger Suarez",
-      "away_team": "Boston Red Sox",
-      "game_date": "2026-10-02T00:00:00Z",
-      "game_pk": 849847,
-      "home_lineup": [],
-      "home_lineup_confirmed": false,
-      "home_probable_pitcher": "Gerrit Cole",
-      "home_team": "New York Yankees",
-      "status": "Preview"
     }
   },
-  "last_run_at": "2026-10-01T01:34:33.686315Z"
+  "last_run_at": "2026-10-01T07:48:17.785363Z"
 }
