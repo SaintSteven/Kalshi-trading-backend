@@ -1,4 +1,57 @@
 {
-  "games": {},
-  "last_run_at": "2026-10-02T21:01:32.466267Z"
+  "games": {
+    "849828": {
+      "away_lineup": [],
+      "away_lineup_confirmed": false,
+      "away_probable_pitcher": null,
+      "away_team": "Atlanta Braves",
+      "game_date": "2026-10-03T20:00:00Z",
+      "game_pk": 849828,
+      "home_lineup": [],
+      "home_lineup_confirmed": false,
+      "home_probable_pitcher": "Tarik Skubal",
+      "home_team": "Los Angeles Dodgers",
+      "status": "Preview"
+    },
+    "849829": {
+      "away_lineup": [],
+      "away_lineup_confirmed": false,
+      "away_probable_pitcher": "Hagen Smith",
+      "away_team": "Chicago White Sox",
+      "game_date": "2026-10-03T17:00:00Z",
+      "game_pk": 849829,
+      "home_lineup": [],
+      "home_lineup_confirmed": false,
+      "home_probable_pitcher": "Parker Messick",
+      "home_team": "Cleveland Guardians",
+      "status": "Preview"
+    },
+    "849830": {
+      "away_lineup": [],
+      "away_lineup_confirmed": false,
+      "away_probable_pitcher": "Robbie Ray",
+      "away_team": "San Diego Padres",
+      "game_date": "2026-10-04T00:30:00Z",
+      "game_pk": 849830,
+      "home_lineup": [],
+      "home_lineup_confirmed": false,
+      "home_probable_pitcher": "Jacob Misiorowski",
+      "home_team": "Milwaukee Brewers",
+      "status": "Preview"
+    },
+    "849835": {
+      "away_lineup": [],
+      "away_lineup_confirmed": false,
+      "away_probable_pitcher": "Gerrit Cole",
+      "away_team": "New York Yankees",
+      "game_date": "2026-10-03T22:30:00Z",
+      "game_pk": 849835,
+      "home_lineup": [],
+      "home_lineup_confirmed": false,
+      "home_probable_pitcher": "Drew Rasmussen",
+      "home_team": "Tampa Bay Rays",
+      "status": "Preview"
+    }
+  },
+  "last_run_at": "2026-10-03T00:28:30.444296Z"
 }
