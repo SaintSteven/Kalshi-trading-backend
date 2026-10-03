@@ -14,14 +14,34 @@
       "status": "Preview"
     },
     "849829": {
-      "away_lineup": [],
-      "away_lineup_confirmed": false,
+      "away_lineup": [
+        "Chase Meidroth",
+        "Randal Grichuk",
+        "Miguel Vargas",
+        "Munetaka Murakami",
+        "Tommy Pham",
+        "Brenton Doyle",
+        "Kyle Teel",
+        "Braden Montgomery",
+        "Colson Montgomery"
+      ],
+      "away_lineup_confirmed": true,
       "away_probable_pitcher": "Hagen Smith",
       "away_team": "Chicago White Sox",
       "game_date": "2026-10-03T17:00:00Z",
       "game_pk": 849829,
-      "home_lineup": [],
-      "home_lineup_confirmed": false,
+      "home_lineup": [
+        "Steven Kwan",
+        "Jos\u00e9 Ram\u00edrez",
+        "Chase DeLauter",
+        "Jo Adell",
+        "Angel Mart\u00ednez",
+        "David Fry",
+        "Travis Bazzana",
+        "Austin Hedges",
+        "Brayan Rocchio"
+      ],
+      "home_lineup_confirmed": true,
       "home_probable_pitcher": "Parker Messick",
       "home_team": "Cleveland Guardians",
       "status": "Preview"
@@ -53,5 +73,5 @@
       "status": "Preview"
     }
   },
-  "last_run_at": "2026-10-03T10:37:03.577852Z"
+  "last_run_at": "2026-10-03T14:55:08.910344Z"
 }
