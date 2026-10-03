@@ -3,12 +3,22 @@
     "849828": {
       "away_lineup": [],
       "away_lineup_confirmed": false,
-      "away_probable_pitcher": null,
+      "away_probable_pitcher": "Dylan Dodd",
       "away_team": "Atlanta Braves",
       "game_date": "2026-10-03T20:00:00Z",
       "game_pk": 849828,
-      "home_lineup": [],
-      "home_lineup_confirmed": false,
+      "home_lineup": [
+        "Mookie Betts",
+        "Shohei Ohtani",
+        "Will Smith",
+        "Freddie Freeman",
+        "Teoscar Hern\u00e1ndez",
+        "Kyle Tucker",
+        "Andy Pages",
+        "Max Muncy",
+        "Tommy Edman"
+      ],
+      "home_lineup_confirmed": true,
       "home_probable_pitcher": "Tarik Skubal",
       "home_team": "Los Angeles Dodgers",
       "status": "Preview"
@@ -37,14 +47,14 @@
         "Jo Adell",
         "Angel Mart\u00ednez",
         "David Fry",
+        "Nathaniel Lowe",
         "Travis Bazzana",
-        "Austin Hedges",
-        "Brayan Rocchio"
+        "Austin Hedges"
       ],
       "home_lineup_confirmed": true,
       "home_probable_pitcher": "Parker Messick",
       "home_team": "Cleveland Guardians",
-      "status": "Preview"
+      "status": "Live"
     },
     "849830": {
       "away_lineup": [],
@@ -73,5 +83,5 @@
       "status": "Preview"
     }
   },
-  "last_run_at": "2026-10-03T14:55:08.910344Z"
+  "last_run_at": "2026-10-03T18:29:25.044596Z"
 }
