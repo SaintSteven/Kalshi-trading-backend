@@ -1,137 +1,31 @@
 {
   "games": {
-    "849828": {
-      "away_lineup": [
-        "Drake Baldwin",
-        "Ronald Acu\u00f1a Jr.",
-        "Ozzie Albies",
-        "Matt Olson",
-        "Michael Harris II",
-        "Mauricio Dub\u00f3n",
-        "Austin Riley",
-        "Sean Murphy",
-        "Ha-Seong Kim"
-      ],
-      "away_lineup_confirmed": true,
-      "away_probable_pitcher": "Dylan Dodd",
+    "849823": {
+      "away_lineup": [],
+      "away_lineup_confirmed": false,
+      "away_probable_pitcher": null,
       "away_team": "Atlanta Braves",
-      "game_date": "2026-10-03T20:00:00Z",
-      "game_pk": 849828,
-      "home_lineup": [
-        "Mookie Betts",
-        "Shohei Ohtani",
-        "Will Smith",
-        "Freddie Freeman",
-        "Teoscar Hern\u00e1ndez",
-        "Kyle Tucker",
-        "Andy Pages",
-        "Max Muncy",
-        "Tommy Edman"
-      ],
-      "home_lineup_confirmed": true,
-      "home_probable_pitcher": "Tarik Skubal",
+      "game_date": "2026-10-05T00:00:00Z",
+      "game_pk": 849823,
+      "home_lineup": [],
+      "home_lineup_confirmed": false,
+      "home_probable_pitcher": "Blake Snell",
       "home_team": "Los Angeles Dodgers",
-      "status": "Live"
-    },
-    "849829": {
-      "away_lineup": [
-        "Chase Meidroth",
-        "Randal Grichuk",
-        "Tristan Peters",
-        "Miguel Vargas",
-        "Munetaka Murakami",
-        "Tommy Pham",
-        "Sam Antonacci",
-        "Brenton Doyle",
-        "Kyle Teel"
-      ],
-      "away_lineup_confirmed": true,
-      "away_probable_pitcher": "Hagen Smith",
-      "away_team": "Chicago White Sox",
-      "game_date": "2026-10-03T17:00:00Z",
-      "game_pk": 849829,
-      "home_lineup": [
-        "Steven Kwan",
-        "Jos\u00e9 Ram\u00edrez",
-        "Chase DeLauter",
-        "Jo Adell",
-        "Angel Mart\u00ednez",
-        "David Fry",
-        "Nathaniel Lowe",
-        "Travis Bazzana",
-        "Austin Hedges"
-      ],
-      "home_lineup_confirmed": true,
-      "home_probable_pitcher": "Parker Messick",
-      "home_team": "Cleveland Guardians",
-      "status": "Final"
-    },
-    "849830": {
-      "away_lineup": [
-        "Fernando Tatis Jr.",
-        "Dustin Harris",
-        "Manny Machado",
-        "Ty France",
-        "Jackson Merrill",
-        "Xander Bogaerts",
-        "Ethan Salas",
-        "Luis Campusano",
-        "Jake Cronenworth"
-      ],
-      "away_lineup_confirmed": true,
-      "away_probable_pitcher": "Robbie Ray",
-      "away_team": "San Diego Padres",
-      "game_date": "2026-10-04T00:30:00Z",
-      "game_pk": 849830,
-      "home_lineup": [
-        "Jackson Chourio",
-        "Brice Turang",
-        "William Contreras",
-        "Jake Bauers",
-        "Christian Yelich",
-        "Cooper Pratt",
-        "Luis Lara",
-        "Garrett Mitchell",
-        "Joey Ortiz"
-      ],
-      "home_lineup_confirmed": true,
-      "home_probable_pitcher": "Jacob Misiorowski",
-      "home_team": "Milwaukee Brewers",
       "status": "Preview"
     },
-    "849835": {
-      "away_lineup": [
-        "Ben Rice",
-        "Cody Bellinger",
-        "Luis Garc\u00eda Jr.",
-        "Spencer Jones",
-        "George Lombard Jr.",
-        "Jazz Chisholm Jr.",
-        "Trent Grisham",
-        "Austin Wells",
-        "Ryan McMahon"
-      ],
-      "away_lineup_confirmed": true,
-      "away_probable_pitcher": "Gerrit Cole",
-      "away_team": "New York Yankees",
-      "game_date": "2026-10-03T22:30:00Z",
-      "game_pk": 849835,
-      "home_lineup": [
-        "Yandy D\u00edaz",
-        "Jonathan Aranda",
-        "Junior Caminero",
-        "Liam Hicks",
-        "Chandler Simpson",
-        "Victor Mesa Jr.",
-        "Jonny DeLuca",
-        "Richie Palacios",
-        "Taylor Walls"
-      ],
-      "home_lineup_confirmed": true,
-      "home_probable_pitcher": "Drew Rasmussen",
-      "home_team": "Tampa Bay Rays",
+    "849825": {
+      "away_lineup": [],
+      "away_lineup_confirmed": false,
+      "away_probable_pitcher": "Michael King",
+      "away_team": "San Diego Padres",
+      "game_date": "2026-10-04T20:00:00Z",
+      "game_pk": 849825,
+      "home_lineup": [],
+      "home_lineup_confirmed": false,
+      "home_probable_pitcher": "Logan Henderson",
+      "home_team": "Milwaukee Brewers",
       "status": "Preview"
     }
   },
-  "last_run_at": "2026-10-03T21:40:52.414090Z"
+  "last_run_at": "2026-10-04T00:02:51.646220Z"
 }
