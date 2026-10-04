@@ -3,7 +3,7 @@
     "849823": {
       "away_lineup": [],
       "away_lineup_confirmed": false,
-      "away_probable_pitcher": null,
+      "away_probable_pitcher": "Ray Kerr",
       "away_team": "Atlanta Braves",
       "game_date": "2026-10-05T00:00:00Z",
       "game_pk": 849823,
@@ -14,18 +14,38 @@
       "status": "Preview"
     },
     "849825": {
-      "away_lineup": [],
-      "away_lineup_confirmed": false,
+      "away_lineup": [
+        "Fernando Tatis Jr.",
+        "Dustin Harris",
+        "Manny Machado",
+        "Ty France",
+        "Jackson Merrill",
+        "Ethan Salas",
+        "Xander Bogaerts",
+        "Luis Campusano",
+        "Jake Cronenworth"
+      ],
+      "away_lineup_confirmed": true,
       "away_probable_pitcher": "Michael King",
       "away_team": "San Diego Padres",
       "game_date": "2026-10-04T20:00:00Z",
       "game_pk": 849825,
-      "home_lineup": [],
-      "home_lineup_confirmed": false,
+      "home_lineup": [
+        "Jackson Chourio",
+        "Brice Turang",
+        "Jake Bauers",
+        "William Contreras",
+        "Garrett Mitchell",
+        "Christian Yelich",
+        "Sal Frelick",
+        "Cooper Pratt",
+        "David Hamilton"
+      ],
+      "home_lineup_confirmed": true,
       "home_probable_pitcher": "Logan Henderson",
       "home_team": "Milwaukee Brewers",
       "status": "Preview"
     }
   },
-  "last_run_at": "2026-10-04T15:59:09.672297Z"
+  "last_run_at": "2026-10-04T19:21:09.213140Z"
 }
