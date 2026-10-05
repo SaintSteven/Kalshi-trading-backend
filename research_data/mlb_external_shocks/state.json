@@ -1,31 +1,71 @@
 {
   "games": {
     "849834": {
-      "away_lineup": [],
-      "away_lineup_confirmed": false,
+      "away_lineup": [
+        "Sam Antonacci",
+        "Kyle Teel",
+        "Miguel Vargas",
+        "Munetaka Murakami",
+        "Andrew Benintendi",
+        "Tristan Peters",
+        "Braden Montgomery",
+        "Chase Meidroth",
+        "Colson Montgomery"
+      ],
+      "away_lineup_confirmed": true,
       "away_probable_pitcher": "Anthony Kay",
       "away_team": "Chicago White Sox",
       "game_date": "2026-10-05T21:00:00Z",
       "game_pk": 849834,
-      "home_lineup": [],
-      "home_lineup_confirmed": false,
+      "home_lineup": [
+        "Steven Kwan",
+        "Jos\u00e9 Ram\u00edrez",
+        "Chase DeLauter",
+        "Jo Adell",
+        "Nathaniel Lowe",
+        "Angel Mart\u00ednez",
+        "Travis Bazzana",
+        "Patrick Bailey",
+        "Brayan Rocchio"
+      ],
+      "home_lineup_confirmed": true,
       "home_probable_pitcher": "Gavin Williams",
       "home_team": "Cleveland Guardians",
-      "status": "Preview"
+      "status": "Live"
     },
     "849839": {
-      "away_lineup": [],
-      "away_lineup_confirmed": false,
+      "away_lineup": [
+        "Ben Rice",
+        "Cody Bellinger",
+        "Luis Garc\u00eda Jr.",
+        "Spencer Jones",
+        "George Lombard Jr.",
+        "Jazz Chisholm Jr.",
+        "Trent Grisham",
+        "Austin Wells",
+        "Ryan McMahon"
+      ],
+      "away_lineup_confirmed": true,
       "away_probable_pitcher": "Cam Schlittler",
       "away_team": "New York Yankees",
       "game_date": "2026-10-06T00:00:00Z",
       "game_pk": 849839,
-      "home_lineup": [],
-      "home_lineup_confirmed": false,
+      "home_lineup": [
+        "Yandy D\u00edaz",
+        "Jonathan Aranda",
+        "Junior Caminero",
+        "Liam Hicks",
+        "Chandler Simpson",
+        "Victor Mesa Jr.",
+        "Jonny DeLuca",
+        "Richie Palacios",
+        "Taylor Walls"
+      ],
+      "home_lineup_confirmed": true,
       "home_probable_pitcher": "Freddy Peralta",
       "home_team": "Tampa Bay Rays",
       "status": "Preview"
     }
   },
-  "last_run_at": "2026-10-05T15:58:45.200890Z"
+  "last_run_at": "2026-10-05T22:23:13.627673Z"
 }
