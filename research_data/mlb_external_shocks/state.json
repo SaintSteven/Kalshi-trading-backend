@@ -1,71 +1,31 @@
 {
   "games": {
-    "849823": {
-      "away_lineup": [
-        "Drake Baldwin",
-        "Ronald Acu\u00f1a Jr.",
-        "Matt Olson",
-        "Ozzie Albies",
-        "Michael Harris II",
-        "Mauricio Dub\u00f3n",
-        "Sean Murphy",
-        "Austin Riley",
-        "Lane Thomas"
-      ],
-      "away_lineup_confirmed": true,
-      "away_probable_pitcher": "Ray Kerr",
-      "away_team": "Atlanta Braves",
-      "game_date": "2026-10-05T00:00:00Z",
-      "game_pk": 849823,
-      "home_lineup": [
-        "Mookie Betts",
-        "Shohei Ohtani",
-        "Will Smith",
-        "Freddie Freeman",
-        "Teoscar Hern\u00e1ndez",
-        "Kyle Tucker",
-        "Andy Pages",
-        "Miguel Rojas",
-        "Tommy Edman"
-      ],
-      "home_lineup_confirmed": true,
-      "home_probable_pitcher": "Blake Snell",
-      "home_team": "Los Angeles Dodgers",
+    "849834": {
+      "away_lineup": [],
+      "away_lineup_confirmed": false,
+      "away_probable_pitcher": "Anthony Kay",
+      "away_team": "Chicago White Sox",
+      "game_date": "2026-10-05T21:00:00Z",
+      "game_pk": 849834,
+      "home_lineup": [],
+      "home_lineup_confirmed": false,
+      "home_probable_pitcher": "Gavin Williams",
+      "home_team": "Cleveland Guardians",
       "status": "Preview"
     },
-    "849825": {
-      "away_lineup": [
-        "Fernando Tatis Jr.",
-        "Dustin Harris",
-        "Manny Machado",
-        "Ty France",
-        "Jackson Merrill",
-        "Gavin Sheets",
-        "Austin Hays",
-        "Xander Bogaerts",
-        "Luis Campusano"
-      ],
-      "away_lineup_confirmed": true,
-      "away_probable_pitcher": "Michael King",
-      "away_team": "San Diego Padres",
-      "game_date": "2026-10-04T20:00:00Z",
-      "game_pk": 849825,
-      "home_lineup": [
-        "Jackson Chourio",
-        "Brice Turang",
-        "Jake Bauers",
-        "William Contreras",
-        "Garrett Mitchell",
-        "Christian Yelich",
-        "Sal Frelick",
-        "Cooper Pratt",
-        "David Hamilton"
-      ],
-      "home_lineup_confirmed": true,
-      "home_probable_pitcher": "Logan Henderson",
-      "home_team": "Milwaukee Brewers",
-      "status": "Live"
+    "849839": {
+      "away_lineup": [],
+      "away_lineup_confirmed": false,
+      "away_probable_pitcher": "Cam Schlittler",
+      "away_team": "New York Yankees",
+      "game_date": "2026-10-06T00:00:00Z",
+      "game_pk": 849839,
+      "home_lineup": [],
+      "home_lineup_confirmed": false,
+      "home_probable_pitcher": "Freddy Peralta",
+      "home_team": "Tampa Bay Rays",
+      "status": "Preview"
     }
   },
-  "last_run_at": "2026-10-04T22:24:46.385891Z"
+  "last_run_at": "2026-10-05T01:05:52.778037Z"
 }
