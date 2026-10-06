@@ -1,14 +1,34 @@
 {
   "games": {
     "849819": {
-      "away_lineup": [],
-      "away_lineup_confirmed": false,
+      "away_lineup": [
+        "Mookie Betts",
+        "Freddie Freeman",
+        "Teoscar Hern\u00e1ndez",
+        "Will Smith",
+        "Shohei Ohtani",
+        "Miguel Rojas",
+        "Andy Pages",
+        "Kyle Tucker",
+        "Enrique Hern\u00e1ndez"
+      ],
+      "away_lineup_confirmed": true,
       "away_probable_pitcher": "Yoshinobu Yamamoto",
       "away_team": "Los Angeles Dodgers",
       "game_date": "2026-10-06T22:00:00Z",
       "game_pk": 849819,
-      "home_lineup": [],
-      "home_lineup_confirmed": false,
+      "home_lineup": [
+        "Drake Baldwin",
+        "Ronald Acu\u00f1a Jr.",
+        "Matt Olson",
+        "Ozzie Albies",
+        "Michael Harris II",
+        "Mauricio Dub\u00f3n",
+        "Lane Thomas",
+        "Austin Riley",
+        "Ha-Seong Kim"
+      ],
+      "home_lineup_confirmed": true,
       "home_probable_pitcher": "Chris Sale",
       "home_team": "Atlanta Braves",
       "status": "Preview"
@@ -27,5 +47,5 @@
       "status": "Preview"
     }
   },
-  "last_run_at": "2026-10-06T15:56:35.757925Z"
+  "last_run_at": "2026-10-06T20:47:42.253587Z"
 }
