@@ -1,51 +1,57 @@
 {
   "games": {
-    "849819": {
-      "away_lineup": [
-        "Mookie Betts",
-        "Freddie Freeman",
-        "Teoscar Hern\u00e1ndez",
-        "Will Smith",
-        "Shohei Ohtani",
-        "Miguel Rojas",
-        "Andy Pages",
-        "Kyle Tucker",
-        "Enrique Hern\u00e1ndez"
-      ],
-      "away_lineup_confirmed": true,
-      "away_probable_pitcher": "Yoshinobu Yamamoto",
+    "849822": {
+      "away_lineup": [],
+      "away_lineup_confirmed": false,
+      "away_probable_pitcher": "Tyler Glasnow",
       "away_team": "Los Angeles Dodgers",
-      "game_date": "2026-10-06T22:00:00Z",
-      "game_pk": 849819,
-      "home_lineup": [
-        "Drake Baldwin",
-        "Ronald Acu\u00f1a Jr.",
-        "Matt Olson",
-        "Ozzie Albies",
-        "Michael Harris II",
-        "Mauricio Dub\u00f3n",
-        "Lane Thomas",
-        "Austin Riley",
-        "Ha-Seong Kim"
-      ],
-      "home_lineup_confirmed": true,
-      "home_probable_pitcher": "Chris Sale",
+      "game_date": "2026-10-07T22:00:00Z",
+      "game_pk": 849822,
+      "home_lineup": [],
+      "home_lineup_confirmed": false,
+      "home_probable_pitcher": "Tyler Mahle",
       "home_team": "Atlanta Braves",
       "status": "Preview"
     },
-    "849826": {
+    "849827": {
       "away_lineup": [],
       "away_lineup_confirmed": false,
-      "away_probable_pitcher": "Dustin May",
+      "away_probable_pitcher": null,
       "away_team": "Milwaukee Brewers",
-      "game_date": "2026-10-07T01:30:00Z",
-      "game_pk": 849826,
+      "game_date": "2026-10-08T02:00:00Z",
+      "game_pk": 849827,
       "home_lineup": [],
       "home_lineup_confirmed": false,
-      "home_probable_pitcher": "Nick Pivetta",
+      "home_probable_pitcher": null,
       "home_team": "San Diego Padres",
+      "status": "Preview"
+    },
+    "849833": {
+      "away_lineup": [],
+      "away_lineup_confirmed": false,
+      "away_probable_pitcher": "Daniel Espino",
+      "away_team": "Cleveland Guardians",
+      "game_date": "2026-10-07T20:00:00Z",
+      "game_pk": 849833,
+      "home_lineup": [],
+      "home_lineup_confirmed": false,
+      "home_probable_pitcher": "Sean Newcomb",
+      "home_team": "Chicago White Sox",
+      "status": "Preview"
+    },
+    "849838": {
+      "away_lineup": [],
+      "away_lineup_confirmed": false,
+      "away_probable_pitcher": "Nick Martinez",
+      "away_team": "Tampa Bay Rays",
+      "game_date": "2026-10-08T00:00:00Z",
+      "game_pk": 849838,
+      "home_lineup": [],
+      "home_lineup_confirmed": false,
+      "home_probable_pitcher": "Max Fried",
+      "home_team": "New York Yankees",
       "status": "Preview"
     }
   },
-  "last_run_at": "2026-10-06T20:47:42.253587Z"
+  "last_run_at": "2026-10-07T00:18:17.605015Z"
 }
