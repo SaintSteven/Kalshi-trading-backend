@@ -1,14 +1,34 @@
 {
   "games": {
     "849822": {
-      "away_lineup": [],
-      "away_lineup_confirmed": false,
+      "away_lineup": [
+        "Mookie Betts",
+        "Freddie Freeman",
+        "Will Smith",
+        "Shohei Ohtani",
+        "Teoscar Hern\u00e1ndez",
+        "Max Muncy",
+        "Enrique Hern\u00e1ndez",
+        "Kyle Tucker",
+        "Andy Pages"
+      ],
+      "away_lineup_confirmed": true,
       "away_probable_pitcher": "Tyler Glasnow",
       "away_team": "Los Angeles Dodgers",
       "game_date": "2026-10-07T22:00:00Z",
       "game_pk": 849822,
-      "home_lineup": [],
-      "home_lineup_confirmed": false,
+      "home_lineup": [
+        "Michael Harris II",
+        "Ronald Acu\u00f1a Jr.",
+        "Matt Olson",
+        "Ozzie Albies",
+        "Drake Baldwin",
+        "Mike Yastrzemski",
+        "Mauricio Dub\u00f3n",
+        "Austin Riley",
+        "Sean Murphy"
+      ],
+      "home_lineup_confirmed": true,
       "home_probable_pitcher": "Tyler Mahle",
       "home_team": "Atlanta Braves",
       "status": "Preview"
@@ -27,14 +47,34 @@
       "status": "Preview"
     },
     "849833": {
-      "away_lineup": [],
-      "away_lineup_confirmed": false,
+      "away_lineup": [
+        "Steven Kwan",
+        "Jos\u00e9 Ram\u00edrez",
+        "Chase DeLauter",
+        "Jo Adell",
+        "Nathaniel Lowe",
+        "Angel Mart\u00ednez",
+        "Travis Bazzana",
+        "Patrick Bailey",
+        "Brayan Rocchio"
+      ],
+      "away_lineup_confirmed": true,
       "away_probable_pitcher": "Daniel Espino",
       "away_team": "Cleveland Guardians",
       "game_date": "2026-10-07T20:00:00Z",
       "game_pk": 849833,
-      "home_lineup": [],
-      "home_lineup_confirmed": false,
+      "home_lineup": [
+        "Sam Antonacci",
+        "Miguel Vargas",
+        "Munetaka Murakami",
+        "Kyle Teel",
+        "Chase Meidroth",
+        "Tristan Peters",
+        "Braden Montgomery",
+        "Randal Grichuk",
+        "Colson Montgomery"
+      ],
+      "home_lineup_confirmed": true,
       "home_probable_pitcher": "Sean Newcomb",
       "home_team": "Chicago White Sox",
       "status": "Preview"
@@ -53,5 +93,5 @@
       "status": "Preview"
     }
   },
-  "last_run_at": "2026-10-07T13:41:15.567457Z"
+  "last_run_at": "2026-10-07T19:32:15.016493Z"
 }
