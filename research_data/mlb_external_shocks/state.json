@@ -1,137 +1,18 @@
 {
   "games": {
-    "849822": {
-      "away_lineup": [
-        "Mookie Betts",
-        "Freddie Freeman",
-        "Will Smith",
-        "Shohei Ohtani",
-        "Teoscar Hern\u00e1ndez",
-        "Max Muncy",
-        "Enrique Hern\u00e1ndez",
-        "Kyle Tucker",
-        "Andy Pages"
-      ],
-      "away_lineup_confirmed": true,
-      "away_probable_pitcher": "Tyler Glasnow",
-      "away_team": "Los Angeles Dodgers",
-      "game_date": "2026-10-07T22:00:00Z",
-      "game_pk": 849822,
-      "home_lineup": [
-        "Michael Harris II",
-        "Ronald Acu\u00f1a Jr.",
-        "Matt Olson",
-        "Ozzie Albies",
-        "Drake Baldwin",
-        "Mike Yastrzemski",
-        "Mauricio Dub\u00f3n",
-        "Austin Riley",
-        "Sean Murphy"
-      ],
-      "home_lineup_confirmed": true,
-      "home_probable_pitcher": "Tyler Mahle",
-      "home_team": "Atlanta Braves",
-      "status": "Live"
-    },
-    "849827": {
-      "away_lineup": [
-        "Jackson Chourio",
-        "Christian Yelich",
-        "William Contreras",
-        "Brice Turang",
-        "Jake Bauers",
-        "Cooper Pratt",
-        "Sal Frelick",
-        "Garrett Mitchell",
-        "Joey Ortiz"
-      ],
-      "away_lineup_confirmed": true,
-      "away_probable_pitcher": "Robert Gasser",
-      "away_team": "Milwaukee Brewers",
-      "game_date": "2026-10-08T02:00:00Z",
-      "game_pk": 849827,
-      "home_lineup": [
-        "Fernando Tatis Jr.",
-        "Jackson Merrill",
-        "Manny Machado",
-        "Ty France",
-        "Austin Hays",
-        "Xander Bogaerts",
-        "Luis Campusano",
-        "Jake Cronenworth",
-        "Samad Taylor"
-      ],
-      "home_lineup_confirmed": true,
-      "home_probable_pitcher": "Walker Buehler",
-      "home_team": "San Diego Padres",
-      "status": "Preview"
-    },
-    "849833": {
-      "away_lineup": [
-        "Steven Kwan",
-        "Jos\u00e9 Ram\u00edrez",
-        "Chase DeLauter",
-        "Jo Adell",
-        "Nathaniel Lowe",
-        "Angel Mart\u00ednez",
-        "Petey Halpin",
-        "Travis Bazzana",
-        "Angel Genao"
-      ],
-      "away_lineup_confirmed": true,
-      "away_probable_pitcher": "Daniel Espino",
+    "849832": {
+      "away_lineup": [],
+      "away_lineup_confirmed": false,
+      "away_probable_pitcher": "Parker Messick",
       "away_team": "Cleveland Guardians",
-      "game_date": "2026-10-07T20:00:00Z",
-      "game_pk": 849833,
-      "home_lineup": [
-        "Sam Antonacci",
-        "Miguel Vargas",
-        "Munetaka Murakami",
-        "Kyle Teel",
-        "Chase Meidroth",
-        "Tristan Peters",
-        "Braden Montgomery",
-        "Randal Grichuk",
-        "Colson Montgomery"
-      ],
-      "home_lineup_confirmed": true,
-      "home_probable_pitcher": "Sean Newcomb",
+      "game_date": "2026-10-09T00:00:00Z",
+      "game_pk": 849832,
+      "home_lineup": [],
+      "home_lineup_confirmed": false,
+      "home_probable_pitcher": "Hagen Smith",
       "home_team": "Chicago White Sox",
-      "status": "Final"
-    },
-    "849838": {
-      "away_lineup": [
-        "Yandy D\u00edaz",
-        "Jonathan Aranda",
-        "Junior Caminero",
-        "Victor Mesa Jr.",
-        "Ryan Vilade",
-        "Liam Hicks",
-        "Jonny DeLuca",
-        "Richie Palacios",
-        "Taylor Walls"
-      ],
-      "away_lineup_confirmed": true,
-      "away_probable_pitcher": "Nick Martinez",
-      "away_team": "Tampa Bay Rays",
-      "game_date": "2026-10-08T00:00:00Z",
-      "game_pk": 849838,
-      "home_lineup": [
-        "Trent Grisham",
-        "Ben Rice",
-        "Luis Garc\u00eda Jr.",
-        "Cody Bellinger",
-        "George Lombard Jr.",
-        "Austin Wells",
-        "Anthony Volpe",
-        "Spencer Jones",
-        "Jos\u00e9 Caballero"
-      ],
-      "home_lineup_confirmed": true,
-      "home_probable_pitcher": "Max Fried",
-      "home_team": "New York Yankees",
-      "status": "Live"
+      "status": "Preview"
     }
   },
-  "last_run_at": "2026-10-07T23:49:34.494478Z"
+  "last_run_at": "2026-10-08T04:02:04.642271Z"
 }
