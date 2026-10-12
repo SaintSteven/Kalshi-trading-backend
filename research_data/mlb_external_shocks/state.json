@@ -1,31 +1,71 @@
 {
   "games": {
     "849812": {
-      "away_lineup": [],
-      "away_lineup_confirmed": false,
+      "away_lineup": [
+        "Mookie Betts",
+        "Freddie Freeman",
+        "Teoscar Hern\u00e1ndez",
+        "Shohei Ohtani",
+        "Will Smith",
+        "Max Muncy",
+        "Andy Pages",
+        "Kyle Tucker",
+        "Tommy Edman"
+      ],
+      "away_lineup_confirmed": true,
       "away_probable_pitcher": "Yoshinobu Yamamoto",
       "away_team": "Los Angeles Dodgers",
       "game_date": "2026-10-12T21:00:00Z",
       "game_pk": 849812,
-      "home_lineup": [],
-      "home_lineup_confirmed": false,
+      "home_lineup": [
+        "Jackson Chourio",
+        "Brice Turang",
+        "William Contreras",
+        "Jake Bauers",
+        "Christian Yelich",
+        "Garrett Mitchell",
+        "Cooper Pratt",
+        "Sal Frelick",
+        "David Hamilton"
+      ],
+      "home_lineup_confirmed": true,
       "home_probable_pitcher": "Logan Henderson",
       "home_team": "Milwaukee Brewers",
-      "status": "Preview"
+      "status": "Live"
     },
     "849820": {
-      "away_lineup": [],
-      "away_lineup_confirmed": false,
+      "away_lineup": [
+        "Steven Kwan",
+        "Jos\u00e9 Ram\u00edrez",
+        "Chase DeLauter",
+        "Jo Adell",
+        "Nathaniel Lowe",
+        "Travis Bazzana",
+        "Patrick Bailey",
+        "Petey Halpin",
+        "Brayan Rocchio"
+      ],
+      "away_lineup_confirmed": true,
       "away_probable_pitcher": "Foster Griffin",
       "away_team": "Cleveland Guardians",
       "game_date": "2026-10-13T00:00:00Z",
       "game_pk": 849820,
-      "home_lineup": [],
-      "home_lineup_confirmed": false,
+      "home_lineup": [
+        "Yandy D\u00edaz",
+        "Jonathan Aranda",
+        "Junior Caminero",
+        "Ryan Vilade",
+        "Victor Mesa Jr.",
+        "Jonny DeLuca",
+        "Ben Williamson",
+        "Taylor Walls",
+        "Nick Fortes"
+      ],
+      "home_lineup_confirmed": true,
       "home_probable_pitcher": "Drew Rasmussen",
       "home_team": "Tampa Bay Rays",
       "status": "Preview"
     }
   },
-  "last_run_at": "2026-10-12T16:23:59.322478Z"
+  "last_run_at": "2026-10-12T23:07:04.445191Z"
 }
