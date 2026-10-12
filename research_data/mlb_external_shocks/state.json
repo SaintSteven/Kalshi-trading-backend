@@ -1,38 +1,31 @@
 {
   "games": {
-    "849809": {
-      "away_lineup": [
-        "Mookie Betts",
-        "Freddie Freeman",
-        "Will Smith",
-        "Shohei Ohtani",
-        "Teoscar Hern\u00e1ndez",
-        "Max Muncy",
-        "Andy Pages",
-        "Kyle Tucker",
-        "Enrique Hern\u00e1ndez"
-      ],
-      "away_lineup_confirmed": true,
-      "away_probable_pitcher": "Tarik Skubal",
+    "849812": {
+      "away_lineup": [],
+      "away_lineup_confirmed": false,
+      "away_probable_pitcher": "Yoshinobu Yamamoto",
       "away_team": "Los Angeles Dodgers",
-      "game_date": "2026-10-12T00:00:00Z",
-      "game_pk": 849809,
-      "home_lineup": [
-        "Jackson Chourio",
-        "Brice Turang",
-        "William Contreras",
-        "Jake Bauers",
-        "Andrew Vaughn",
-        "Garrett Mitchell",
-        "Cooper Pratt",
-        "Luis Lara",
-        "Joey Ortiz"
-      ],
-      "home_lineup_confirmed": true,
-      "home_probable_pitcher": "Jacob Misiorowski",
+      "game_date": "2026-10-12T21:00:00Z",
+      "game_pk": 849812,
+      "home_lineup": [],
+      "home_lineup_confirmed": false,
+      "home_probable_pitcher": "Logan Henderson",
       "home_team": "Milwaukee Brewers",
+      "status": "Preview"
+    },
+    "849820": {
+      "away_lineup": [],
+      "away_lineup_confirmed": false,
+      "away_probable_pitcher": "Foster Griffin",
+      "away_team": "Cleveland Guardians",
+      "game_date": "2026-10-13T00:00:00Z",
+      "game_pk": 849820,
+      "home_lineup": [],
+      "home_lineup_confirmed": false,
+      "home_probable_pitcher": "Drew Rasmussen",
+      "home_team": "Tampa Bay Rays",
       "status": "Preview"
     }
   },
-  "last_run_at": "2026-10-11T21:55:38.916502Z"
+  "last_run_at": "2026-10-12T00:55:28.065766Z"
 }
