@@ -7,12 +7,22 @@
       "away_team": "Milwaukee Brewers",
       "game_date": "2026-10-15T00:00:00Z",
       "game_pk": 849811,
-      "home_lineup": [],
-      "home_lineup_confirmed": false,
+      "home_lineup": [
+        "Mookie Betts",
+        "Freddie Freeman",
+        "Teoscar Hern\u00e1ndez",
+        "Kyle Tucker",
+        "Andy Pages",
+        "Shohei Ohtani",
+        "Will Smith",
+        "Miguel Rojas",
+        "Tommy Edman"
+      ],
+      "home_lineup_confirmed": true,
       "home_probable_pitcher": "Blake Snell",
       "home_team": "Los Angeles Dodgers",
       "status": "Preview"
     }
   },
-  "last_run_at": "2026-10-14T17:25:51.916073Z"
+  "last_run_at": "2026-10-14T20:51:46.166787Z"
 }
