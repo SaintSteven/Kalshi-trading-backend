@@ -1,38 +1,18 @@
 {
   "games": {
-    "849813": {
-      "away_lineup": [
-        "Steven Kwan",
-        "Jos\u00e9 Ram\u00edrez",
-        "Chase DeLauter",
-        "Jo Adell",
-        "Nathaniel Lowe",
-        "Travis Bazzana",
-        "Petey Halpin",
-        "Austin Hedges",
-        "Brayan Rocchio"
-      ],
-      "away_lineup_confirmed": true,
-      "away_probable_pitcher": "Parker Messick",
-      "away_team": "Cleveland Guardians",
-      "game_date": "2026-10-14T00:00:00Z",
-      "game_pk": 849813,
-      "home_lineup": [
-        "Yandy D\u00edaz",
-        "Jonathan Aranda",
-        "Junior Caminero",
-        "Victor Mesa Jr.",
-        "Jonny DeLuca",
-        "Chandler Simpson",
-        "Ben Williamson",
-        "Liam Hicks",
-        "Taylor Walls"
-      ],
-      "home_lineup_confirmed": true,
-      "home_probable_pitcher": "Freddy Peralta",
-      "home_team": "Tampa Bay Rays",
+    "849811": {
+      "away_lineup": [],
+      "away_lineup_confirmed": false,
+      "away_probable_pitcher": "Robert Gasser",
+      "away_team": "Milwaukee Brewers",
+      "game_date": "2026-10-15T00:00:00Z",
+      "game_pk": 849811,
+      "home_lineup": [],
+      "home_lineup_confirmed": false,
+      "home_probable_pitcher": "Blake Snell",
+      "home_team": "Los Angeles Dodgers",
       "status": "Preview"
     }
   },
-  "last_run_at": "2026-10-13T22:59:22.490433Z"
+  "last_run_at": "2026-10-14T01:42:46.545221Z"
 }
