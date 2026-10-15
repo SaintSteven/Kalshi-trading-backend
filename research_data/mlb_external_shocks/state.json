@@ -1,14 +1,34 @@
 {
   "games": {
     "849810": {
-      "away_lineup": [],
-      "away_lineup_confirmed": false,
+      "away_lineup": [
+        "Jackson Chourio",
+        "Brice Turang",
+        "William Contreras",
+        "Jake Bauers",
+        "Christian Yelich",
+        "Garrett Mitchell",
+        "Cooper Pratt",
+        "Sal Frelick",
+        "David Hamilton"
+      ],
+      "away_lineup_confirmed": true,
       "away_probable_pitcher": "Shane Drohan",
       "away_team": "Milwaukee Brewers",
       "game_date": "2026-10-16T00:00:00Z",
       "game_pk": 849810,
-      "home_lineup": [],
-      "home_lineup_confirmed": false,
+      "home_lineup": [
+        "Shohei Ohtani",
+        "Mookie Betts",
+        "Freddie Freeman",
+        "Will Smith",
+        "Kyle Tucker",
+        "Teoscar Hern\u00e1ndez",
+        "Miguel Rojas",
+        "Andy Pages",
+        "Enrique Hern\u00e1ndez"
+      ],
+      "home_lineup_confirmed": true,
       "home_probable_pitcher": "Tyler Glasnow",
       "home_team": "Los Angeles Dodgers",
       "status": "Preview"
@@ -47,5 +67,5 @@
       "status": "Final"
     }
   },
-  "last_run_at": "2026-10-15T20:21:21.943369Z"
+  "last_run_at": "2026-10-15T23:09:34.613831Z"
 }
