@@ -1,24 +1,11 @@
 {
   "games": {
-    "849808": {
-      "away_lineup": [],
-      "away_lineup_confirmed": false,
-      "away_probable_pitcher": null,
-      "away_team": "Milwaukee Brewers",
-      "game_date": "2026-10-17T01:00:00Z",
-      "game_pk": 849808,
-      "home_lineup": [],
-      "home_lineup_confirmed": false,
-      "home_probable_pitcher": null,
-      "home_team": "Los Angeles Dodgers",
-      "status": "Preview"
-    },
     "849817": {
       "away_lineup": [],
       "away_lineup_confirmed": false,
       "away_probable_pitcher": "Nick Martinez",
       "away_team": "Tampa Bay Rays",
-      "game_date": "2026-10-16T22:00:00Z",
+      "game_date": "2026-10-17T00:00:00Z",
       "game_pk": 849817,
       "home_lineup": [],
       "home_lineup_confirmed": false,
@@ -27,5 +14,5 @@
       "status": "Preview"
     }
   },
-  "last_run_at": "2026-10-16T01:19:11.796599Z"
+  "last_run_at": "2026-10-16T06:04:10.791029Z"
 }
