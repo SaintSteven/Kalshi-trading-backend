@@ -5,7 +5,7 @@
       "away_lineup_confirmed": false,
       "away_probable_pitcher": "Nick Martinez",
       "away_team": "Tampa Bay Rays",
-      "game_date": "2026-10-18T00:00:00Z",
+      "game_date": "2026-10-18T00:08:00Z",
       "game_pk": 849816,
       "home_lineup": [],
       "home_lineup_confirmed": false,
@@ -14,5 +14,5 @@
       "status": "Preview"
     }
   },
-  "last_run_at": "2026-10-17T08:42:45.379466Z"
+  "last_run_at": "2026-10-17T12:25:44.837838Z"
 }
