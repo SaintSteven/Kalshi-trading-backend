@@ -3,16 +3,16 @@
     "849816": {
       "away_lineup": [],
       "away_lineup_confirmed": false,
-      "away_probable_pitcher": null,
+      "away_probable_pitcher": "Nick Martinez",
       "away_team": "Tampa Bay Rays",
       "game_date": "2026-10-18T00:00:00Z",
       "game_pk": 849816,
       "home_lineup": [],
       "home_lineup_confirmed": false,
-      "home_probable_pitcher": null,
+      "home_probable_pitcher": "Shawn Armstrong",
       "home_team": "Cleveland Guardians",
       "status": "Preview"
     }
   },
-  "last_run_at": "2026-10-17T00:06:20.580600Z"
+  "last_run_at": "2026-10-17T04:22:04.937774Z"
 }
