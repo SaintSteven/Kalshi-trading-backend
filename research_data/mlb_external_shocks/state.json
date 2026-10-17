@@ -1,8 +1,18 @@
 {
   "games": {
     "849816": {
-      "away_lineup": [],
-      "away_lineup_confirmed": false,
+      "away_lineup": [
+        "Yandy D\u00edaz",
+        "Jonathan Aranda",
+        "Chandler Simpson",
+        "Junior Caminero",
+        "Liam Hicks",
+        "Victor Mesa Jr.",
+        "Jonny DeLuca",
+        "Richie Palacios",
+        "Taylor Walls"
+      ],
+      "away_lineup_confirmed": true,
       "away_probable_pitcher": "Nick Martinez",
       "away_team": "Tampa Bay Rays",
       "game_date": "2026-10-18T00:08:00Z",
@@ -24,5 +34,5 @@
       "status": "Preview"
     }
   },
-  "last_run_at": "2026-10-17T20:34:17.023377Z"
+  "last_run_at": "2026-10-17T22:40:01.831291Z"
 }
