@@ -3,16 +3,16 @@
     "849817": {
       "away_lineup": [],
       "away_lineup_confirmed": false,
-      "away_probable_pitcher": null,
+      "away_probable_pitcher": "Drew Rasmussen",
       "away_team": "Tampa Bay Rays",
       "game_date": "2026-10-18T21:08:00Z",
       "game_pk": 849817,
       "home_lineup": [],
       "home_lineup_confirmed": false,
-      "home_probable_pitcher": null,
+      "home_probable_pitcher": "Parker Messick",
       "home_team": "Cleveland Guardians",
       "status": "Preview"
     }
   },
-  "last_run_at": "2026-10-18T00:19:43.094474Z"
+  "last_run_at": "2026-10-18T04:52:57.833383Z"
 }
