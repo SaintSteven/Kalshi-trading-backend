@@ -1,18 +1,38 @@
 {
   "games": {
     "849817": {
-      "away_lineup": [],
-      "away_lineup_confirmed": false,
+      "away_lineup": [
+        "Yandy D\u00edaz",
+        "Jonathan Aranda",
+        "Ryan Vilade",
+        "Junior Caminero",
+        "Chandler Simpson",
+        "Jonny DeLuca",
+        "Liam Hicks",
+        "Ben Williamson",
+        "Taylor Walls"
+      ],
+      "away_lineup_confirmed": true,
       "away_probable_pitcher": "Drew Rasmussen",
       "away_team": "Tampa Bay Rays",
       "game_date": "2026-10-18T21:08:00Z",
       "game_pk": 849817,
-      "home_lineup": [],
-      "home_lineup_confirmed": false,
+      "home_lineup": [
+        "Steven Kwan",
+        "Jos\u00e9 Ram\u00edrez",
+        "Chase DeLauter",
+        "Jo Adell",
+        "Nathaniel Lowe",
+        "Travis Bazzana",
+        "Patrick Bailey",
+        "Petey Halpin",
+        "Brayan Rocchio"
+      ],
+      "home_lineup_confirmed": true,
       "home_probable_pitcher": "Parker Messick",
       "home_team": "Cleveland Guardians",
       "status": "Preview"
     }
   },
-  "last_run_at": "2026-10-18T16:40:20.618038Z"
+  "last_run_at": "2026-10-18T18:56:41.926937Z"
 }
