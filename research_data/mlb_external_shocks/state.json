@@ -3,7 +3,7 @@
     "849815": {
       "away_lineup": [],
       "away_lineup_confirmed": false,
-      "away_probable_pitcher": null,
+      "away_probable_pitcher": "Shawn Armstrong",
       "away_team": "Cleveland Guardians",
       "game_date": "2026-10-20T00:08:00Z",
       "game_pk": 849815,
@@ -14,5 +14,5 @@
       "status": "Preview"
     }
   },
-  "last_run_at": "2026-10-19T13:57:21.228830Z"
+  "last_run_at": "2026-10-19T19:40:27.513982Z"
 }
