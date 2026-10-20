@@ -1,18 +1,4 @@
 {
-  "games": {
-    "849814": {
-      "away_lineup": [],
-      "away_lineup_confirmed": false,
-      "away_probable_pitcher": null,
-      "away_team": "Cleveland Guardians",
-      "game_date": "2026-10-21T00:08:00Z",
-      "game_pk": 849814,
-      "home_lineup": [],
-      "home_lineup_confirmed": false,
-      "home_probable_pitcher": null,
-      "home_team": "Tampa Bay Rays",
-      "status": "Preview"
-    }
-  },
-  "last_run_at": "2026-10-20T01:48:30.717973Z"
+  "games": {},
+  "last_run_at": "2026-10-20T07:00:31.559939Z"
 }
