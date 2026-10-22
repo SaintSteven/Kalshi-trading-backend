@@ -195,7 +195,11 @@ if __name__ == "__main__":
     issue = payload.get("issue")
     if not isinstance(issue, dict):
         sys.exit("No GitHub issue in event")
-    result = run(issue)
+    if str(issue.get("title", "")).startswith("[discovery-v3]"):
+        from discovery_issue_bridge import run_discovery
+        result = run_discovery(issue)
+    else:
+        result = run(issue)
     post_comment(int(issue["number"]), result)
     print(json.dumps({
         "request_status": result["request_status"],
