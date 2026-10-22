@@ -61,8 +61,8 @@ async def quote(venue: str, identifier: str, side: str, contracts: int, budget_u
     check_id(identifier)
     if not 1 <= contracts <= 10000:
         raise HTTPException(status_code=422, detail="Whole share count out of range")
-    if venue == "polymarket-us" and side != "YES":
-        raise HTTPException(status_code=422, detail="Polymarket US NO/short not validated")
+    if side not in ("YES","NO"):
+        raise HTTPException(status_code=422, detail="Invalid YES/NO selection")
     read_started = datetime.now(timezone.utc).isoformat()
     async with httpx.AsyncClient(timeout=9.0, headers={"User-Agent":"PredictionMarketsResearchV3-ReadOnly/0.1"}) as client:
         if venue == "kalshi":
@@ -107,6 +107,7 @@ async def quote(venue: str, identifier: str, side: str, contracts: int, budget_u
         "market_rules": rule_metadata,
         "pricing": affordable_buy(asks, budget_usd, fee_rate(venue)) if budget_usd is not None else simulated_buy(asks, contracts, fee_rate(venue)),
         "quote_status": "LIVE_BOOK_SNAPSHOT_UNRESERVED",
+        "synthetic_no_short_collateral": ({"gross_margin_dollars_per_contract":"1.00", "gross_margin_locked_for_priced_contracts_usd": str((simulated_buy(asks, contracts, fee_rate(venue))["priced_contracts"])),"note":"Net buying-power use is risk (1 - executed YES bid) plus fees; full $1 per contract is posted as margin offset by sale proceeds. See official Polymarket US collateral documentation."} if venue=="polymarket-us" and side=="NO" and budget_usd is None else {"note":"Polymarket US NO requires full $1 margin per contract before YES sale proceeds offset the margin; buying-power use is effective NO cost plus fees."} if venue=="polymarket-us" and side=="NO" else None),
         "limitations": [
             "Displayed liquidity may change before any purchase.",
             "Taker fee is an estimate, not authenticated order preview.",
@@ -133,7 +134,7 @@ async def kalshi_quote(ticker: str, side: Literal["YES","NO"]="YES", contracts: 
     return await quote("kalshi",ticker,side,contracts,budget_usd)
 
 @app.get("/v1/quote/polymarket-us/{slug}", dependencies=[Depends(require_read_key)])
-async def polymarket_quote(slug: str, side: Literal["YES"]="YES", contracts: int=Query(3,ge=1,le=10000), budget_usd: Decimal | None=Query(None,gt=0,le=100)):
+async def polymarket_quote(slug: str, side: Literal["YES","NO"]="YES", contracts: int=Query(3,ge=1,le=10000), budget_usd: Decimal | None=Query(None,gt=0,le=100)):
     return await quote("polymarket-us",slug,side,contracts,budget_usd)
 
 @app.post("/v1/compare", dependencies=[Depends(require_read_key)])
