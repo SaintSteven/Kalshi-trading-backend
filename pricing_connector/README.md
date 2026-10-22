@@ -8,8 +8,10 @@ READ-ONLY. Direct public Kalshi and Polymarket US order-book snapshots for whole
 - GET /v1/discover/kalshi?series_ticker=KX...
 - GET /v1/discover/polymarket-us?limit=50&offset=0
 - GET /v1/quote/kalshi/{ticker}?side=YES&contracts=3
+- GET /v1/quote/kalshi/{ticker}?side=YES&stake_usd=1.50 (automatically selects maximum whole contracts within the total stake, including estimated fees)
 - GET /v1/quote/kalshi/{ticker}?side=NO&contracts=3
 - GET /v1/quote/polymarket-us/{slug}?side=YES&contracts=3
+- GET /v1/quote/polymarket-us/{slug}?side=YES&stake_usd=1.50
 - POST /v1/compare with JSON kalshi_ticker, polymarket_us_slug, contracts, same_settlement_rules_checked, equivalence_evidence
 
 The service computes available depth, weighted costs, estimated fees, and price timestamps; it does NOT present snapshots as guaranteed executable fills. Kalshi opposite-side bids are inverted to asks. Polymarket US uses marketData.offers (NOT international Polymarket CLOB). On the compare endpoint, price winner stays null until an analyst attests identical settlement rules and provides evidence; that assertion is not automatically validated.
@@ -47,3 +49,7 @@ From pricing_connector, install requirements.txt and pytest; run python -m pytes
 ## Next phases
 
 Verified settlement-rule matcher, configurable fee tiers and authenticated read-only order previews; stake-budget optimizer; scalar payout modeling; read-only account-ledger reconciliation. Never automate trading without separately authorized action.
+
+## Dollar-stake sizing
+
+Use stake_usd for saved sport-specific units (e.g. NFL 0.75u = $1.50), OR contracts for comparing the same share count across venues. Do not supply both. The tool chooses the largest whole-share amount that can be purchased within stake_usd on visible depth after *estimated* fees, and returns unspent budget. This is a hypothetical snapshot, not an actual order or account hold.

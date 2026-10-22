@@ -87,3 +87,40 @@ def simulated_buy(levels, count, fee_rate):
         "firm_executable_quote": False,
         "status": "DEPTH_AVAILABLE_FEES_ESTIMATED" if left == 0 else "INSUFFICIENT_DEPTH",
     }
+
+
+def simulated_budget(levels, budget_usd, fee_rate):
+    """Find greatest whole-contract purchase within a target dollar stake.
+
+    Tests total cost INCLUDING estimated taker fees against the budget.
+    Does not assume exchange min order size or account eligibility.
+    """
+    budget = number(budget_usd)
+    if not Decimal("0") < budget <= Decimal("1000"):
+        raise ValueError("stake_usd must be between 0 and 1000 dollars")
+    if not levels:
+        return {
+            "requested_stake_usd": str(budget),
+            "affordable_whole_contracts": 0,
+            "status": "NO_ASK_LIQUIDITY",
+            "quote": None,
+        }
+    # The best ask bounds the maximum possible contract count.
+    high = min(10000, int(budget / levels[0][0]))
+    low, best = 0, None
+    while low < high:
+        candidate = (low + high + 1) // 2
+        fill = simulated_buy(levels, candidate, fee_rate)
+        if fill["complete_depth"] and number(fill["estimated_total_usd"]) <= budget:
+            low, best = candidate, fill
+        else:
+            high = candidate - 1
+    if low and best is None:
+        best = simulated_buy(levels, low, fee_rate)
+    return {
+        "requested_stake_usd": str(budget),
+        "affordable_whole_contracts": low,
+        "unspent_stake_usd": str(budget - number(best["estimated_total_usd"])) if best else str(budget),
+        "status": "STAKED_BOOK_SNAPSHOT_FEES_ESTIMATED" if best else "BUDGET_TOO_SMALL_OR_DEPTH_INSUFFICIENT",
+        "quote": best,
+    }

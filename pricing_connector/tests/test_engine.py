@@ -49,3 +49,24 @@ def test_fee_estimated_never_verified():
 def test_bad_quantity_fail():
     with pytest.raises(ValueError):
         simulated_buy([],0,D(".07"))
+
+
+def test_dollar_stake_budget_includes_fees():
+    from engine import simulated_budget
+    # Three 50-cent contracts cost > $1.50 after fees, so buy only two.
+    result=simulated_budget([(D(".50"),D(20))],D("1.50"),D(".07"))
+    assert result["affordable_whole_contracts"]==2
+    assert result["quote"]["complete_depth"]
+    assert D(result["quote"]["estimated_total_usd"])<=D("1.50")
+    assert result["status"]=="STAKED_BOOK_SNAPSHOT_FEES_ESTIMATED"
+
+def test_too_small_dollar_stake_refuses_order():
+    from engine import simulated_budget
+    result=simulated_budget([(D(".50"),D(20))],D(".50"),D(".07"))
+    assert result["affordable_whole_contracts"]==0
+    assert result["quote"] is None
+
+def test_budget_depth_does_not_oversell():
+    from engine import simulated_budget
+    result=simulated_budget([(D(".40"),D(1))],D("10"),D(".07"))
+    assert result["affordable_whole_contracts"]==1
