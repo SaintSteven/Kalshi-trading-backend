@@ -42,12 +42,16 @@ def parse_discovery(issue: dict) -> list[dict]:
         venue = leg["venue"]
         if venue == "kalshi":
             ticker = leg.get("series_ticker")
+            event_ticker = leg.get("event_ticker")
             cursor = leg.get("cursor")
-            if not isinstance(ticker, str) or not ID.fullmatch(ticker):
-                raise InvalidDiscovery("Invalid Kalshi series ticker")
+            if bool(ticker) == bool(event_ticker):
+                raise InvalidDiscovery("Supply one Kalshi series_ticker OR event_ticker")
+            selected = ticker if ticker else event_ticker
+            if not isinstance(selected,str) or not ID.fullmatch(selected):
+                raise InvalidDiscovery("Invalid Kalshi market identifier")
             if cursor is not None and (not isinstance(cursor, str) or len(cursor) > 500):
                 raise InvalidDiscovery("Invalid cursor")
-            normalized.append({"venue": venue, "series_ticker": ticker, "cursor": cursor})
+            normalized.append({"venue":venue,"series_ticker":ticker,"event_ticker":event_ticker,"cursor":cursor})
         else:
             limit, offset = leg.get("limit", 100), leg.get("offset", 0)
             if type(limit) is not int or type(offset) is not int or not 1 <= limit <= 100 or not 0 <= offset <= 10000:
@@ -56,22 +60,33 @@ def parse_discovery(issue: dict) -> list[dict]:
             if (not isinstance(keywords, list) or len(keywords) > 5
                     or any(not isinstance(k, str) or len(k) > 50 for k in keywords)):
                 raise InvalidDiscovery("Invalid discovery keywords")
+            event_slug = leg.get("event_slug")
+            if event_slug is not None and (not isinstance(event_slug,str) or not ID.fullmatch(event_slug)):
+                raise InvalidDiscovery("Invalid event slug")
             normalized.append({"venue": venue, "limit": limit, "offset": offset,
-                               "keywords": [k.lower() for k in keywords]})
+                               "event_slug":event_slug,"keywords": [k.lower() for k in keywords]})
     return normalized
 
 
 def fetch_one(leg: dict) -> dict:
     venue = leg["venue"]
     if venue == "kalshi":
-        query = {"series_ticker": leg["series_ticker"]}
-        if leg.get("cursor"):
-            query["cursor"] = leg["cursor"]
-        url = BASE + "/v1/discover/kalshi?" + urllib.parse.urlencode(query)
+        if leg.get("event_ticker"):
+            url = BASE + "/v1/discover/kalshi-event/" + leg["event_ticker"]
+            if leg.get("cursor"):
+                url += "?" + urllib.parse.urlencode({"cursor":leg["cursor"]})
+        else:
+            query = {"series_ticker": leg["series_ticker"]}
+            if leg.get("cursor"):
+                query["cursor"] = leg["cursor"]
+            url = BASE + "/v1/discover/kalshi?" + urllib.parse.urlencode(query)
     else:
-        url = BASE + "/v1/discover/polymarket-us?" + urllib.parse.urlencode({
-            "limit": leg["limit"], "offset": leg["offset"],
-        })
+        query = {"limit":leg["limit"],"offset":leg["offset"]}
+        if leg.get("event_slug"):
+            url = BASE + "/v1/discover/polymarket-us-event/" + leg["event_slug"]
+            url += "?" + urllib.parse.urlencode(query)
+        else:
+            url = BASE + "/v1/discover/polymarket-us?" + urllib.parse.urlencode(query)
     try:
         with urllib.request.urlopen(
             urllib.request.Request(url, headers={"User-Agent": "ResearchV3-DiscoveryBridge"}),
