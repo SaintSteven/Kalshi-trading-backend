@@ -61,10 +61,21 @@ def parse_discovery(issue: dict) -> list[dict]:
                     or any(not isinstance(k, str) or len(k) > 50 for k in keywords)):
                 raise InvalidDiscovery("Invalid discovery keywords")
             event_slug = leg.get("event_slug")
+            search = leg.get("search")
+            event_detail_slug = leg.get("event_detail_slug")
+            keyword = leg.get("keyword","")
             if event_slug is not None and (not isinstance(event_slug,str) or not ID.fullmatch(event_slug)):
                 raise InvalidDiscovery("Invalid event slug")
+            if event_detail_slug is not None and (not isinstance(event_detail_slug,str) or not ID.fullmatch(event_detail_slug)):
+                raise InvalidDiscovery("Invalid event detail slug")
+            if search is not None and (not isinstance(search,str) or not 3<=len(search)<=120):
+                raise InvalidDiscovery("Invalid search")
+            if not isinstance(keyword,str) or len(keyword)>90:
+                raise InvalidDiscovery("Invalid keyword")
             normalized.append({"venue": venue, "limit": limit, "offset": offset,
-                               "event_slug":event_slug,"keywords": [k.lower() for k in keywords]})
+                               "event_slug":event_slug,"event_detail_slug":event_detail_slug,
+                               "search":search,"keyword":keyword,
+                               "keywords": [k.lower() for k in keywords]})
     return normalized
 
 
@@ -82,7 +93,12 @@ def fetch_one(leg: dict) -> dict:
             url = BASE + "/v1/discover/kalshi?" + urllib.parse.urlencode(query)
     else:
         query = {"limit":leg["limit"],"offset":leg["offset"]}
-        if leg.get("event_slug"):
+        if leg.get("search"):
+            url = BASE + "/v1/discover/polymarket-us-search?" + urllib.parse.urlencode({"query":leg["search"],"limit":min(30,leg["limit"]),"page":max(1,leg["offset"]+1)})
+        elif leg.get("event_detail_slug"):
+            url = BASE + "/v1/discover/polymarket-us-event-detail/" + leg["event_detail_slug"]
+            url += "?" + urllib.parse.urlencode({"keyword":leg["keyword"],"offset":leg["offset"],"limit":min(100,leg["limit"])})
+        elif leg.get("event_slug"):
             url = BASE + "/v1/discover/polymarket-us-event/" + leg["event_slug"]
             url += "?" + urllib.parse.urlencode(query)
         else:
@@ -93,6 +109,10 @@ def fetch_one(leg: dict) -> dict:
             timeout=45,
         ) as response:
             data = json.load(response)
+        if leg.get("search"):
+            events=data.get("events") if isinstance(data,dict) else None
+            if not isinstance(events,list):raise ValueError("Unexpected search response")
+            return {"venue":venue,"request":leg,"status":"EVENT_SEARCH_SNAPSHOT","events":events[:30],"retrieved_at_utc":data.get("retrieved_at_utc")}
         if not isinstance(data, dict) or not isinstance(data.get("markets"), list):
             raise ValueError("Unexpected discovery response")
         markets = data["markets"]
@@ -120,7 +140,8 @@ def fetch_one(leg: dict) -> dict:
                 "markets_returned": len(markets),
                 "markets_after_filter": len(filtered),
                 "next_cursor": data.get("cursor") if venue == "kalshi" else None,
-                "next_offset": leg["offset"] + len(markets) if venue == "polymarket-us" and len(markets) else None,
+                "next_offset": data.get("next_offset") if leg.get("event_detail_slug") else (leg["offset"] + len(markets) if venue == "polymarket-us" and len(markets) else None),
+                "event":data.get("event"), "total_event_markets":data.get("total_event_markets"), "matching_market_count":data.get("matching_market_count"),
                 "markets": filtered,
                 "warning": "Titles/IDs are discovery only; request an exact quote and verify settlement rules."}
     except urllib.error.HTTPError as exc:
