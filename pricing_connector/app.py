@@ -93,7 +93,7 @@ async def quote(venue: str, identifier: str, side: str, contracts: int, budget_u
                 asks = polymarket_us_levels(book_doc, side)
             except ValueError as exc:
                 raise HTTPException(status_code=422, detail=str(exc)) from exc
-            rule_metadata = {k:meta.get(k) for k in ("id","slug","title","question","description","rules","status","eventId")}
+            rule_metadata = {k:meta.get(k) for k in ("id","slug","title","outcome","question","description","rules","status","active","closed","eventId","eventSlug")}
             exchange_time = book_doc.get("marketData",{}).get("transactTime")
         else:
             raise HTTPException(status_code=400, detail="Unknown venue")
