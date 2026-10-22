@@ -177,3 +177,26 @@ async def discover_polymarket_us(limit: int=Query(50,ge=1,le=100),offset: int=Qu
     async with httpx.AsyncClient(timeout=10) as client:
         data=await get_json(client,f"{POLY_US}/v1/markets",{"limit":limit,"offset":offset,"active":"true","closed":"false"})
     return {"markets":data.get("markets",[]),"status":"DISCOVERY_ONLY"}
+
+
+@app.get("/v1/discover/kalshi-event/{event_ticker}", dependencies=[Depends(require_read_key)])
+async def discover_kalshi_event(event_ticker: str, cursor: str | None=None):
+    check_id(event_ticker)
+    if cursor and len(cursor) > 600:
+        raise HTTPException(status_code=400,detail="Cursor too long")
+    params = {"event_ticker": event_ticker, "status":"open", "limit":1000}
+    if cursor:
+        params["cursor"] = cursor
+    async with httpx.AsyncClient(timeout=20) as client:
+        data = await get_json(client,f"{KALSHI}/markets",params)
+    markets = [m for m in data.get("markets",[]) if isinstance(m,dict) and m.get("event_ticker")==event_ticker]
+    return {"markets":markets,"cursor":data.get("cursor"),"event_ticker":event_ticker,"status":"EVENT_DISCOVERY_ONLY"}
+
+@app.get("/v1/discover/polymarket-us-event/{event_slug}", dependencies=[Depends(require_read_key)])
+async def discover_polymarket_us_event(event_slug: str, limit: int=Query(100,ge=1,le=100), offset: int=Query(0,ge=0)):
+    check_id(event_slug)
+    params = {"eventSlug":event_slug,"active":"true","closed":"false","limit":limit,"offset":offset}
+    async with httpx.AsyncClient(timeout=20) as client:
+        data = await get_json(client,f"{POLY_US}/v1/markets",params)
+    markets = [m for m in data.get("markets",[]) if isinstance(m,dict) and m.get("eventSlug")==event_slug]
+    return {"markets":markets,"event_slug":event_slug,"next_offset":offset+len(markets) if markets else None,"status":"EVENT_DISCOVERY_ONLY"}
