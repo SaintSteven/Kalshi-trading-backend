@@ -59,7 +59,7 @@ def parse_request(issue: dict) -> list[dict]:
         budget = raw.get("budget_usd")
         if venue not in VENUES or not isinstance(contract, str) or not MARKET_ID.fullmatch(contract):
             raise InvalidRequest("Invalid venue or exact contract ID")
-        if side not in (("YES", "NO") if venue == "kalshi" else ("YES",)):
+        if side not in ("YES", "NO"):
             raise InvalidRequest("Unsupported side for venue")
         try:
             value = Decimal(str(budget))
