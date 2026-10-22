@@ -200,3 +200,56 @@ async def discover_polymarket_us_event(event_slug: str, limit: int=Query(100,ge=
         data = await get_json(client,f"{POLY_US}/v1/markets",params)
     markets = [m for m in data.get("markets",[]) if isinstance(m,dict) and m.get("eventSlug")==event_slug]
     return {"markets":markets,"event_slug":event_slug,"next_offset":offset+len(markets) if markets else None,"status":"EVENT_DISCOVERY_ONLY"}
+
+
+@app.get("/v1/discover/polymarket-us-search", dependencies=[Depends(require_read_key)])
+async def discover_polymarket_us_search(query: str=Query(min_length=3,max_length=120), limit: int=Query(10,ge=1,le=30), page: int=Query(1,ge=1,le=100)):
+    """Search public US events; returned event slug may differ from webpage route."""
+    async with httpx.AsyncClient(timeout=25) as client:
+        data = await get_json(client,f"{POLY_US}/v1/search",
+                              {"query":query,"limit":limit,"page":page})
+    events = data.get("events",[])
+    if not isinstance(events,list):
+        raise HTTPException(status_code=502, detail="Unrecognized event search response")
+    selected = []
+    for event in events[:limit]:
+        if not isinstance(event,dict):continue
+        selected.append({k:event.get(k) for k in
+                         ("id","slug","title","startTime","endTime","active","closed")
+                         if k in event})
+    return {"query":query,"page":page,"events":selected,
+            "status":"SEARCH_DISCOVERY_ONLY","retrieved_at_utc":datetime.now(timezone.utc).isoformat()}
+
+
+@app.get("/v1/discover/polymarket-us-event-detail/{event_slug}", dependencies=[Depends(require_read_key)])
+async def discover_polymarket_us_event_detail(event_slug: str,
+                                               keyword: str=Query("",max_length=90),
+                                               offset: int=Query(0,ge=0,le=3000),
+                                               limit: int=Query(75,ge=1,le=150)):
+    """Read an event's actual market list and filter BEFORE returning to GitHub."""
+    check_id(event_slug)
+    async with httpx.AsyncClient(timeout=30) as client:
+        data = await get_json(client,f"{POLY_US}/v1/events/slug/{event_slug}")
+    event = data.get("event")
+    if not isinstance(event,dict) or event.get("slug") != event_slug:
+        raise HTTPException(status_code=502,detail="Event identity mismatch")
+    markets=event.get("markets")
+    if not isinstance(markets,list):
+        raise HTTPException(status_code=502,detail="Event market list not available")
+    key=keyword.casefold().strip()
+    filtered = []
+    for market in markets:
+        if not isinstance(market,dict):continue
+        if key and key not in " ".join(str(market.get(k,"")) for k in
+            ("slug","title","outcome","description")).casefold():
+            continue
+        filtered.append({k:market.get(k) for k in
+                         ("id","slug","title","outcome","active","closed")
+                         if k in market})
+    return {"event":{k:event.get(k) for k in
+                     ("id","slug","title","startTime","endTime","active","closed")},
+            "total_event_markets":len(markets),"matching_market_count":len(filtered),
+            "markets":filtered[offset:offset+limit],
+            "next_offset":offset+limit if offset+limit<len(filtered) else None,
+            "keyword":keyword,"status":"EVENT_DETAILS_DISCOVERY_ONLY",
+            "retrieved_at_utc":datetime.now(timezone.utc).isoformat()}
