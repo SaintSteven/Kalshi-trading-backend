@@ -151,7 +151,7 @@ async def compare(body: CompareRequest):
             rows.append(result)
     attested = bool(body.same_settlement_rules_checked and (body.equivalence_evidence or "").strip())
     eligible = [r for r in rows if "pricing" in r and r["pricing"]["complete_depth"]]
-    winner = min(eligible,key=lambda r: Decimal(r["pricing"]["estimated_total_usd"]))["venue"] if attested and eligible else None
+    winner = min(eligible,key=lambda r: Decimal(r["pricing"]["estimated_total_usd"]))["venue"] if attested and len(eligible) == 2 else None
     return {
         "comparison_status": "ANALYST_ATTESTED_NOT_AUTOMATICALLY_VERIFIED" if attested else "SETTLEMENT_EQUIVALENCE_UNVERIFIED",
         "equivalence_evidence": body.equivalence_evidence if attested else None,
@@ -175,5 +175,5 @@ async def discover_kalshi(series_ticker: str, cursor: str | None=None):
 @app.get("/v1/discover/polymarket-us", dependencies=[Depends(require_read_key)])
 async def discover_polymarket_us(limit: int=Query(50,ge=1,le=100),offset: int=Query(0,ge=0)):
     async with httpx.AsyncClient(timeout=10) as client:
-        data=await get_json(client,f"{POLY_US}/v1/markets",{"limit":limit,"offset":offset})
+        data=await get_json(client,f"{POLY_US}/v1/markets",{"limit":limit,"offset":offset,"active":"true","closed":"false"})
     return {"markets":data.get("markets",[]),"status":"DISCOVERY_ONLY"}
