@@ -30,10 +30,9 @@ def test_parses_exact_contracts_and_small_stakes():
     assert rows[1]["venue"] == "polymarket-us"
 
 
-def test_kalshi_no_is_allowed_but_poly_no_is_blocked():
+def test_kalshi_and_polymarket_us_no_are_allowed():
     assert parse_request(issue([kalshi(side="NO")]))[0]["side"] == "NO"
-    with pytest.raises(InvalidRequest):
-        parse_request(issue([poly(side="NO")]))
+    assert parse_request(issue([poly(side="NO")]))[0]["side"] == "NO"
 
 
 def test_owner_only():
