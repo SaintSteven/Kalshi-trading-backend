@@ -112,7 +112,7 @@ def fetch_one(leg: dict) -> dict:
                 if not any(keyword in haystack for keyword in leg["keywords"]):
                     continue
             filtered.append(compact)
-            if len(filtered) >= 75:
+            if len(filtered) >= (200 if leg.get('event_ticker') or leg.get('event_slug') else 75):
                 break
         return {"venue": venue, "request": leg,
                 "status": "DISCOVERY_SNAPSHOT",
