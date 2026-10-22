@@ -47,3 +47,24 @@ From pricing_connector, install requirements.txt and pytest; run python -m pytes
 ## Next phases
 
 Verified settlement-rule matcher, configurable fee tiers and authenticated read-only order previews; stake-budget optimizer; scalar payout modeling; read-only account-ledger reconciliation. Never automate trading without separately authorized action.
+
+
+## ChatGPT personal-account bridge via GitHub Issues
+
+ChatGPT personal plans may not be able to create a custom API action/app. Because the GitHub connector is already connected, it can submit issue requests to the *existing repository* and read bot replies. This preserves the Prediction Markets Project workflow without screenshots or a new subscription. The issue workflow becomes active **only after this PR is merged into the repository's default branch**.
+
+**Contract discovery request**: use the connected GitHub tool to create an issue whose title starts with [discovery-v3] and whose body is the following JSON:
+
+    {"version":1,"discover":[{"venue":"kalshi","series_ticker":"KXNFLGAME"},{"venue":"polymarket-us","limit":100,"offset":0,"keywords":["NFL","Bears","Patriots"]}]}
+
+Retrieve the ensuing bot comment with the GitHub issue-comments tool. Kalshi discovery returns at most 75 compact matches per request and a pagination cursor; Polymarket US returns at most 75 compact matches from the requested page and a next offset. The keywords are applied *within the requested page only*, not over the entire exchange. Thus **discovery coverage is not automatically exhaustive**: page further and query the relevant Kalshi series for all desired prop types.
+
+**Exact price request**: Create a second issue whose title starts with [pricing-v3] and whose body is the following JSON. Replace the example contract IDs with *exact venue identifiers returned by discovery*:
+
+    {"version":1,"quotes":[{"venue":"kalshi","contract":"EXACT_KALSHI_TICKER","side":"YES","budget_usd":"1.50"},{"venue":"polymarket-us","contract":"exact-polymarket-us-slug","side":"YES","budget_usd":"1.50"}]}
+
+The [pricing-v3] workflow is limited to **16 exact contracts per request**; batch additional requests if needed. It checks the actual public order-book depth at the intended small dollar stake and returns a timestamped JSON result in the issue comment. The GPT assistant should read that response via its connected GitHub tool and use Research v3. A binary with stale quote, incomplete depth, unverified fees, uncertain settlement rules or poor fair probability is never marked executable QUALIFY.
+
+**Privacy and authorization**: This repository is public. Only the authorized GitHub account SaintSteven can trigger these jobs, and issue bodies/comments are publicly readable. Never submit API keys, private account balances, or personal information. The bridge cannot place trades and only requests from the hardcoded Render read-only pricing service.
+
+**Operational note**: GitHub Actions have variable scheduling/execution latency; retrieved public-book snapshots may become stale by the time a card is shown. Prefer fresh requests immediately before recommending entries, display quote age and mark anything stale/unavailable as LIMIT ONLY or WATCH.
