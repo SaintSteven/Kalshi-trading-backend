@@ -87,3 +87,42 @@ def simulated_buy(levels, count, fee_rate):
         "firm_executable_quote": False,
         "status": "DEPTH_AVAILABLE_FEES_ESTIMATED" if left == 0 else "INSUFFICIENT_DEPTH",
     }
+
+
+def affordable_buy(levels, budget_usd, fee_rate, max_contracts=10000):
+    """Largest integer binary contract purchase fitting a USD risk budget.
+
+    Fee estimate is conservatively rounded per simulated order. A budget can be
+    underutilized because contracts are priced in whole shares; never round up.
+    """
+    budget = number(budget_usd)
+    if not D(0) < budget <= D(100000):
+        raise ValueError("stake budget must be positive")
+    if not isinstance(max_contracts, int) or not 1 <= max_contracts <= 10000:
+        raise ValueError("invalid contract limit")
+    lo, hi, best = 1, max_contracts, None
+    while lo <= hi:
+        middle = (lo + hi) // 2
+        candidate = simulated_buy(levels, middle, fee_rate)
+        feasible = (candidate["complete_depth"]
+                    and number(candidate["estimated_total_usd"]) <= budget)
+        if feasible:
+            best = candidate
+            lo = middle + 1
+        else:
+            hi = middle - 1
+    if best is None:
+        return {
+            "target_stake_usd": str(budget),
+            "complete_depth": False,
+            "whole_contracts_priced": 0,
+            "estimated_total_usd": "0",
+            "unspent_usd": str(budget),
+            "status": "NO_AFFORDABLE_WHOLE_CONTRACT",
+            "firm_executable_quote": False,
+            "fee_verified": False,
+        }
+    best["target_stake_usd"] = str(budget)
+    best["whole_contracts_priced"] = best["requested_contracts"]
+    best["unspent_usd"] = str(budget - number(best["estimated_total_usd"]))
+    return best
