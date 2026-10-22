@@ -23,7 +23,7 @@ def test_polymarket_us_yes_uses_offers():
     levels=polymarket_us_levels(fixture,"YES")
     assert levels[0]==(D(".55"),D(3))
     with pytest.raises(ValueError):
-        polymarket_us_levels(fixture,"NO")
+        polymarket_us_levels(fixture,"NO")  # no bid depth in fixture
 
 def test_market_closed_and_missing_bids_fail():
     with pytest.raises(ValueError):
@@ -66,3 +66,20 @@ def test_budget_uses_depth_and_fees():
     fill=affordable_buy([(D(".40"),D(1)),(D(".99"),D(50))],D("1.30"),D(".07"))
     assert fill["whole_contracts_priced"]==1
     assert D(fill["estimated_total_usd"])<=D("1.50")
+
+def test_polymarket_us_no_uses_best_yes_bids():
+    fixture={"marketData":{"state":"MARKET_STATE_OPEN",
+             "bids":[{"px":{"value":"0.57","currency":"USD"},"qty":"2"},
+                      {"px":{"value":"0.60","currency":"USD"},"qty":"3"}],
+             "offers":[]}}
+    offers=polymarket_us_levels(fixture,"NO")
+    assert offers==[(D(".40"),D(3)),(D(".43"),D(2))]
+    pricing=simulated_buy(offers,4,D(".0695"))
+    assert pricing["complete_depth"] is True
+    assert pricing["gross_cost_usd"]=="1.63"
+    assert pricing["fee_verified"] is False
+    assert pricing["firm_executable_quote"] is False
+
+def test_polymarket_us_no_with_empty_bids_has_no_price():
+    fixture={"marketData":{"state":"MARKET_STATE_OPEN","bids":[],"offers":[]}}
+    assert polymarket_us_levels(fixture,"NO")==[]
