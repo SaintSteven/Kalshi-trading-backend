@@ -88,3 +88,35 @@ def test_run_never_contacts_exchange_for_invalid_request(monkeypatch):
         lambda _: (_ for _ in ()).throw(AssertionError("should not call provider")),
     )
     assert run(issue([kalshi()], user="other"))["request_status"] == "INVALID_REQUEST"
+
+
+def test_api_generations_are_normalized_without_default_contract_fallback():
+    from issue_quote_bridge import normalized_pricing
+    legacy = {
+        "target_stake_usd": "1.50", "whole_contracts_priced": 2,
+        "complete_depth": True, "top_ask_dollars": "0.70",
+        "estimated_total_usd": "1.42", "estimated_fees_usd":"0.02",
+        "status": "DEPTH_AVAILABLE_FEES_ESTIMATED",
+    }
+    a = normalized_pricing(legacy, "1.50")
+    assert a["whole_contracts_priced"] == 2
+    assert a["fee_verified"] is False
+
+    latest = {
+        "requested_stake_usd": "1.50",
+        "affordable_whole_contracts": 2,
+        "unspent_stake_usd": "0.08",
+        "status": "STAKED_BOOK_SNAPSHOT_FEES_ESTIMATED",
+        "quote": {
+            "complete_depth": True, "top_ask_dollars": "0.70",
+            "estimated_total_usd": "1.42", "estimated_fees_usd": "0.02",
+        },
+    }
+    b = normalized_pricing(latest, "1.50")
+    assert b["complete_depth"] is True
+    assert b["unspent_usd"] == "0.08"
+
+    with pytest.raises(ValueError):
+        normalized_pricing({"requested_contracts": 3, "estimated_total_usd": "1.50"}, "1.50")
+    with pytest.raises(ValueError):
+        normalized_pricing(legacy, "2.00")
