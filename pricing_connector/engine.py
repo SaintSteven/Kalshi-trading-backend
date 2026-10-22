@@ -36,17 +36,23 @@ def kalshi_levels(payload, side):
     return _levels([(D(1)-number(row[0]), row[1]) for row in bids])
 
 def polymarket_us_levels(payload, side):
-    if side != "YES":
-        raise ValueError("Polymarket US NO/short mechanics not yet validated")
+    """Convert US YES offers to YES asks and US YES bids into synthetic NO costs.
+
+    NO is a fully collateralized short of the single YES instrument:
+    taking NO crosses the highest YES bids (net risk=1-YES sale price).
+    Source: official Polymarket US Market Structure and Collateral docs.
+    """
+    if side not in ("YES","NO"):
+        raise ValueError("Unknown Polymarket US side")
     data = payload.get("marketData")
-    if not isinstance(data, dict) or data.get("state") != "MARKET_STATE_OPEN":
+    if not isinstance(data,dict) or data.get("state") != "MARKET_STATE_OPEN":
         raise ValueError("Polymarket US book not confirmed open")
-    offers = data.get("offers")
-    if not isinstance(offers, list):
-        raise ValueError("Missing Polymarket US offers")
-    if any(not isinstance(row, dict) or "px" not in row or "qty" not in row for row in offers):
-        raise ValueError("Malformed Polymarket US offers")
-    return _levels([(row["px"], row["qty"]) for row in offers])
+    rows = data.get("offers" if side=="YES" else "bids")
+    if not isinstance(rows,list):
+        raise ValueError("Missing Polymarket US book side")
+    if any(not isinstance(row,dict) or "px" not in row or "qty" not in row for row in rows):
+        raise ValueError("Malformed Polymarket US book levels")
+    return _levels([(row["px"] if side=="YES" else D(1)-number(row["px"]),row["qty"]) for row in rows])
 
 def simulated_buy(levels, count, fee_rate):
     """Depth-weighted gross price + conservative estimate of taker fees.
