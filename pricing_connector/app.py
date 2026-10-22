@@ -11,7 +11,7 @@ from typing import Literal
 import httpx
 from fastapi import Depends, FastAPI, Header, HTTPException, Query
 from pydantic import BaseModel, Field
-from engine import kalshi_levels, polymarket_us_levels, simulated_buy
+from engine import affordable_buy, kalshi_levels, polymarket_us_levels, simulated_buy
 
 KALSHI = "https://external-api.kalshi.com/trade-api/v2"
 POLY_US = "https://gateway.polymarket.us"
@@ -57,7 +57,7 @@ async def get_json(client: httpx.AsyncClient, url: str, params=None):
     except (httpx.HTTPError, ValueError) as exc:
         raise HTTPException(status_code=502, detail="Exchange unavailable or unrecognized JSON") from exc
 
-async def quote(venue: str, identifier: str, side: str, contracts: int):
+async def quote(venue: str, identifier: str, side: str, contracts: int, budget_usd: Decimal | None = None):
     check_id(identifier)
     if not 1 <= contracts <= 10000:
         raise HTTPException(status_code=422, detail="Whole share count out of range")
@@ -105,7 +105,7 @@ async def quote(venue: str, identifier: str, side: str, contracts: int):
         "exchange_book_time": exchange_time,
         "source": "DIRECT_PUBLIC_PROVIDER_API",
         "market_rules": rule_metadata,
-        "pricing": simulated_buy(asks, contracts, fee_rate(venue)),
+        "pricing": affordable_buy(asks, budget_usd, fee_rate(venue)) if budget_usd is not None else simulated_buy(asks, contracts, fee_rate(venue)),
         "quote_status": "LIVE_BOOK_SNAPSHOT_UNRESERVED",
         "limitations": [
             "Displayed liquidity may change before any purchase.",
@@ -129,12 +129,12 @@ async def health():
     return {"status":"ok","mode":"read-only","trading_enabled":False,"version":"0.1.0"}
 
 @app.get("/v1/quote/kalshi/{ticker}", dependencies=[Depends(require_read_key)])
-async def kalshi_quote(ticker: str, side: Literal["YES","NO"]="YES", contracts: int=Query(3,ge=1,le=10000)):
-    return await quote("kalshi",ticker,side,contracts)
+async def kalshi_quote(ticker: str, side: Literal["YES","NO"]="YES", contracts: int=Query(3,ge=1,le=10000), budget_usd: Decimal | None=Query(None,gt=0,le=100)):
+    return await quote("kalshi",ticker,side,contracts,budget_usd)
 
 @app.get("/v1/quote/polymarket-us/{slug}", dependencies=[Depends(require_read_key)])
-async def polymarket_quote(slug: str, side: Literal["YES"]="YES", contracts: int=Query(3,ge=1,le=10000)):
-    return await quote("polymarket-us",slug,side,contracts)
+async def polymarket_quote(slug: str, side: Literal["YES"]="YES", contracts: int=Query(3,ge=1,le=10000), budget_usd: Decimal | None=Query(None,gt=0,le=100)):
+    return await quote("polymarket-us",slug,side,contracts,budget_usd)
 
 @app.post("/v1/compare", dependencies=[Depends(require_read_key)])
 async def compare(body: CompareRequest):
