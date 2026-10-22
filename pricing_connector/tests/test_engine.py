@@ -1,7 +1,7 @@
 """Synthetic wire fixtures; live provider smoke tests required after deploy."""
 from decimal import Decimal as D
 import pytest
-from engine import kalshi_levels, polymarket_us_levels, simulated_buy
+from engine import affordable_buy, kalshi_levels, polymarket_us_levels, simulated_buy
 
 def test_kalshi_yes_recovers_asks_from_opposite_bids():
     fixture={"orderbook_fp":{"yes_dollars":[["0.20","2"]],"no_dollars":[["0.40","1"],["0.45","2"]]}}
@@ -49,3 +49,20 @@ def test_fee_estimated_never_verified():
 def test_bad_quantity_fail():
     with pytest.raises(ValueError):
         simulated_buy([],0,D(".07"))
+
+def test_budget_limited_stake_selects_whole_contracts():
+    levels=[(D(".40"),D(3)),(D(".50"),D(3))]
+    fill=affordable_buy(levels,D("1.50"),D(".07"))
+    assert fill["whole_contracts_priced"]==3
+    assert fill["estimated_total_usd"]=="1.26"
+    assert fill["unspent_usd"]=="0.24"
+
+def test_budget_does_not_overspend_to_get_one_contract():
+    fill=affordable_buy([(D(".50"),D(3))],D(".51"),D(".07"))
+    assert fill["status"]=="NO_AFFORDABLE_WHOLE_CONTRACT"
+    assert fill["whole_contracts_priced"]==0
+
+def test_budget_uses_depth_and_fees():
+    fill=affordable_buy([(D(".40"),D(1)),(D(".99"),D(50))],D("1.50"),D(".07"))
+    assert fill["whole_contracts_priced"]==1
+    assert D(fill["estimated_total_usd"])<=D("1.50")
