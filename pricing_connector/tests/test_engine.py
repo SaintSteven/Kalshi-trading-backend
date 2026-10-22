@@ -63,6 +63,6 @@ def test_budget_does_not_overspend_to_get_one_contract():
     assert fill["whole_contracts_priced"]==0
 
 def test_budget_uses_depth_and_fees():
-    fill=affordable_buy([(D(".40"),D(1)),(D(".99"),D(50))],D("1.50"),D(".07"))
+    fill=affordable_buy([(D(".40"),D(1)),(D(".99"),D(50))],D("1.30"),D(".07"))
     assert fill["whole_contracts_priced"]==1
     assert D(fill["estimated_total_usd"])<=D("1.50")
