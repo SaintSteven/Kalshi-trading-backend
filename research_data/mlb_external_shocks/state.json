@@ -1,18 +1,38 @@
 {
   "games": {
     "849805": {
-      "away_lineup": [],
-      "away_lineup_confirmed": false,
+      "away_lineup": [
+        "Yandy D\u00edaz",
+        "Jonathan Aranda",
+        "Chandler Simpson",
+        "Junior Caminero",
+        "Liam Hicks",
+        "Jonny DeLuca",
+        "Victor Mesa Jr.",
+        "Ben Williamson",
+        "Taylor Walls"
+      ],
+      "away_lineup_confirmed": true,
       "away_probable_pitcher": "Nick Martinez",
       "away_team": "Tampa Bay Rays",
       "game_date": "2026-10-24T00:00:00Z",
       "game_pk": 849805,
-      "home_lineup": [],
-      "home_lineup_confirmed": false,
+      "home_lineup": [
+        "Jackson Chourio",
+        "Jake Bauers",
+        "Christian Yelich",
+        "William Contreras",
+        "Brice Turang",
+        "Garrett Mitchell",
+        "Cooper Pratt",
+        "Sal Frelick",
+        "David Hamilton"
+      ],
+      "home_lineup_confirmed": true,
       "home_probable_pitcher": "Jacob Misiorowski",
       "home_team": "Milwaukee Brewers",
       "status": "Preview"
     }
   },
-  "last_run_at": "2026-10-23T19:28:24.225728Z"
+  "last_run_at": "2026-10-23T22:31:13.970454Z"
 }
