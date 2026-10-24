@@ -29,15 +29,19 @@ Limit 16 exact contracts per issue. Use sport-specific saved stakes such as NFL 
 
 The bot replies to the issue with results including exact IDs, title and rules metadata, timestamp, top ask, depth, estimated fee-inclusive cost and unspent stake. Failed, closed, inaccessible, or insufficient-depth quotes are clearly labeled. The bridge cannot buy shares, does not access users' account data and does not give a guaranteed executable order. Polymarket US NO/short remains unsupported.
 
-## Workflow for every betting card
+## Research v3.2 LEAN: TARGETED pricing after research
 
-1. Follow Prediction Markets Research v3 playbook, source consensus, injuries and existing ledger.
-2. Identify exact contract thresholds and retrieve IDs through the discovery issue path.
-3. Retrieve direct venue book snapshots for the actual stake-sized amounts through quote issues.
-4. Independently check that compared contracts share exact terms, sides, void rules and payout semantics.
-5. Compute estimated net edge and risk with quote freshness. Unreserved books and unverified fees are snapshots, not firm executable orders.
-6. Mark QUALIFY only where pricing, rules, accessibility and net EV are genuinely verified; otherwise LIMIT ONLY, WATCH or PASS. No invented quotes or artificial card size.
-7. Include v3 audit: sources/disagreement, slate/market coverage and gaps, quote verification, existing/proposed exposure, risks, reasons for WATCH/PASS.
+**Research first; request prices second.** ChatGPT screens the relevant sports slate, independently validates exact-outcome signals, estimates fair probabilities, and shortlists only promising candidates **before** using the GitHub discovery/quote bridge. The bridge is not a prediction model or full-slate screener.
+
+1. Read the latest v3.2 Lean project playbook and master ledger; preserve existing placed positions and saved sport-specific units.
+2. Screen full slate including player props, oppositional evidence, lineup/injury/role news using genuinely independent sources. At least TWO independent exact-outcome quantitative/analytical signals are needed for research-backed recommendations. Recompute threshold probability from credible model distributions where applicable; mean projections alone don't validate alternate thresholds.
+3. Shortlist candidates with fair probability ranges, positive net-edge potential, uncertainty and a maximum ALL-IN buy price. **Do not run exchange discovery for every market on the slate.**
+4. For shortlist ONLY, use existing exact IDs when still applicable or send a small batched [discovery-v3] issue. Batch up to 16 requested exact contracts in [pricing-v3] issues. Avoid redundant calls on rescans; refresh stale/injury-sensitive books.
+5. Independently check exact threshold, actual contract question, period, side, settlement and void rules. Compare Kalshi and Polymarket US when a truly equivalent accessible contract exists. Another venue's missing/not-equivalent market **does not block** a sound conditional single-venue recommendation; mark it NOT COMPARABLE.
+6. Compare fee-estimated stake-sized average book cost to the model-based all-in ceiling. The bot returns **UNRESERVED PUBLIC SNAPSHOTS**, not firm executable fills or authenticated fee confirmation. Treat research-supported opportunities as **LIMIT ONLY** unless separate real execution-price verification exists. Keep these conditional limits prominent in the card; do NOT imply a trade was placed.
+7. Provide verified/nonverified status, risk units and dollar stake, feasible share count, quote time, correlated exposure and five-part transparency audit. WATCH/PASS if source, contract, modeled EV or price-ceiling evidence does not support even a conditional entry.
+
+The bridge is intentionally a narrowly scoped read-only helper. Changes to the research process **do not** change fee verification, execution rights, access restrictions or any deployed endpoint.
 
 ## Security and accuracy limitations
 
@@ -47,12 +51,10 @@ No trade placement or private account access. All incoming contract IDs are vali
 
 This workflow does NOT imply full automatic listing coverage of every market; continue to audit any omitted series and missing threshold.
 
-## Mandatory venue comparison for every Research v3 card
+## Targeted venue comparison for Research v3.2 Lean cards
 
-For every potential binary NFL/NBA/CFB/MLB/EPL/soccer/futures bet, identify the exact outcome and threshold on Kalshi AND Polymarket US. Fetch the freshest available direct-book quotes for the same SIDE and same threshold, with intended budget (sport-specific 1.0u, 0.75u, 0.5u); validate settlement/void rules and venue access. When exact threshold is not listed, say NO EXACT MATCH and do not compare a neighboring threshold as though it were equivalent. Treat both unavailable/unpriced as UNVERIFIED and do not invent a venue winner.
+For **research-shortlisted exact binary outcomes**, look for the same side/threshold/settlement on Kalshi and Polymarket US. Only quote actual equivalent contracts, compare their stake-sized fee-estimated weighted averages and report depth/whole shares. When an exact market is absent on either venue, say NO EXACT MATCH / NOT COMPARABLE. Do not mistake different thresholds for the same trade or let a failed alternate-venue lookup erase a defensible candidate.
 
-Present these columns by default: exact selection/threshold; Kalshi all-in average + number of contracts; Polymarket US all-in average + number of contracts; better venue or TIE/NOT COMPARABLE; maximum all-in price; proposed dollars; classification and quote timestamp. Consider effective available liquidity, fee rounding, fractional-vs-whole shares, and exit depth. When quotes are equal, don't claim a price winner; prioritize verified availability and practical management.
+Present: selection/threshold; Kalshi estimated all-in average + contracts if available; Polymarket US same if equivalent; selected accessible venue or NOT COMPARABLE; max all-in limit; intended risk dollars; LIMIT ONLY/QUALIFY/WATCH/PASS and quote timestamps. Public bridge quotes cannot be labeled firm executable. No confirmed trade without user/account evidence.
 
-Polymarket US has one YES instrument per outcome; buying NO is implemented as a fully collateralized short of that instrument, using the opposite (YES bid) side of its order book. Its NO effective loss/buying-power consumption is 1 - YES sale price plus fees, while $1 full margin per contract is posted and sale proceeds are credited. The read-only price engine estimates this from YES bids; authenticate exact availability and preview before calling it executable. Never compare an offshore Polymarket price with a US executable quote without proving access.
-
-Never upgrade WATCH to QUALIFY solely because a different threshold is cheaper. If two sources support over 14.5 attempts, a 16+ attempt market is not automatically exact-market consensus. This comparison is REQUIRED for all future cards, scans and updates using the bridge.
+Polymarket US NO/short is not the same as buying YES: fully collateralized short semantics, order-book YES bids, margin and provider-access restrictions need to be checked in an authenticated preview. International Polymarket is not US executable. Scalar ladders/escalators need a separate payout-aware model. Do not upgrade WATCH based only on a cheaper neighboring threshold.
