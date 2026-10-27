@@ -5,6 +5,7 @@ contract fields (including the actual Kalshi ladder rung and verified rules).
 Only validated exact outcomes can call the existing read-only quote helper.
 """
 from exact_threshold_gate import Candidate, validate_ladder_candidate
+import re
 
 
 def nba_preflight(request: dict) -> dict:
@@ -27,8 +28,10 @@ def nba_preflight(request: dict) -> dict:
         if not matched:
             return {"status": "WATCH", "reason": reason, "quote_allowed": False}
         ticker = m["contract"]
-        if not isinstance(ticker, str) or not ticker.startswith("KXNBA"):
+        if not isinstance(ticker, str) or not re.fullmatch(r"KXNBA[A-Z0-9-]+", ticker):
             return {"status": "WATCH", "reason": "Not an identified NBA contract", "quote_allowed": False}
+        if not ticker.endswith("-" + str(int(m["yes_threshold"]))):
+            return {"status": "WATCH", "reason": "Ticker rung does not match claimed threshold", "quote_allowed": False}
         return {"status": "EXACT_MATCH_RESEARCH_ONLY", "quote_allowed": True,
                 "quote_leg": {"venue": "kalshi", "contract": ticker,
                               "side": m["side"], "budget_usd": str(request["budget_usd"])}}
