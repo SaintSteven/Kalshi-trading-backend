@@ -1,5 +1,5 @@
 import unittest
-from pricing_connector.exact_threshold_gate import Candidate, validate_ladder_candidate
+from exact_threshold_gate import Candidate, validate_ladder_candidate
 
 
 class ExactThresholdGateTests(unittest.TestCase):
