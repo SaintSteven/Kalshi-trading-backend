@@ -7,7 +7,7 @@ def request(rung=11, sport="NBA", signals=2):
         "candidate": {"player": "Donovan Clingan", "stat": "rebounds",
                       "direction": "UNDER", "threshold": 10.5,
                       "supporting_independent_signals": signals},
-        "market": {"venue": "kalshi", "contract": "KXNBAREB-26OCT27PORLAL-PORDCLINGAN23-12",
+        "market": {"venue": "kalshi", "contract": f"KXNBAREB-26OCT27PORLAL-PORDCLINGAN23-{rung}",
                    "player": "Donovan Clingan", "stat": "rebounds",
                    "yes_threshold": rung, "side": "NO", "rules_verified": True},
     }
@@ -52,3 +52,8 @@ def test_live_snapshot_fixture_stays_unreserved():
     assert output["quote"]["pricing"]["whole_contracts_priced"] == 3
     assert output["firm_executable_quote"] is False
     assert output["trade_executed"] is False
+
+def test_ticker_rung_disagreement_blocks_quote():
+    payload = request(11)
+    payload["market"]["contract"] = "KXNBAREB-26OCT27PORLAL-PORDCLINGAN23-12"
+    assert nba_preflight(payload)["quote_allowed"] is False
