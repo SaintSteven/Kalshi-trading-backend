@@ -1,38 +1,18 @@
 {
   "games": {
-    "849803": {
-      "away_lineup": [
-        "Jackson Chourio",
-        "Jake Bauers",
-        "Christian Yelich",
-        "William Contreras",
-        "Brice Turang",
-        "Sal Frelick",
-        "Cooper Pratt",
-        "Garrett Mitchell",
-        "David Hamilton"
-      ],
-      "away_lineup_confirmed": true,
-      "away_probable_pitcher": "Dustin May",
+    "849799": {
+      "away_lineup": [],
+      "away_lineup_confirmed": false,
+      "away_probable_pitcher": null,
       "away_team": "Milwaukee Brewers",
-      "game_date": "2026-10-28T00:00:00Z",
-      "game_pk": 849803,
-      "home_lineup": [
-        "Yandy D\u00edaz",
-        "Jonathan Aranda",
-        "Junior Caminero",
-        "Liam Hicks",
-        "Jonny DeLuca",
-        "Chandler Simpson",
-        "Ryan Vilade",
-        "Richie Palacios",
-        "Taylor Walls"
-      ],
-      "home_lineup_confirmed": true,
-      "home_probable_pitcher": "Griffin Jax",
+      "game_date": "2026-10-29T00:00:00Z",
+      "game_pk": 849799,
+      "home_lineup": [],
+      "home_lineup_confirmed": false,
+      "home_probable_pitcher": null,
       "home_team": "Tampa Bay Rays",
       "status": "Preview"
     }
   },
-  "last_run_at": "2026-10-27T21:04:48.879164Z"
+  "last_run_at": "2026-10-28T00:29:54.364511Z"
 }
