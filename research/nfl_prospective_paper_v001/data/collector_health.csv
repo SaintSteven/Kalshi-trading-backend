@@ -1,6 +1,6 @@
 updated_at,series_ticker,prop_family,fetch_ok,open_markets,mapped_markets,missing_game_map,missing_participant_key,error
-2026-10-29T12:42:28.199161+00:00,KXNFLRECYDS,receiving_yards,True,1116,1062,54,0,
-2026-10-29T12:42:28.199161+00:00,KXNFLREC,receptions,True,83,83,0,0,
-2026-10-29T12:42:28.199161+00:00,KXNFLRSHYDS,rushing_yards,True,492,449,43,0,
-2026-10-29T12:42:28.199161+00:00,KXNFLPASSYDS,passing_yards,True,241,221,20,0,
-2026-10-29T12:42:28.199161+00:00,KXNFLANYTD,player_tds,True,0,0,0,0,
+2026-10-29T18:39:43.831778+00:00,KXNFLRECYDS,receiving_yards,True,1207,1153,54,0,
+2026-10-29T18:39:43.831778+00:00,KXNFLREC,receptions,True,509,480,29,0,
+2026-10-29T18:39:43.831778+00:00,KXNFLRSHYDS,rushing_yards,True,532,489,43,0,
+2026-10-29T18:39:43.831778+00:00,KXNFLPASSYDS,passing_yards,True,241,221,20,0,
+2026-10-29T18:39:43.831778+00:00,KXNFLANYTD,player_tds,True,0,0,0,0,
